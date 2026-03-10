@@ -46,28 +46,62 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 
 ---
 
-## 0.4.0 — Persistence Layer
+## 0.4.0 — Persistence: Core Protocol & In-Memory
 
-- [ ] `ConversationStore` protocol — provider-agnostic conversation persistence
-- [ ] `InMemoryConversationStore` — default, non-persistent (replaces ad-hoc message arrays)
-- [ ] `SwiftDataConversationStore` — optional, backed by SwiftData (iOS 17+ / macOS 14+)
+Establishes the persistence contract and a zero-dependency default backend.
+All higher-level `AIClient` APIs are introduced here; later versions swap
+only the storage backend.
+
+- [ ] `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
+- [ ] `Conversation` / `ConversationTurn` models — codable, identifiable, timestamped
+- [ ] `InMemoryConversationStore` — default backend, non-persistent, zero dependencies
 - [ ] `AIClient` integration — `send(conversationId:message:model:)` overload that auto-loads and auto-saves turns
-- [ ] Conversation management API — list, load, delete, archive conversations
+- [ ] Conversation management API — list, load, delete, archive
 - [ ] Token-budget trimming strategy — prune oldest turns when context limit is approached
-- [ ] Migration utilities — import/export conversation JSON
+- [ ] Unit tests — full coverage via `InMemoryConversationStore`
+
+---
+
+## 0.5.0 — Persistence: File System Backend
+
+Maximum compatibility — works on all Apple platforms and Linux without
+additional frameworks. Ships as a separate optional library product
+(`AIProviderKitPersistenceFS`).
+
+- [ ] `FileSystemConversationStore` — stores each conversation as a JSON file under a configurable directory
+- [ ] Atomic writes — write to temp file, rename on success, no partial-write corruption
+- [ ] Async I/O — file operations via `AsyncStream` / task offloading, never blocks the caller
+- [ ] Conversation index file — fast list/search without loading all turn files
+- [ ] Import / export — read and write portable conversation JSON bundles
+- [ ] Unit tests — `tmp`-directory fixtures, cross-platform
+- [ ] Integration tests — round-trip verify against real Claude responses
+
+---
+
+## 0.6.0 — Persistence: Database Backend
+
+SwiftData-backed store for apps that need querying, indexing, or
+multi-process access. Ships as a separate optional library product
+(`AIProviderKitPersistenceDB`).
+
+- [ ] `SwiftDataConversationStore` — full SwiftData (`@Model`) implementation (iOS 17+ / macOS 14+)
+- [ ] Schema migrations — versioned `ModelContainer` configuration
+- [ ] Predicate-based search — query conversations by date, provider, model, metadata
+- [ ] `AIProviderKitUI` — conversation history list view backed by `@Query`
+- [ ] Unit tests — in-memory `ModelContainer` for test isolation
+- [ ] Migration utilities — import `FileSystemConversationStore` data into SwiftData
 
 ---
 
 ## 1.0.0 — MVP
 
-All of 0.2–0.4, plus:
+All of 0.2–0.6, plus:
 
 - [ ] Stable public API guarantee (SemVer from this point forward)
 - [ ] Comprehensive DocC documentation for all public symbols
 - [ ] Token-counting helpers per provider
-- [ ] `AIProviderKitUI` — conversation history view component
 - [ ] Full test coverage report ≥ 85 %
-- [ ] Example app (SwiftUI) demonstrating all three providers + persistence
+- [ ] Example app (SwiftUI) demonstrating all three providers + both persistence backends
 
 ---
 
