@@ -1,13 +1,17 @@
-# AIProviderKit
+<p align="center">
+  <img src="Documentation/Assets/banner.svg" alt="AIProviderKit" width="100%"/>
+</p>
 
-[![CI](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml)
-[![Swift 6](https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white)](https://swift.org)
-[![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift)](https://swift.org/package-manager)
-[![Platforms](https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2013%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue)](https://developer.apple.com/swift)
+<p align="center">
+  <a href="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml"><img src="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <img src="https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white" alt="Swift 6"/>
+  <img src="https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift" alt="SPM Compatible"/>
+  <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2026%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
+</p>
 
-A modular Swift package for integrating AI providers in agnostic way, supporting (Claude, ChatGPT and local execution). Swap providers without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
+A modular Swift package for integrating AI providers in a provider-agnostic way. Swap between Claude, OpenAI, or on-device models without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
 
-Targets **iOS 26+ / macOS 26+**, built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
+Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 
 ---
 
@@ -83,7 +87,7 @@ Full, copy-paste ready examples are in the [`Examples/`](Examples/) folder.
 | [`04_RecipesAndSkills.swift`](Examples/04_RecipesAndSkills.swift) | Reusable prompt templates and composable Skills |
 | [`05_LoggingSetup.swift`](Examples/05_LoggingSetup.swift) | `AILogStore` + `AILogView` debug sheet in a SwiftUI app |
 
-### Streaming (quick reference)
+### Streaming
 
 ```swift
 for try await event in client.stream(request) {
@@ -93,13 +97,14 @@ for try await event in client.stream(request) {
 }
 ```
 
-### Tool use (quick reference)
+### Tool use
 
 ```swift
 // 1. Register tools
 await client.toolRegistry.register(LocationTool.make())
+await client.toolRegistry.registerAll(CalendarTool.self)
 
-// 2. Send — tool calls are executed automatically
+// 2. Send — tool calls are executed and followed up automatically
 let response = try await client.send(
     AIRequestBuilder()
         .model(.claudeSonnet4)
@@ -107,7 +112,7 @@ let response = try await client.send(
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
 )
-print(response.text) // final answer after tool execution
+print(response.text)
 ```
 
 ---
@@ -126,24 +131,24 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for full cl
 
 | Type | Role |
 |---|---|
-| `AIClient` | Main entry point (actor). Orchestrates provider, registries, and auto tool-execution. |
+| `AIClient` | Main entry point (actor). Orchestrates the provider, registries, and auto tool-execution loop. |
 | `AIProvider` | Protocol every provider implements. |
 | `StreamableProvider` | Extends `AIProvider` with SSE streaming. |
 | `AIRequestBuilder` | Fluent, validated request construction. |
-| `Tool` | A callable function the model can invoke. |
+| `Tool` / `ToolGroup` | A callable function (or group of functions) the model can invoke. |
 | `Recipe` | A `{{placeholder}}` prompt template. |
 | `Skill` | A bundle of tools + recipe + post-processing logic. |
-| `AILogger` | Wraps `os.Logger`; optionally forwards to `AILogStore`. |
+| `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
 | `AILogView` | SwiftUI view showing live log entries from `AILogStore`. |
 
 ---
 
 ## Tools
 
-Register provided tools or define your own:
+Register predefined tools or define your own:
 
 ```swift
-// Predefined
+// Predefined — bulk-register an entire ToolGroup
 await client.toolRegistry.register(LocationTool.make())
 await client.toolRegistry.registerAll(CalendarTool.self)
 await client.toolRegistry.registerAll(RemindersTool.self)
@@ -196,7 +201,7 @@ AILogStore.shared = AILogStore()
 let logger = AILogger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "ai")
 let provider = ClaudeProvider(authorization: auth, logger: logger)
 
-// Show the log viewer (import AIProviderKitUI)
+// Show the log viewer in a debug sheet (import AIProviderKitUI)
 .sheet(isPresented: $showLogs) {
     AILogView(store: AILogStore.shared ?? AILogStore())
 }
@@ -225,11 +230,11 @@ Detailed use cases with code examples are in [`Documentation/UseCases.md`](Docum
 
 ### Add a new provider
 
-See [`Documentation/AddingAProvider.md`](Documentation/AddingAProvider.md) for a step-by-step guide. Implementing `AIProvider` is the only requirement — `AIClient` works with any conforming type.
+Implement `AIProvider` (and optionally `StreamableProvider`) — `AIClient` works with any conforming type. See [`Documentation/AddingAProvider.md`](Documentation/AddingAProvider.md) for a step-by-step walkthrough.
 
 ### CI / GitHub Actions
 
-See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for a description of the CI workflow, how the README badge is kept up to date, and guidance on adding new workflows.
+See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the CI workflow, badge setup, and guidance on adding new workflows.
 
 ### Roadmap
 
