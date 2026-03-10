@@ -27,11 +27,9 @@ jobs:
       - name: Swift version
         run: swift --version
 
-      - name: Build
-        run: swift build -c release
-
       - name: Test
         run: swift test --xunit-output test-results.xml
+        continue-on-error: true
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v1
@@ -40,4 +38,4 @@ jobs:
           name: Swift Tests
           path: "**/test-results.xml"
           reporter: java-junit
-          fail-on-error: false
+          fail-on-error: true

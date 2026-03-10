@@ -76,12 +76,20 @@ let package = Package(
         .testTarget(
             name: "AIProviderKitTests",
             dependencies: ["AIProviderKit"],
-            path: "Tests/AIProviderKitTests"
+            path: "Tests/AIProviderKitTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "ClaudeProviderTests",
             dependencies: ["ClaudeProvider", "AIProviderKit"],
-            path: "Tests/ClaudeProviderTests"
+            path: "Tests/ClaudeProviderTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
         )
     ]
 )
