@@ -61,3 +61,22 @@ Tests use Swift Testing (`@Suite`, `@Test`, `#expect`). Each test follows **give
 - Swift 6, full `Sendable` compliance, `StrictConcurrency` and `ExistentialAny` upcoming features enabled on all targets
 - iOS 26+ / macOS 13+ / watchOS 11+ / tvOS 26+ / visionOS 2+
 - Use `async/await` and actors throughout; avoid callback-based or GCD patterns
+
+## Documentation assets
+
+`Documentation/Assets/banner.svg` — 900×240 px dark-theme banner. Key colors to keep consistent:
+
+| Role | Hex |
+|---|---|
+| Background | `#111114` → `#1A1A1F` gradient |
+| Swift orange accent | `#F05138` → `#C73E29` |
+| Primary text | `#FFFFFF` |
+| Body / tagline text | `#D0D0D8` |
+| Muted labels | `#7A7A82` |
+| Coming-soon labels | `#666670` |
+| Active provider (Claude) label | `#F0D090` (warm gold), stroke `#D97706` |
+| Streaming badge | `#3FA0FF` |
+| Tools badge | `#4CD964` |
+| Skills badge | `#FFB830` |
+
+Provider box labels: "Claude", "OpenAI", "Foundation Models" (no "Provider" suffix).
