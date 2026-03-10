@@ -45,8 +45,8 @@ func runWithTools() async throws {
 
     // Predefined device tools:
     await client.toolRegistry.register(LocationTool.make())
-    CalendarTool.all.forEach  { tool in Task { await client.toolRegistry.register(tool) } }
-    RemindersTool.all.forEach { tool in Task { await client.toolRegistry.register(tool) } }
+    await client.toolRegistry.registerAll(CalendarTool.self)
+    await client.toolRegistry.registerAll(RemindersTool.self)
 
     let request = try AIRequestBuilder()
         .model(.claudeSonnet4)
