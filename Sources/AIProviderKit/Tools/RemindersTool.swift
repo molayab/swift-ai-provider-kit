@@ -5,7 +5,7 @@ import EventKit
 /// ```swift
 /// RemindersTool.all.forEach { await client.toolRegistry.register($0) }
 /// ```
-public enum RemindersTool {
+public enum RemindersTool: ToolGroup {
 
     /// All provided reminder tools.
     public static var all: [Tool] { [listReminders, createReminder] }

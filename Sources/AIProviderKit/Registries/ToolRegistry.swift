@@ -11,6 +11,13 @@ public actor ToolRegistry {
         tools[tool.name] = tool
     }
 
+    /// Registers all tools provided by a `ToolGroup` conforming type.
+    public func registerAll(_ group: any ToolGroup.Type) {
+        for tool in group.all {
+            tools[tool.name] = tool
+        }
+    }
+
     public func unregister(named name: String) {
         tools.removeValue(forKey: name)
     }

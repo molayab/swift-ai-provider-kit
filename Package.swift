@@ -5,7 +5,7 @@ let package = Package(
     name: "AIProviderKit",
     platforms: [
         .iOS(.v26),
-        .macOS(.v13),
+        .macOS(.v14),
         .watchOS(.v11),
         .tvOS(.v26),
         .visionOS(.v2)

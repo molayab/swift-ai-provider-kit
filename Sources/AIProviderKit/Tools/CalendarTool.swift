@@ -5,7 +5,7 @@ import EventKit
 /// ```swift
 /// CalendarTool.all.forEach { await client.toolRegistry.register($0) }
 /// ```
-public enum CalendarTool {
+public enum CalendarTool: ToolGroup {
 
     /// All provided calendar tools.
     public static var all: [Tool] { [listEvents, createEvent] }

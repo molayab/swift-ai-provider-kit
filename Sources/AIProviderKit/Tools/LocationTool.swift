@@ -8,7 +8,10 @@ import CoreLocation
 /// ```swift
 /// await client.toolRegistry.register(LocationTool.make())
 /// ```
-public enum LocationTool {
+public enum LocationTool: ToolGroup {
+
+    /// All provided location tools.
+    public static var all: [Tool] { [make()] }
 
     public static func make() -> Tool {
         Tool(
