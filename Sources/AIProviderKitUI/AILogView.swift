@@ -53,10 +53,10 @@ public struct AILogView: View {
             .navigationTitle("AI Logs")
             .searchable(text: $searchText, prompt: "Filter messages")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigation) {
                     levelFilterMenu
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("Clear", role: .destructive) {
                         store.clear()
                     }
