@@ -1,38 +1,39 @@
 <svg width="900" height="240" viewBox="0 0 900 240" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="900" y2="240" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#18181B"/>
-      <stop offset="100%" stop-color="#1F1F24"/>
+      <stop offset="0%" stop-color="#111114"/>
+      <stop offset="100%" stop-color="#1A1A1F"/>
     </linearGradient>
     <linearGradient id="accentBar" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#F05138"/>
       <stop offset="100%" stop-color="#C73E29"/>
     </linearGradient>
     <linearGradient id="clientFill" x1="495" y1="66" x2="613" y2="150" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2B1914"/>
-      <stop offset="100%" stop-color="#1F1A18"/>
+      <stop offset="0%" stop-color="#321A13"/>
+      <stop offset="100%" stop-color="#22160F"/>
+    </linearGradient>
+    <linearGradient id="claudeFill" x1="648" y1="54" x2="766" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2A2218"/>
+      <stop offset="100%" stop-color="#1E1C16"/>
     </linearGradient>
     <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feGaussianBlur stdDeviation="5" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
     <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-      <path d="M0,1 L6,3.5 L0,6 Z" fill="#4A4A4E"/>
-    </marker>
-    <marker id="arrOrange" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-      <path d="M0,1 L6,3.5 L0,6 Z" fill="#F05138"/>
+      <path d="M0,1 L6,3.5 L0,6 Z" fill="#6A6A6E"/>
     </marker>
   </defs>
 
   <!-- Background -->
   <rect width="900" height="240" fill="url(#bg)" rx="12"/>
 
-  <!-- Subtle corner glow -->
-  <radialGradient id="cornerGlow" cx="900" cy="0" r="350" gradientUnits="userSpaceOnUse">
-    <stop offset="0%" stop-color="#F05138" stop-opacity="0.06"/>
+  <!-- Corner glow -->
+  <radialGradient id="cornerGlow" cx="900" cy="0" r="380" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="#F05138" stop-opacity="0.09"/>
     <stop offset="100%" stop-color="#F05138" stop-opacity="0"/>
   </radialGradient>
   <rect width="900" height="240" fill="url(#cornerGlow)" rx="12"/>
@@ -40,79 +41,79 @@
   <!-- Left accent bar -->
   <rect x="0" y="0" width="4" height="240" fill="url(#accentBar)" rx="2"/>
 
-  <!-- ═══════════════════════════════════════════════ -->
-  <!-- LEFT SECTION                                    -->
-  <!-- ═══════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- LEFT SECTION                            -->
+  <!-- ═══════════════════════════════════════ -->
 
   <!-- Package name -->
   <text x="32" y="75" fill="#FFFFFF" font-size="36" font-weight="700" letter-spacing="-1">AIProviderKit</text>
 
   <!-- Orange rule -->
-  <rect x="32" y="84" width="210" height="2.5" fill="#F05138" rx="1.25" opacity="0.9"/>
+  <rect x="32" y="84" width="216" height="2.5" fill="#F05138" rx="1.25"/>
 
   <!-- Tagline -->
-  <text x="32" y="110" fill="#EBEBF5" font-size="13" opacity="0.55">Provider-agnostic AI integration for Swift 6</text>
+  <text x="32" y="110" fill="#D0D0D8" font-size="13">Provider-agnostic AI integration for Swift 6</text>
 
   <!-- Feature badges -->
-  <rect x="32"  y="128" width="96"  height="24" rx="12" fill="#242428" stroke="#3A3A3E" stroke-width="1"/>
-  <text x="80"  y="144" fill="#0A84FF" font-size="11" font-weight="500" text-anchor="middle">⚡ Streaming</text>
+  <rect x="32"  y="128" width="96"  height="24" rx="12" fill="#1C1C22" stroke="#4A4A52" stroke-width="1"/>
+  <text x="80"  y="144" fill="#3FA0FF" font-size="11" font-weight="500" text-anchor="middle">⚡ Streaming</text>
 
-  <rect x="136" y="128" width="78"  height="24" rx="12" fill="#242428" stroke="#3A3A3E" stroke-width="1"/>
-  <text x="175" y="144" fill="#30D158" font-size="11" font-weight="500" text-anchor="middle">⚙ Tools</text>
+  <rect x="136" y="128" width="78"  height="24" rx="12" fill="#1C1C22" stroke="#4A4A52" stroke-width="1"/>
+  <text x="175" y="144" fill="#4CD964" font-size="11" font-weight="500" text-anchor="middle">⚙ Tools</text>
 
-  <rect x="222" y="128" width="72"  height="24" rx="12" fill="#242428" stroke="#3A3A3E" stroke-width="1"/>
-  <text x="258" y="144" fill="#FF9F0A" font-size="11" font-weight="500" text-anchor="middle">✦ Skills</text>
+  <rect x="222" y="128" width="72"  height="24" rx="12" fill="#1C1C22" stroke="#4A4A52" stroke-width="1"/>
+  <text x="258" y="144" fill="#FFB830" font-size="11" font-weight="500" text-anchor="middle">✦ Skills</text>
 
   <!-- Platform / language line -->
-  <text x="32" y="193" fill="#48484A" font-size="11">Swift 6  ·  Sendable  ·  async/await  ·  iOS 26+  ·  macOS 26+</text>
+  <text x="32" y="193" fill="#7A7A82" font-size="11">Swift 6  ·  Sendable  ·  async/await  ·  iOS 26+  ·  macOS 26+</text>
 
   <!-- Vertical divider -->
-  <line x1="338" y1="24" x2="338" y2="216" stroke="#2A2A2E" stroke-width="1"/>
+  <line x1="338" y1="24" x2="338" y2="216" stroke="#303038" stroke-width="1"/>
 
-  <!-- ═══════════════════════════════════════════════ -->
-  <!-- RIGHT SECTION — Architecture diagram            -->
-  <!-- ═══════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- RIGHT SECTION — Architecture diagram   -->
+  <!-- ═══════════════════════════════════════ -->
 
   <!-- Section label -->
-  <text x="862" y="36" fill="#2E2E33" font-size="10" text-anchor="end" letter-spacing="1.5">ARCHITECTURE</text>
+  <text x="862" y="36" fill="#4A4A52" font-size="10" text-anchor="end" letter-spacing="1.5">ARCHITECTURE</text>
 
   <!-- "Your App" box -->
-  <rect x="362" y="94" width="94" height="36" rx="7" fill="#242428" stroke="#3A3A3E" stroke-width="1.5"/>
-  <text x="409" y="117" fill="#EBEBF5" font-size="11.5" font-weight="600" text-anchor="middle" opacity="0.85">Your App</text>
+  <rect x="362" y="94" width="94" height="36" rx="7" fill="#1E1E26" stroke="#505058" stroke-width="1.5"/>
+  <text x="409" y="117" fill="#E0E0E8" font-size="11.5" font-weight="600" text-anchor="middle">Your App</text>
 
   <!-- Arrow: App → AIClient -->
-  <line x1="456" y1="112" x2="494" y2="112" stroke="#4A4A4E" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4 3"/>
+  <line x1="456" y1="112" x2="494" y2="112" stroke="#6A6A6E" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4 3"/>
 
   <!-- AIClient box (orange border + glow) -->
   <rect x="497" y="70" width="118" height="80" rx="8" fill="url(#clientFill)" stroke="#F05138" stroke-width="2" filter="url(#softGlow)"/>
   <text x="556" y="97"  fill="#F05138" font-size="12.5" font-weight="700" text-anchor="middle">AIClient</text>
-  <text x="556" y="113" fill="#EBEBF5" font-size="9.5"  text-anchor="middle" opacity="0.40">actor</text>
-  <text x="556" y="129" fill="#EBEBF5" font-size="9"    text-anchor="middle" opacity="0.30">tools · skills · recipes</text>
+  <text x="556" y="113" fill="#C8C8D0" font-size="9.5"  text-anchor="middle" opacity="0.70">actor</text>
+  <text x="556" y="129" fill="#C8C8D0" font-size="9"    text-anchor="middle" opacity="0.55">tools · skills · recipes</text>
 
   <!-- Arrows: AIClient → each provider -->
-  <path d="M 615 93 Q 635 93 645 72"  stroke="#4A4A4E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <line  x1="615" y1="112" x2="645" y2="112"          stroke="#4A4A4E" stroke-width="1.5"             stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <path d="M 615 131 Q 635 131 645 152" stroke="#4A4A4E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <path d="M 615 93 Q 635 93 645 72"  stroke="#6A6A6E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <line  x1="615" y1="112" x2="645" y2="112"          stroke="#6A6A6E" stroke-width="1.5"             stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <path d="M 615 131 Q 635 131 645 152" stroke="#6A6A6E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
 
-  <!-- Provider: ClaudeProvider (active) -->
-  <rect x="648" y="54"  width="118" height="32" rx="6" fill="#242428" stroke="#3A3A3E" stroke-width="1.5"/>
-  <circle cx="664" cy="70" r="5" fill="#D97706" opacity="0.9"/>
-  <text x="722" y="74" fill="#EBEBF5" font-size="11" font-weight="600" text-anchor="middle" opacity="0.9">ClaudeProvider</text>
+  <!-- Provider: Claude (active) -->
+  <rect x="648" y="54"  width="118" height="32" rx="6" fill="url(#claudeFill)" stroke="#D97706" stroke-width="1.5"/>
+  <circle cx="664" cy="70" r="5" fill="#F59E0B" opacity="0.95"/>
+  <text x="720" y="74" fill="#F0D090" font-size="11" font-weight="600" text-anchor="middle">Claude</text>
 
   <!-- Provider: OpenAI (coming soon) -->
-  <rect x="648" y="96"  width="118" height="32" rx="6" fill="#1E1E22" stroke="#2A2A2E" stroke-width="1.5" stroke-dasharray="5 3"/>
-  <circle cx="664" cy="112" r="5" fill="#3A3A3E" opacity="0.7"/>
-  <text x="722" y="116" fill="#48484A" font-size="11" text-anchor="middle">OpenAI</text>
+  <rect x="648" y="96"  width="118" height="32" rx="6" fill="#161618" stroke="#333338" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <circle cx="664" cy="112" r="5" fill="#444448" opacity="0.8"/>
+  <text x="720" y="116" fill="#666670" font-size="11" text-anchor="middle">OpenAI</text>
 
-  <!-- Provider: Local (coming soon) -->
-  <rect x="648" y="138" width="118" height="32" rx="6" fill="#1E1E22" stroke="#2A2A2E" stroke-width="1.5" stroke-dasharray="5 3"/>
-  <circle cx="664" cy="154" r="5" fill="#3A3A3E" opacity="0.7"/>
-  <text x="722" y="158" fill="#48484A" font-size="11" text-anchor="middle">Foundation Models</text>
+  <!-- Provider: Foundation Models (coming soon) -->
+  <rect x="648" y="138" width="118" height="32" rx="6" fill="#161618" stroke="#333338" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <circle cx="664" cy="154" r="5" fill="#444448" opacity="0.8"/>
+  <text x="720" y="158" fill="#666670" font-size="11" text-anchor="middle">Foundation Models</text>
 
-  <!-- "coming soon" labels -->
-  <text x="783" y="111" fill="#3A3A3E" font-size="9" text-anchor="start">soon</text>
-  <text x="783" y="153" fill="#3A3A3E" font-size="9" text-anchor="start">soon</text>
+  <!-- "soon" labels -->
+  <text x="783" y="111" fill="#505058" font-size="9" text-anchor="start">soon</text>
+  <text x="783" y="153" fill="#505058" font-size="9" text-anchor="start">soon</text>
 
   <!-- Caption under diagram -->
-  <text x="556" y="176" fill="#3A3A3E" font-size="9.5" text-anchor="middle">swap providers without changing app code</text>
+  <text x="556" y="176" fill="#606068" font-size="9.5" text-anchor="middle">swap providers without changing app code</text>
 </svg>
