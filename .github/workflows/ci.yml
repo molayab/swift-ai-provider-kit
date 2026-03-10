@@ -14,9 +14,6 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: macos-26
-    strategy:
-      matrix:
-        xcode: ["26.2"]
 
     permissions:
       checks: write
@@ -27,14 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode ${{ matrix.xcode }}
-        run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
-
       - name: Swift version
         run: swift --version
 
       - name: Build
-        run: swift build -c release 2>&1 | xcpretty || swift build -c release
+        run: swift build -c release
 
       - name: Test
         run: swift test --xunit-output test-results.xml
@@ -44,6 +38,6 @@ jobs:
         if: always()
         with:
           name: Swift Tests
-          path: test-results.xml
+          path: "**/test-results.xml"
           reporter: java-junit
           fail-on-error: false
