@@ -6,7 +6,7 @@
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2013%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue)](https://developer.apple.com/swift)
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-A Swift Package for communicating with AI providers — primarily Claude (Anthropic), with a clean provider abstraction that makes adding OpenAI or Apple's on-device Foundation Models straightforward.
+A modular Swift package for integrating AI providers in agnostic way, supporting (Claude, ChatGPT and local execution). Swap providers without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
 
 Targets **iOS 26+ / macOS 26+**, built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 
