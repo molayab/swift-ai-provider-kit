@@ -247,6 +247,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan. Highlights:
 | **0.4.0** | Persistence — `SupportedConversationStore` enum + protocol + ephemeral backend |
 | **0.5.0** | Persistence — file system backend (`AIProviderKitPersistenceFS`) |
 | **0.6.0** | Persistence — SwiftData backend (`AIProviderKitPersistenceDB`) |
+| **0.7.0** | RAG — `EmbeddingProvider` protocol, in-memory vector store, `AIProviderKitRAG` |
 | **1.0.0** | Full MVP — stable API, DocC, example app |
 
 The persistence layer is fully modular — a `SupportedConversationStore` enum

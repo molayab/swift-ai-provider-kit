@@ -119,23 +119,55 @@ unlocks the `.swiftData` case on `ConversationStoreBackend`.
 
 ---
 
+## 0.7.0 — Retrieval-Augmented Generation (RAG)
+
+Provider-agnostic RAG helper layer. See [`Documentation/Investigations/RAG-Providers.md`](Investigations/RAG-Providers.md) for the full feasibility analysis.
+
+Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies.
+
+### EmbeddingProvider protocol
+
+- [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
+- [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
+- [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` endpoint (`text-embedding-3-large` / `text-embedding-3-small`)
+- [ ] `NLEmbeddingProvider` — on-device via `NaturalLanguage.NLEmbedding` (Foundation Models stack, no API key)
+
+### RAG pipeline
+
+- [ ] `RAGContext` value type — carries retrieved chunks + relevance scores, ready for injection
+- [ ] Document chunker — configurable chunk size and overlap
+- [ ] In-memory vector store — cosine nearest-neighbor search (zero dependencies)
+- [ ] `contextWindowSize: Int` on `AIProvider` — lets the RAG layer auto-size chunk injection per provider budget
+- [ ] `AIRequestBuilder.ragContext(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
+
+### OpenAI managed path (optional)
+
+- [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
+
+### Testing
+
+- [ ] Unit tests — in-memory store, mock embedding provider, chunk injection verification
+- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs
+
+---
+
 ## 1.0.0 — MVP
 
-All of 0.2–0.6, plus:
+All of 0.2–0.7, plus:
 
 - [ ] Stable public API guarantee (SemVer from this point forward)
 - [ ] Comprehensive DocC documentation for all public symbols
 - [ ] Token-counting helpers per provider
 - [ ] Full test coverage report ≥ 85 %
-- [ ] Example app (SwiftUI) demonstrating all three providers + both persistence backends
+- [ ] Example app (SwiftUI) demonstrating all three providers + persistence + RAG
 
 ---
 
 ## Beyond 1.0.0 (ideas, not committed)
 
 - Anthropic extended thinking / reasoning steps
-- OpenAI Assistants API (thread + file management)
-- Retrieval-Augmented Generation (RAG) helpers
+- OpenAI Assistants API (thread + file management) — being deprecated mid-2026 in favour of Responses API
 - Prompt caching support (Anthropic / OpenAI)
 - Webhook / push notification integration for long-running requests
 - Android / Linux support (swift-foundation)
+- SQLite vector store backend (`sqlite-vec`) for `AIProviderKitRAG`
