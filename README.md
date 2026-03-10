@@ -244,10 +244,25 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan. Highlights:
 | **0.1.0** | Claude provider, core architecture ✅ |
 | **0.2.0** | OpenAI provider |
 | **0.3.0** | Apple Foundation Models (on-device, iOS 26+) |
-| **0.4.0** | Persistence — `ConversationStore` protocol + in-memory backend |
+| **0.4.0** | Persistence — `SupportedConversationStore` enum + protocol + ephemeral backend |
 | **0.5.0** | Persistence — file system backend (`AIProviderKitPersistenceFS`) |
 | **0.6.0** | Persistence — SwiftData backend (`AIProviderKitPersistenceDB`) |
 | **1.0.0** | Full MVP — stable API, DocC, example app |
+
+The persistence layer is fully modular — a `SupportedConversationStore` enum
+selects and configures the backend at `AIClient` init time. Swapping storage
+is a one-line change:
+
+```swift
+// Ephemeral in-memory (default, zero dependencies)
+let client = AIClient(provider: claude, store: .ephemeralMemory)
+
+// File system — cross-platform, no extra frameworks
+let client = AIClient(provider: claude, store: .fileSystem(directory: .applicationSupport))
+
+// Database — SwiftData, with querying and migrations
+let client = AIClient(provider: claude, store: .database(configuration: ModelConfiguration("Conversations")))
+```
 
 ---
 
