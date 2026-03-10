@@ -1,5 +1,11 @@
 # AIProviderKit
 
+[![CI](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml)
+[![Swift 6](https://img.shields.io/badge/Swift-6.0-orange?logo=swift&logoColor=white)](https://swift.org)
+[![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift)](https://swift.org/package-manager)
+[![Platforms](https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2013%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue)](https://developer.apple.com/swift)
+[![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
+
 A Swift Package for communicating with AI providers — primarily Claude (Anthropic), with a clean provider abstraction that makes adding OpenAI or Apple's on-device Foundation Models straightforward.
 
 Targets **iOS 26+ / macOS 26+**, built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
@@ -27,7 +33,7 @@ Targets **iOS 26+ / macOS 26+**, built with Swift 6, full `Sendable` compliance,
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/AIProviderKit.git", from: "1.0.0")
+    .package(url: "https://github.com/molayab/swift-ai-provider-kit.git", from: "1.0.0")
 ]
 ```
 
@@ -221,6 +227,10 @@ Detailed use cases with code examples are in [`Documentation/UseCases.md`](Docum
 ### Add a new provider
 
 See [`Documentation/AddingAProvider.md`](Documentation/AddingAProvider.md) for a step-by-step guide. Implementing `AIProvider` is the only requirement — `AIClient` works with any conforming type.
+
+### CI / GitHub Actions
+
+See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for a description of the CI workflow, how the README badge is kept up to date, and guidance on adding new workflows.
 
 ### Roadmap
 
