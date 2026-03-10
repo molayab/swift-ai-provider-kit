@@ -229,7 +229,7 @@ print(response.text)
 
 ## UC-10 · Provider Swap
 
-> **Status:** Available — 0.1.0
+> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `OpenAIProvider` planned for 0.2.0; `FoundationModelProvider` planned for 0.3.0.
 
 **Actor:** iOS/macOS app
 **Goal:** Switch AI providers without changing any application logic.
@@ -248,18 +248,21 @@ func makeRequest(userMessage: String) throws -> AIRequest {
 func makeClient(for provider: AppSettings.Provider) -> AIClient {
     switch provider {
     case .claude:
+        // Available — 0.1.0
         return AIClient(
             provider: ClaudeProvider(
                 authorization: APIKeyAuthorization(apiKey: Secrets.anthropicKey)
             )
         )
     case .openAI:
+        // Planned — 0.2.0
         return AIClient(
             provider: OpenAIProvider(
                 authorization: APIKeyAuthorization(apiKey: Secrets.openAIKey)
             )
         )
     case .onDevice:
+        // Planned — 0.3.0
         return AIClient(provider: FoundationModelProvider())
     }
 }
@@ -367,4 +370,66 @@ struct ConversationList: View {
         }
     }
 }
+```
+
+---
+
+## UC-14 · Retrieval-Augmented Generation (RAG) *(planned — 0.7.0)*
+
+> **Status:** Not yet implemented. Requires `AIProviderKitRAG`.
+
+**Actor:** iOS/macOS app
+**Goal:** Augment model requests with relevant chunks retrieved from a local document corpus, keeping answers grounded in app-specific content.
+
+```swift
+import AIProviderKitRAG
+
+// 1. Choose an embedding provider
+let embedder = VoyageEmbeddingProvider(apiKey: Secrets.voyageKey)
+// Or on-device, no API key required:
+// let embedder = NLEmbeddingProvider()
+
+// 2. Build an in-memory vector store from your documents
+var store = InMemoryVectorStore()
+let chunks = DocumentChunker(chunkSize: 512, overlap: 64).chunk(documents)
+let vectors = try await embedder.embed(chunks.map(\.text))
+try store.insert(chunks: chunks, vectors: vectors)
+
+// 3. At query time — retrieve and inject relevant context
+let query = "How do I reset my password?"
+let queryVector = try await embedder.embed([query])[0]
+let ragContext = store.nearestNeighbors(to: queryVector, k: 4)
+
+let response = try await client.send(
+    AIRequestBuilder()
+        .model(.claudeSonnet4)
+        .ragContext(ragContext)          // injects retrieved chunks as ContentBlocks
+        .addMessage(.user(text: query))
+        .build()
+)
+print(response.text)
+```
+
+### On-device path (no embedding API)
+
+```swift
+import AIProviderKitRAG
+
+// NLEmbeddingProvider uses Apple's NaturalLanguage framework — zero dependencies
+let embedder = NLEmbeddingProvider()
+let store = InMemoryVectorStore()
+// ... same pipeline as above, no API key required
+```
+
+### OpenAI managed path (optional)
+
+```swift
+// Skip the client-side pipeline entirely — delegate retrieval to OpenAI
+let response = try await client.send(
+    AIRequestBuilder()
+        .model(.gpt4o)
+        .tools([.fileSearch(vectorStoreIds: ["vs_abc123"])])
+        .addMessage(.user(text: "What does our refund policy say?"))
+        .build()
+)
 ```
