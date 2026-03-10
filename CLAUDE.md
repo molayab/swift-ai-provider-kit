@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build all targets
 swift build
 
-# Run all tests
+# Run all tests (mocked — no API key required)
 swift test
 
 # Run a specific test target
@@ -17,6 +17,9 @@ swift test --filter ClaudeProviderTests
 
 # Run a single test by name
 swift test --filter AIClientTests/sendForwardsRequest
+
+# Run integration tests against the real Claude API (requires ANTHROPIC_API_KEY)
+ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
 ```
 
 ## Architecture

@@ -85,6 +85,17 @@ let package = Package(
                 .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
+        .plugin(
+            name: "RunIntegrationTests",
+            capability: .command(
+                intent: .custom(
+                    verb: "integration-tests",
+                    description: "Run live integration tests against AI providers. Set ANTHROPIC_API_KEY before running."
+                ),
+                permissions: []
+            ),
+            dependencies: ["IntegrationTests"]
+        ),
 
         // MARK: - Tests
 

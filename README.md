@@ -244,6 +244,42 @@ See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the C
 
 ---
 
+## Testing
+
+### Unit tests
+
+Run the full suite (no API key required — all providers are mocked):
+
+```bash
+swift test
+```
+
+### Integration tests
+
+Integration tests exercise the real Claude API. Requires an `ANTHROPIC_API_KEY` environment variable.
+
+```bash
+# Via the SPM command plugin (recommended)
+ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
+
+# Or directly
+ANTHROPIC_API_KEY=sk-ant-... swift run IntegrationTests
+```
+
+Covered scenarios:
+
+| Test | What it verifies |
+|---|---|
+| Basic text completion | `AIClient.send()` returns a non-empty `endTurn` response |
+| Streaming | `AIClient.stream()` emits `textDelta` events |
+| Automatic tool execution | Tool registered, called by the model, auto-executed, final response returned |
+| Recipe rendering | `{{placeholder}}` values substituted before send |
+| Skill execution | Skill looked up, recipe applied as system prompt, output post-processed |
+
+See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for full details and guidance on adding new test cases.
+
+---
+
 ## Requirements
 
 | | Minimum |
