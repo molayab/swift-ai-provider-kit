@@ -75,7 +75,7 @@ func startStream() async throws {
 
 ```swift
 await client.toolRegistry.register(LocationTool.make())
-await client.toolRegistry.register(CalendarTool.listEvents)
+await client.toolRegistry.registerAll(CalendarTool.self)
 
 let response = try await client.send(
     AIRequestBuilder()

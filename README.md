@@ -145,8 +145,8 @@ Register provided tools or define your own:
 ```swift
 // Predefined
 await client.toolRegistry.register(LocationTool.make())
-CalendarTool.all.forEach  { await client.toolRegistry.register($0) }
-RemindersTool.all.forEach { await client.toolRegistry.register($0) }
+await client.toolRegistry.registerAll(CalendarTool.self)
+await client.toolRegistry.registerAll(RemindersTool.self)
 
 // Custom
 let myTool = Tool(
