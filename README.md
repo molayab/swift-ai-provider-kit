@@ -35,7 +35,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/molayab/swift-ai-provider-kit.git", from: "1.0.0")
+    .package(url: "https://github.com/molayab/swift-ai-provider-kit.git", from: "0.1.0")
 ]
 ```
 
@@ -237,10 +237,15 @@ See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the C
 
 ### Roadmap
 
-- [ ] OpenAI provider (`gpt-4o`, `gpt-4o-mini`)
-- [ ] Apple Foundation Models provider (on-device, iOS 26+, privacy-preserving)
-- [ ] Token counting helpers
-- [ ] Persistent conversation history
+See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan. Highlights:
+
+| Version | Focus |
+|---|---|
+| **0.1.0** | Claude provider, core architecture ✅ |
+| **0.2.0** | OpenAI provider |
+| **0.3.0** | Apple Foundation Models (on-device, iOS 26+) |
+| **0.4.0** | Persistence layer (`ConversationStore`, SwiftData) |
+| **1.0.0** | Full MVP — stable API, DocC, example app |
 
 ---
 
