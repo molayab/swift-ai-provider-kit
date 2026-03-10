@@ -5,7 +5,6 @@
 <p align="center">
   <a href="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml"><img src="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg" alt="Tests"/></a>
   <img src="https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white" alt="Swift 6"/>
-  <img src="https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift" alt="SPM Compatible"/>
   <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2026%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
 </p>
 
