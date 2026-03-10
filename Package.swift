@@ -28,6 +28,9 @@ let package = Package(
         //
         // Post-MVP: Apple Foundation Models (on-device inference, iOS 26+)
         // .library(name: "FoundationModelProvider", targets: ["FoundationModelProvider"]),
+
+        // Integration test runner (not part of the library)
+        .executable(name: "IntegrationTests", targets: ["IntegrationTests"]),
     ],
     targets: [
         // MARK: - Core
@@ -65,6 +68,18 @@ let package = Package(
             name: "AIProviderKitUI",
             dependencies: ["AIProviderKit"],
             path: "Sources/AIProviderKitUI",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
+        ),
+
+        // MARK: - Integration Tests
+
+        .executableTarget(
+            name: "IntegrationTests",
+            dependencies: ["AIProviderKit", "ClaudeProvider"],
+            path: "Sources/IntegrationTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
