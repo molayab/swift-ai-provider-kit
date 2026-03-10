@@ -4,7 +4,6 @@
 [![Swift 6](https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white)](https://swift.org)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift)](https://swift.org/package-manager)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2013%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue)](https://developer.apple.com/swift)
-[![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
 A modular Swift package for integrating AI providers in agnostic way, supporting (Claude, ChatGPT and local execution). Swap providers without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
 
