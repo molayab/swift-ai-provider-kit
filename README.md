@@ -214,14 +214,21 @@ All log entries are also written to the system log and visible in **Console.app*
 
 Detailed use cases with code examples are in [`Documentation/UseCases.md`](Documentation/UseCases.md):
 
-- UC-01 Simple text conversation
-- UC-02 Multi-turn conversation
-- UC-03 Streaming response
-- UC-04 Automatic tool use
-- UC-05 Recipe (prompt template)
-- UC-06 Skill execution
-- UC-07 In-app log viewer
-- UC-08 Vision (image input)
+| ID | Scenario | Status |
+|---|---|---|
+| UC-01 | Simple text conversation | ✅ 0.1.0 |
+| UC-02 | Multi-turn conversation | ✅ 0.1.0 |
+| UC-03 | Streaming response | ✅ 0.1.0 |
+| UC-04 | Automatic tool use | ✅ 0.1.0 |
+| UC-05 | Recipe (prompt template) | ✅ 0.1.0 |
+| UC-06 | Skill execution | ✅ 0.1.0 |
+| UC-07 | In-app log viewer | ✅ 0.1.0 |
+| UC-08 | Vision (image input) | ✅ 0.1.0 |
+| UC-09 | Custom tool definition | ✅ 0.1.0 |
+| UC-10 | Provider swap | ✅ 0.1.0 |
+| UC-11 | Ephemeral conversation store | 🔜 0.4.0 |
+| UC-12 | File system persistence | 🔜 0.5.0 |
+| UC-13 | SwiftData persistence | 🔜 0.6.0 |
 
 ---
 
@@ -305,15 +312,25 @@ See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for
 
 ## Requirements
 
-| | Minimum |
-|---|---|
-| iOS | 26.0 |
-| macOS | 26.0 |
-| Swift | 6.0 |
-| Xcode | 26.x |
+| Platform | Minimum | Notes |
+|---|---|---|
+| iOS | 26.0 | Full feature support |
+| macOS | 26.0 | Full feature support |
+| watchOS | 11.0 | Core + streaming; no `AILogView` |
+| tvOS | 26.0 | Core + streaming; no `AILogView` |
+| visionOS | 2.0 | Full feature support |
+| **Swift** | **6.0** | Strict concurrency, `ExistentialAny` |
+| **Xcode** | **26.0+** | Required to build iOS 26 / macOS 26 targets |
+
+> **External dependencies:** none. `AIProviderKit` and `ClaudeProvider` use only
+> the Swift standard library and `Foundation`. `AIProviderKitUI` requires SwiftUI.
 
 ---
 
 ## License
 
-MIT
+AIProviderKit is released under the **MIT License**.
+
+Copyright © 2026 Mateo Olaya Bernal.
+
+See [`LICENSE`](LICENSE) for the full license text.
