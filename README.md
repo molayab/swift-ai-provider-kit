@@ -1,7 +1,7 @@
 # AIProviderKit
 
 [![CI](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml)
-[![Swift 6](https://img.shields.io/badge/Swift-6.3-orange?logo=swift&logoColor=white)](https://swift.org)
+[![Swift 6](https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white)](https://swift.org)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift)](https://swift.org/package-manager)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2013%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue)](https://developer.apple.com/swift)
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
