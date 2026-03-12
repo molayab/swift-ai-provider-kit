@@ -2,14 +2,38 @@
 
 ## Package Structure
 
-```
-AIProviderKit (core)
-└── ClaudeProvider
-└── AIProviderKitUI
+```mermaid
+graph TD
+    subgraph Core
+        AIProviderKit["AIProviderKit\n(zero external dependencies)"]
+    end
 
-Tests
-├── AIProviderKitTests
-└── ClaudeProviderTests
+    subgraph Providers
+        Claude["ClaudeProvider"]
+        OpenAI["OpenAIProvider *(0.2.0)*"]
+        FM["FoundationModelProvider *(0.3.0)*"]
+    end
+
+    subgraph Persistence
+        PFS["AIProviderKitPersistenceFS *(0.5.0)*"]
+        PDB["AIProviderKitPersistenceDB *(0.6.0)*"]
+    end
+
+    subgraph Context["Context Retrieval"]
+        CTX["AIProviderKitContext *(0.7.0)*"]
+    end
+
+    subgraph UI
+        AKUI["AIProviderKitUI"]
+    end
+
+    Claude --> AIProviderKit
+    OpenAI --> AIProviderKit
+    FM --> AIProviderKit
+    PFS --> AIProviderKit
+    PDB --> AIProviderKit
+    CTX --> AIProviderKit
+    AKUI --> AIProviderKit
 ```
 
 ---
@@ -17,16 +41,36 @@ Tests
 ## Module Dependency Graph
 
 ```mermaid
-graph TD
+graph LR
     App["Your App"]
-    UI["AIProviderKitUI"]
-    Core["AIProviderKit"]
-    Claude["ClaudeProvider"]
 
-    App --> Core
+    subgraph optional["Optional modules (import as needed)"]
+        Claude["ClaudeProvider"]
+        OpenAI["OpenAIProvider"]
+        FM["FoundationModelProvider"]
+        PFS["AIProviderKitPersistenceFS"]
+        PDB["AIProviderKitPersistenceDB"]
+        CTX["AIProviderKitContext"]
+        UI["AIProviderKitUI"]
+    end
+
+    Core["AIProviderKit (core)"]
+
     App --> Claude
+    App --> OpenAI
+    App --> FM
+    App --> PFS
+    App --> PDB
+    App --> CTX
     App --> UI
+    App --> Core
+
     Claude --> Core
+    OpenAI --> Core
+    FM --> Core
+    PFS --> Core
+    PDB --> Core
+    CTX --> Core
     UI --> Core
 ```
 
@@ -40,6 +84,7 @@ classDiagram
         <<protocol>>
         +identifier: String
         +capabilities: Set~AICapability~
+        +contextWindowSize: Int
         +send(AIRequest) AIResponse
     }
 
@@ -155,6 +200,60 @@ classDiagram
     ClaudeProvider --> HTTPClient
     ClaudeProvider --> ClaudeRequestMapper
     ClaudeProvider --> ClaudeResponseMapper
+```
+
+---
+
+## Context Layer — AIProviderKitContext
+
+> Planned for milestones 0.7.0 – 0.7.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
+
+```mermaid
+graph TD
+    FC["FolderContext (actor)\nHigh-level entry point"]
+    FI["FolderIndexer (actor)\nscan → parse → chunk → embed → store"]
+    DP["DocumentParser (protocol)\nTextDocumentParser · PDFDocumentParser"]
+    DC["DocumentChunker\nchunkSize + overlap · ChunkSource"]
+    EP["EmbeddingProvider (protocol)\nVoyage · OpenAI · NLEmbedding"]
+    VS["VectorStore (protocol)\nInMemoryVectorStore"]
+    RC["RetrievalContext\n[ScoredChunk] ready for injection"]
+    RB["AIRequestBuilder\n.context(RetrievalContext)"]
+    AI["AIClient\n.send / .stream"]
+
+    FC -->|owns| FI
+    FI -->|uses| DP
+    FI -->|uses| DC
+    FI -->|uses| EP
+    FI -->|stores in| VS
+    VS -->|search result| RC
+    FC -->|returns| RC
+    RC -->|injected via| RB
+    RB -->|builds AIRequest for| AI
+```
+
+### Context Retrieval Flow
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant FolderContext
+    participant EmbeddingProvider
+    participant VectorStore
+    participant AIRequestBuilder
+    participant AIClient
+
+    App->>FolderContext: init(url:embeddingProvider:options:)
+    Note over FolderContext: Indexes folder on init (async)
+    App->>FolderContext: retrieve(for: query)
+    FolderContext->>EmbeddingProvider: embed([query])
+    EmbeddingProvider-->>FolderContext: [[Float]]
+    FolderContext->>VectorStore: search(query:topK:)
+    VectorStore-->>FolderContext: [ScoredChunk]
+    FolderContext-->>App: RetrievalContext
+    App->>AIRequestBuilder: .context(retrievalContext)
+    App->>AIRequestBuilder: .addMessage(.user(text: query))
+    App->>AIClient: send(request)
+    AIClient-->>App: AIResponse
 ```
 
 ---

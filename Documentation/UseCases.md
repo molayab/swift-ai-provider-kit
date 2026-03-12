@@ -374,36 +374,31 @@ struct ConversationList: View {
 
 ---
 
-## UC-14 · Retrieval-Augmented Generation (RAG) *(planned — 0.7.0)*
+## UC-14 · Folder-as-Context *(planned — 0.7.0 – 0.7.7)*
 
-> **Status:** Not yet implemented. Requires `AIProviderKitRAG`.
+> **Status:** Not yet implemented. Requires `AIProviderKitContext`. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
 **Actor:** iOS/macOS app
-**Goal:** Augment model requests with relevant chunks retrieved from a local document corpus, keeping answers grounded in app-specific content.
+**Goal:** Augment model requests with relevant chunks retrieved from a local document folder, keeping answers grounded in app-specific content.
 
 ```swift
-import AIProviderKitRAG
+import AIProviderKitContext
 
-// 1. Choose an embedding provider
-let embedder = VoyageEmbeddingProvider(apiKey: Secrets.voyageKey)
-// Or on-device, no API key required:
-// let embedder = NLEmbeddingProvider()
+// 1. Index a local folder (async, happens once)
+let docsContext = try await FolderContext(
+    url: Bundle.main.url(forResource: "Docs", withExtension: nil)!,
+    embeddingProvider: VoyageEmbeddingProvider(apiKey: Secrets.voyageKey),
+    options: FolderContextOptions(topK: 4)
+)
 
-// 2. Build an in-memory vector store from your documents
-var store = InMemoryVectorStore()
-let chunks = DocumentChunker(chunkSize: 512, overlap: 64).chunk(documents)
-let vectors = try await embedder.embed(chunks.map(\.text))
-try store.insert(chunks: chunks, vectors: vectors)
-
-// 3. At query time — retrieve and inject relevant context
+// 2. At query time — retrieve and inject relevant context
 let query = "How do I reset my password?"
-let queryVector = try await embedder.embed([query])[0]
-let ragContext = store.nearestNeighbors(to: queryVector, k: 4)
+let retrieved = try await docsContext.retrieve(for: query)
 
 let response = try await client.send(
     AIRequestBuilder()
         .model(.claudeSonnet4)
-        .ragContext(ragContext)          // injects retrieved chunks as ContentBlocks
+        .context(retrieved)              // injects retrieved chunks as ContentBlocks
         .addMessage(.user(text: query))
         .build()
 )
@@ -413,12 +408,14 @@ print(response.text)
 ### On-device path (no embedding API)
 
 ```swift
-import AIProviderKitRAG
+import AIProviderKitContext
 
-// NLEmbeddingProvider uses Apple's NaturalLanguage framework — zero dependencies
-let embedder = NLEmbeddingProvider()
-let store = InMemoryVectorStore()
-// ... same pipeline as above, no API key required
+// NLEmbeddingProvider uses Apple's NaturalLanguage framework — no API key required
+let docsContext = try await FolderContext(
+    url: localDocsURL,
+    embeddingProvider: NLEmbeddingProvider(),
+    options: FolderContextOptions(topK: 1)   // FoundationModelProvider has ~3K token budget
+)
 ```
 
 ### OpenAI managed path (optional)
