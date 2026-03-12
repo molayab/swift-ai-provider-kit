@@ -1,8 +1,8 @@
-# RAG: Folder-as-Context Support
+# Context: Folder-as-Context Support
 
 > **Status:** Proposed
-> **Milestone:** 0.7.0 — Retrieval-Augmented Generation
-> **Relates to:** [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md), [`ROADMAP.md`](../../ROADMAP.md#070--retrieval-augmented-generation-rag)
+> **Milestones:** 0.7.0 – 0.7.7 — Context
+> **Relates to:** [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md), [`ROADMAP.md`](../../ROADMAP.md#070--context-core-protocols--types)
 > **Created:** 2026-03-12
 
 ---
@@ -11,7 +11,7 @@
 
 `AIClient` currently has no way to ground a conversation in a local corpus of documents. Developers who want to build documentation assistants, code-aware chatbots, or knowledge-base Q&A apps must implement the entire retrieval pipeline themselves — chunking, embedding, nearest-neighbour search, and context injection — with no shared abstractions or conventions.
 
-This issue proposes adding **folder-as-context RAG** to `AIProviderKitRAG`: a high-level API that accepts a directory URL, indexes its contents, and automatically injects the most relevant chunks into each `AIRequest`.
+This issue proposes adding **folder-as-context** to `AIProviderKitContext`: a high-level API that accepts a directory URL, indexes its contents, and automatically injects the most relevant chunks into each `AIRequest`.
 
 ---
 
@@ -20,7 +20,7 @@ This issue proposes adding **folder-as-context RAG** to `AIProviderKitRAG`: a hi
 - Point an `AIClient` at a local folder; the kit handles the rest.
 - Provider-agnostic: works with `ClaudeProvider`, `OpenAIProvider`, and `FoundationModelProvider`.
 - Strictly layered: each concern lives in its own protocol / type; nothing is coupled to a specific embedding backend or storage engine.
-- Zero mandatory external dependencies in `AIProviderKit` core; all RAG types live in the optional `AIProviderKitRAG` library product.
+- Zero mandatory external dependencies in `AIProviderKit` core; all types live in the optional `AIProviderKitContext` library product.
 - Full `Sendable` compliance and actor-based concurrency throughout (Swift 6).
 - Token-budget awareness: auto-truncate injected chunks to the provider's context window.
 
@@ -32,7 +32,7 @@ This issue proposes adding **folder-as-context RAG** to `AIProviderKitRAG`: a hi
 
 ```mermaid
 graph TD
-    FC["FolderContext (actor)\ninit(url:embeddingProvider:options:)\nretrieve(for:) → RAGContext"]
+    FC["FolderContext (actor)\ninit(url:embeddingProvider:options:)\nretrieve(for:) → RetrievalContext"]
 
     FI["FolderIndexer (actor)\nscan → parse → chunk → embed → store"]
 
@@ -44,7 +44,7 @@ graph TD
 
     VS["VectorStore (protocol)\nInMemoryVectorStore\ncosine similarity via vDSP"]
 
-    RB["AIRequestBuilder extension\n.ragContext(_:)\n→ ContentBlock.text injection"]
+    RB["AIRequestBuilder extension\n.context(_:)\n→ ContentBlock.text injection"]
 
     AI["AIClient\n.send(_:) / .stream(_:)"]
 
@@ -100,9 +100,9 @@ sequenceDiagram
     EmbeddingProvider-->>FolderContext: queryVector
     FolderContext->>VectorStore: search(query: queryVector, topK: N)
     VectorStore-->>FolderContext: [ScoredChunk]
-    FolderContext-->>App: RAGContext
+    FolderContext-->>App: RetrievalContext
 
-    App->>AIRequestBuilder: .ragContext(ragContext)
+    App->>AIRequestBuilder: .context(retrievalContext)
     Note over AIRequestBuilder: Prepends <context>[1]…[N]</context>\nto first user message
     App->>AIRequestBuilder: .addMessage(.user(text: query))
     App->>AIRequestBuilder: .build() → AIRequest
@@ -114,7 +114,7 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph AIProviderKitRAG
+    subgraph AIProviderKitContext
         direction TB
         FC2[FolderContext]
         FI2[FolderIndexer]
@@ -122,7 +122,7 @@ graph LR
         DP2[DocumentParser]
         EP2[EmbeddingProvider]
         VS2[VectorStore]
-        RB2[AIRequestBuilder+RAG]
+        RB2[AIRequestBuilder+Context]
     end
 
     subgraph AIProviderKit
@@ -140,9 +140,9 @@ graph LR
         NL[NLEmbeddingProvider]
     end
 
-    AIProviderKitRAG -->|imports| AIProviderKit
+    AIProviderKitContext -->|imports| AIProviderKit
     ClaudeProvider -->|imports| AIProviderKit
-    NL -->|imports| AIProviderKitRAG
+    NL -->|imports| AIProviderKitContext
     RB2 -->|extends| ARB
 ```
 
@@ -153,7 +153,7 @@ graph LR
 ### 1. `DocumentParser` — file → text
 
 ```swift
-// AIProviderKitRAG
+// AIProviderKitContext
 public protocol DocumentParser: Sendable {
     /// File extensions this parser handles (e.g. ["md", "txt", "swift"])
     var supportedExtensions: Set<String> { get }
@@ -256,10 +256,10 @@ public actor InMemoryVectorStore: VectorStore { … }
 
 ---
 
-### 5. `RAGContext` — retrieved chunks ready for injection
+### 5. `RetrievalContext` — retrieved chunks ready for injection
 
 ```swift
-public struct RAGContext: Sendable {
+public struct RetrievalContext: Sendable {
     public let chunks: [ScoredChunk]
 
     /// Total character count of all chunk texts (for token-budget estimation)
@@ -287,7 +287,7 @@ public actor FolderIndexer {
     public func reindex(url: URL) async throws
 
     /// Embed `query` and return the top-K most relevant chunks.
-    public func retrieve(for query: String, topK: Int = 5) async throws -> RAGContext
+    public func retrieve(for query: String, topK: Int = 5) async throws -> RetrievalContext
 
     /// Current indexing state
     public var state: IndexingState { get }  // .idle | .indexing(progress: Double) | .ready
@@ -322,7 +322,7 @@ public actor FolderContext {
     ) async throws
 
     /// Retrieve the most relevant chunks for `query`.
-    public func retrieve(for query: String) async throws -> RAGContext
+    public func retrieve(for query: String) async throws -> RetrievalContext
 
     /// Re-index the folder (e.g. call after files change).
     public func reindex() async throws
@@ -334,15 +334,15 @@ public actor FolderContext {
 
 ---
 
-### 8. `AIRequestBuilder` extension — inject `RAGContext`
+### 8. `AIRequestBuilder` extension — inject `RetrievalContext`
 
 ```swift
-// Extension in AIProviderKitRAG
+// Extension in AIProviderKitContext
 public extension AIRequestBuilder {
     /// Injects retrieved chunks as `.text` ContentBlocks prepended to the
-    /// first user message, formatted as a fenced "Context" block.
+    /// first user message, formatted as a fenced context block.
     @discardableResult
-    func ragContext(_ context: RAGContext) -> Self
+    func context(_ context: RetrievalContext) -> Self
 }
 ```
 
@@ -381,7 +381,7 @@ public protocol AIProvider: Sendable {
 ```swift
 import AIProviderKit
 import ClaudeProvider
-import AIProviderKitRAG
+import AIProviderKitContext
 
 // 1. Set up provider and client
 let claude = ClaudeProvider(apiKey: "sk-ant-…")
@@ -397,12 +397,12 @@ let docsContext = try await FolderContext(
 
 // 3. Build a request with retrieved context
 let userQuery = "How do I add a new provider?"
-let ragContext = try await docsContext.retrieve(for: userQuery)
+let retrieved = try await docsContext.retrieve(for: userQuery)
 
 let request = try AIRequestBuilder()
     .model(.claudeSonnet4)
     .systemPrompt("You are a helpful documentation assistant.")
-    .ragContext(ragContext)                    // ← injects retrieved chunks
+    .context(retrieved)                       // ← injects retrieved chunks
     .addMessage(.user(text: userQuery))
     .build()
 
@@ -425,7 +425,7 @@ try await docsContext.reindex()
 
 ```
 Sources/
-└── AIProviderKitRAG/
+└── AIProviderKitContext/
     ├── Chunking/
     │   ├── DocumentChunker.swift
     │   └── DocumentChunk.swift
@@ -447,9 +447,9 @@ Sources/
     ├── Context/
     │   ├── FolderContext.swift
     │   ├── FolderContextOptions.swift
-    │   └── RAGContext.swift
+    │   └── RetrievalContext.swift
     └── Builder/
-        └── AIRequestBuilder+RAG.swift       (ragContext(_:) extension)
+        └── AIRequestBuilder+Context.swift   (.context(_:) extension)
 ```
 
 ---
@@ -458,10 +458,10 @@ Sources/
 
 | # | Question | Options | Recommendation |
 |---|----------|---------|----------------|
-| 1 | Should `EmbeddingProvider` live in `AIProviderKit` core or `AIProviderKitRAG`? | Core (simpler imports) vs. RAG-only (keeps core zero-dep) | **RAG-only** — core must stay dependency-free |
+| 1 | Should `EmbeddingProvider` live in `AIProviderKit` core or `AIProviderKitContext`? | Core (simpler imports) vs. Context-only (keeps core zero-dep) | **Context-only** — core must stay dependency-free |
 | 2 | Vector store persistence between app launches? | In-memory only for 0.7.0 vs. ship a file-based store | **In-memory for 0.7.0**; `SQLiteVectorStore` post-1.0 |
 | 3 | `contextWindowSize`: hard-code per model or let provider report dynamically? | Hard-coded map vs. protocol property | **Protocol property** with a sensible default (200K) |
-| 4 | Auto-inject via `AIClient` or always manual via builder? | Automatic (register a `FolderContext` on `AIClient`) vs. manual (`ragContext(_:)` on builder) | **Manual** — keeps `AIClient` surface stable and injection explicit |
+| 4 | Auto-inject via `AIClient` or always manual via builder? | Automatic (register a `FolderContext` on `AIClient`) vs. manual (`.context(_:)` on builder) | **Manual** — keeps `AIClient` surface stable and injection explicit |
 | 5 | Chunking strategy: character-based or token-based? | Character count (zero deps) vs. token count (needs a tokenizer per provider) | **Character-based for 0.7.0** with a `~4 chars/token` heuristic |
 | 6 | Should `FolderContext` watch the directory for live changes? | Passive (manual `reindex()` call) vs. active (`FSEvents` / `kqueue`) | **Passive for 0.7.0**; active watching is a post-1.0 enhancement |
 
@@ -469,7 +469,7 @@ Sources/
 
 ## Implementation Tasks
 
-- [ ] **Core protocols & types** — `DocumentParser`, `DocumentChunker`, `DocumentChunk`, `ChunkSource`, `EmbeddingProvider`, `VectorStore`, `ScoredChunk`, `RAGContext`, `IndexingState`
+- [ ] **Core protocols & types** — `DocumentParser`, `DocumentChunker`, `DocumentChunk`, `ChunkSource`, `EmbeddingProvider`, `VectorStore`, `ScoredChunk`, `RetrievalContext`, `IndexingState`
 - [ ] **`TextDocumentParser`** — handles `.txt`, `.md`, `.markdown`, `.swift`, `.json`, `.yaml`, `.yml`, `.xml`
 - [ ] **`PDFDocumentParser`** — `#if canImport(PDFKit)` guard; one section per page
 - [ ] **`InMemoryVectorStore`** — actor; cosine similarity via `vDSP` / pure-Swift fallback
@@ -478,19 +478,18 @@ Sources/
 - [ ] **`NLEmbeddingProvider`** — wraps `NLEmbedding.currentRevision(for:).vector(for:)`; `#if canImport(NaturalLanguage)` guard
 - [ ] **`FolderIndexer`** — actor; batch embedding, concurrent file processing, incremental re-index via mtime cache
 - [ ] **`FolderContext`** — high-level actor wrapping `FolderIndexer`; token-budget auto-trim
-- [ ] **`AIRequestBuilder+RAG`** — `ragContext(_:)` extension injecting `<context>` block
+- [ ] **`AIRequestBuilder+Context`** — `.context(_:)` extension injecting `<context>` block
 - [ ] **`contextWindowSize`** on `AIProvider` protocol (with default implementation = 200 000)
-- [ ] **`Package.swift`** — add `AIProviderKitRAG` library product and target
+- [ ] **`Package.swift`** — add `AIProviderKitContext` library product and target
 - [ ] **Unit tests** — in-memory store, mock embedding provider, chunk injection verification, budget trimming, incremental re-index
-- [ ] **Integration tests** — round-trip RAG query against real Claude API (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
+- [ ] **Integration tests** — round-trip context query against real Claude API (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
 - [ ] **Documentation** — DocC articles for `FolderContext` quick start and custom parser guide
 
 ---
 
 ## References
 
-- [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md) — feasibility analysis across all three providers
-- [`ROADMAP.md` — 0.7.0](../../ROADMAP.md#070--retrieval-augmented-generation-rag) — milestone checklist
+- [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md) — provider feasibility analysis
 - [Voyage AI Embeddings API](https://platform.claude.com/docs/en/build-with-claude/embeddings)
 - [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings)
 - [Apple NLEmbedding](https://developer.apple.com/documentation/naturallanguage/nlembedding)

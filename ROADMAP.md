@@ -89,9 +89,9 @@ Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, 
 
 ---
 
-## 0.7.0 — RAG: Core Protocols & Types
+## 0.7.0 — Context: Core Protocols & Types
 
-Foundation for `AIProviderKitRAG` — the optional RAG library product. See [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md) for the full design.
+Foundation for `AIProviderKitContext` — the optional context retrieval library product. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
 - [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
 - [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
@@ -99,13 +99,13 @@ Foundation for `AIProviderKitRAG` — the optional RAG library product. See [`Do
 - [ ] `DocumentChunk` / `ChunkSource` — `Sendable`, `Identifiable`; `ChunkSource` carries file URL + index for citations
 - [ ] `VectorStore` protocol — `add`, `search`, `remove(fileURL:)`, `removeAll`
 - [ ] `ScoredChunk` — chunk + cosine similarity score
-- [ ] `RAGContext` — carries `[ScoredChunk]` ready for injection
+- [ ] `RetrievalContext` — carries `[ScoredChunk]` ready for injection
 - [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
-- [ ] `Package.swift` — add `AIProviderKitRAG` library product and target
+- [ ] `Package.swift` — add `AIProviderKitContext` library product and target
 
 ---
 
-## 0.7.1 — RAG: Embedding Providers
+## 0.7.1 — Context: Embedding Providers
 
 - [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
 - [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` (`text-embedding-3-large` / `text-embedding-3-small`)
@@ -113,43 +113,43 @@ Foundation for `AIProviderKitRAG` — the optional RAG library product. See [`Do
 
 ---
 
-## 0.7.2 — RAG: Document Parsers
+## 0.7.2 — Context: Document Parsers
 
 - [ ] `TextDocumentParser` — `.txt` `.md` `.markdown` `.swift` `.json` `.yaml` `.xml`
 - [ ] `PDFDocumentParser` — PDFKit, one section per page; `#if canImport(PDFKit)` guard
 
 ---
 
-## 0.7.3 — RAG: Storage
+## 0.7.3 — Context: Storage
 
 - [ ] `InMemoryVectorStore` — actor; cosine nearest-neighbour via `vDSP` / pure-Swift fallback
 
 ---
 
-## 0.7.4 — RAG: Indexing & Retrieval
+## 0.7.4 — Context: Indexing & Retrieval
 
 - [ ] `FolderIndexer` actor — concurrent file processing (max 8 tasks), batch embedding (×32), mtime-based incremental re-index
 - [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim via `tokenBudgetFraction`
 
 ---
 
-## 0.7.5 — RAG: Injection
+## 0.7.5 — Context: Injection
 
 - [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets `FolderContext` auto-size chunk injection
-- [ ] `AIRequestBuilder.ragContext(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
+- [ ] `AIRequestBuilder.context(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
 
 ---
 
-## 0.7.6 — RAG: OpenAI Managed Path
+## 0.7.6 — Context: OpenAI Managed Path
 
 - [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
 
 ---
 
-## 0.7.7 — RAG: Testing
+## 0.7.7 — Context: Testing
 
 - [ ] Unit tests — in-memory store, mock embedding provider, chunk injection, budget trimming, incremental re-index
-- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
+- [ ] Integration tests — round-trip context query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
 
 ---
 
@@ -161,7 +161,7 @@ All of 0.2–0.7.7, plus:
 - [ ] Comprehensive DocC documentation for all public symbols
 - [ ] Token-counting helpers per provider
 - [ ] Full test coverage report ≥ 85 %
-- [ ] Example app (SwiftUI) demonstrating all three providers + persistence + RAG
+- [ ] Example app (SwiftUI) demonstrating all three providers + persistence + Context
 
 ---
 
@@ -172,4 +172,4 @@ All of 0.2–0.7.7, plus:
 - Prompt caching support (Anthropic / OpenAI)
 - Webhook / push notification integration for long-running requests
 - Android / Linux support (swift-foundation)
-- SQLite vector store backend (`sqlite-vec`) for `AIProviderKitRAG`
+- SQLite vector store backend (`sqlite-vec`) for `AIProviderKitContext`
