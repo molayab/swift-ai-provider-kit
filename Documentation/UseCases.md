@@ -1,5 +1,26 @@
 # Use Cases
 
+## Contents
+
+| # | Use Case | Status |
+|---|---|---|
+| [UC-01](#uc-01--simple-text-conversation) | Simple Text Conversation | ✅ 0.1.0 |
+| [UC-02](#uc-02--multi-turn-conversation) | Multi-Turn Conversation | ✅ 0.1.0 |
+| [UC-03](#uc-03--streaming-response) | Streaming Response | ✅ 0.1.0 |
+| [UC-04](#uc-04--tool-use-automatic) | Tool Use (Automatic) | ✅ 0.1.0 |
+| [UC-05](#uc-05--recipe-prompt-template) | Recipe (Prompt Template) | ✅ 0.1.0 |
+| [UC-06](#uc-06--skill-execution) | Skill Execution | ✅ 0.1.0 |
+| [UC-07](#uc-07--in-app-log-viewer) | In-App Log Viewer | ✅ 0.1.0 |
+| [UC-08](#uc-08--vision-image-input) | Vision (Image Input) | ✅ 0.1.0 |
+| [UC-09](#uc-09--custom-tool-definition) | Custom Tool Definition | ✅ 0.1.0 |
+| [UC-10](#uc-10--provider-swap) | Provider Swap | ⏳ 0.1.0+ |
+| [UC-11](#uc-11--ephemeral-conversation-store-planned--040) | Ephemeral Conversation Store | 🔜 0.4.0 |
+| [UC-12](#uc-12--file-system-persistence-planned--050) | File System Persistence | 🔜 0.5.0 |
+| [UC-13](#uc-13--swiftdata-persistence-planned--060) | SwiftData Persistence | 🔜 0.6.0 |
+| [UC-14](#uc-14--folder-as-context-planned--070--077) | Folder-as-Context | 🔜 0.7.0–0.7.7 |
+
+---
+
 ## UC-01 · Simple Text Conversation
 
 > **Status:** Available — 0.1.0
@@ -229,7 +250,7 @@ print(response.text)
 
 ## UC-10 · Provider Swap
 
-> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `OpenAIProvider` planned for 0.2.0; `FoundationModelProvider` planned for 0.3.0.
+> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `FoundationModelProvider` planned for 0.2.0; `OpenAIProvider` planned for 0.3.0.
 
 **Actor:** iOS/macOS app
 **Goal:** Switch AI providers without changing any application logic.
@@ -254,16 +275,16 @@ func makeClient(for provider: AppSettings.Provider) -> AIClient {
                 authorization: APIKeyAuthorization(apiKey: Secrets.anthropicKey)
             )
         )
-    case .openAI:
+    case .onDevice:
         // Planned — 0.2.0
+        return AIClient(provider: FoundationModelProvider())
+    case .openAI:
+        // Planned — 0.3.0
         return AIClient(
             provider: OpenAIProvider(
                 authorization: APIKeyAuthorization(apiKey: Secrets.openAIKey)
             )
         )
-    case .onDevice:
-        // Planned — 0.3.0
-        return AIClient(provider: FoundationModelProvider())
     }
 }
 
@@ -374,36 +395,31 @@ struct ConversationList: View {
 
 ---
 
-## UC-14 · Retrieval-Augmented Generation (RAG) *(planned — 0.7.0)*
+## UC-14 · Folder-as-Context *(planned — 0.7.0 – 0.7.7)*
 
-> **Status:** Not yet implemented. Requires `AIProviderKitRAG`.
+> **Status:** Not yet implemented. Requires `AIProviderKitContext`. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
 **Actor:** iOS/macOS app
-**Goal:** Augment model requests with relevant chunks retrieved from a local document corpus, keeping answers grounded in app-specific content.
+**Goal:** Augment model requests with relevant chunks retrieved from a local document folder, keeping answers grounded in app-specific content.
 
 ```swift
-import AIProviderKitRAG
+import AIProviderKitContext
 
-// 1. Choose an embedding provider
-let embedder = VoyageEmbeddingProvider(apiKey: Secrets.voyageKey)
-// Or on-device, no API key required:
-// let embedder = NLEmbeddingProvider()
+// 1. Index a local folder (async, happens once)
+let docsContext = try await FolderContext(
+    url: Bundle.main.url(forResource: "Docs", withExtension: nil)!,
+    embeddingProvider: VoyageEmbeddingProvider(apiKey: Secrets.voyageKey),
+    options: FolderContextOptions(topK: 4)
+)
 
-// 2. Build an in-memory vector store from your documents
-var store = InMemoryVectorStore()
-let chunks = DocumentChunker(chunkSize: 512, overlap: 64).chunk(documents)
-let vectors = try await embedder.embed(chunks.map(\.text))
-try store.insert(chunks: chunks, vectors: vectors)
-
-// 3. At query time — retrieve and inject relevant context
+// 2. At query time — retrieve and inject relevant context
 let query = "How do I reset my password?"
-let queryVector = try await embedder.embed([query])[0]
-let ragContext = store.nearestNeighbors(to: queryVector, k: 4)
+let retrieved = try await docsContext.retrieve(for: query)
 
 let response = try await client.send(
     AIRequestBuilder()
         .model(.claudeSonnet4)
-        .ragContext(ragContext)          // injects retrieved chunks as ContentBlocks
+        .context(retrieved)              // injects retrieved chunks as ContentBlocks
         .addMessage(.user(text: query))
         .build()
 )
@@ -413,12 +429,14 @@ print(response.text)
 ### On-device path (no embedding API)
 
 ```swift
-import AIProviderKitRAG
+import AIProviderKitContext
 
-// NLEmbeddingProvider uses Apple's NaturalLanguage framework — zero dependencies
-let embedder = NLEmbeddingProvider()
-let store = InMemoryVectorStore()
-// ... same pipeline as above, no API key required
+// NLEmbeddingProvider uses Apple's NaturalLanguage framework — no API key required
+let docsContext = try await FolderContext(
+    url: localDocsURL,
+    embeddingProvider: NLEmbeddingProvider(),
+    options: FolderContextOptions(topK: 1)   // FoundationModelProvider has ~3K token budget
+)
 ```
 
 ### OpenAI managed path (optional)
