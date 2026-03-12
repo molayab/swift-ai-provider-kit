@@ -65,6 +65,12 @@ Tests use Swift Testing (`@Suite`, `@Test`, `#expect`). Each test follows **give
 - iOS 26+ / macOS 13+ / watchOS 11+ / tvOS 26+ / visionOS 2+
 - Use `async/await` and actors throughout; avoid callback-based or GCD patterns
 
+## Documentation conventions
+
+- **Diagrams** — always use [Mermaid](https://mermaid.js.org) for any architecture, sequence, or flow diagram. Never use ASCII art. Supported diagram types in this project: `graph` (dependency / module graphs), `sequenceDiagram` (request/response flows), `flowchart` (decision flows).
+- **Issue files** — detailed design for a milestone lives in `Documentation/Issues/<slug>.md`. The ROADMAP entry links to it and contains only a one-sentence intro + flat `- [ ]` checklist.
+- **ROADMAP format** — each milestone uses a short intro paragraph (optional) and a flat bullet checklist. No sub-headers, no code blocks, no diagrams inside `ROADMAP.md` itself.
+
 ## Documentation assets
 
 `Documentation/Assets/banner.svg` — 900×240 px dark-theme banner. Key colors to keep consistent:
