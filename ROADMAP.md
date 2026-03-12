@@ -38,6 +38,16 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 - [ ] Unit tests — `MockHTTPClient` pattern mirroring `ClaudeProviderTests`
 - [ ] Integration tests — `swift package integration-tests` extended for OpenAI
 
+## 0.3.0 — OpenAI Provider
+
+- [ ] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
+- [ ] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`
+- [ ] Map OpenAI function-calling to `ContentBlock.toolUse` / `toolResult`
+- [ ] Unit tests — `MockHTTPClient` pattern mirroring `ClaudeProviderTests`
+- [ ] Integration tests — `swift package integration-tests` extended for OpenAI
+
+---
+
 ## 0.4.0 — Persistence: Core Protocol & In-Memory
 
 Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Issues/persistence-layer.md) for the full design.
