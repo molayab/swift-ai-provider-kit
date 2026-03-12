@@ -3,7 +3,7 @@
 This document tracks planned milestones toward the **1.0.0 MVP** release.
 Each version is a git tag consumable via Swift Package Manager.
 
-## 0.1.0 — Initial Demo ✅ (current)
+## 0.1.0 — Foundational Work (current)
 
 Foundation and Claude provider. Public API is considered stable enough for
 early adopters; minor breaking changes may still occur before 1.0.0.
