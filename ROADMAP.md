@@ -121,33 +121,73 @@ unlocks the `.swiftData` case on `ConversationStoreBackend`.
 
 ## 0.7.0 — Retrieval-Augmented Generation (RAG)
 
-Provider-agnostic RAG helper layer. See [`Documentation/Investigations/RAG-Providers.md`](Investigations/RAG-Providers.md) for the full feasibility analysis.
+Provider-agnostic RAG helper layer. Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies.
 
-Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies.
+- Full design: [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md)
+- Provider feasibility analysis: [`Documentation/Investigations/RAG-Providers.md`](Investigations/RAG-Providers.md)
 
-### EmbeddingProvider protocol
+### Pipeline overview
+
+```mermaid
+graph LR
+    Folder["📁 Folder URL"] --> FI["FolderIndexer\n(actor)"]
+    FI --> DP["DocumentParser\n.txt .md .pdf …"]
+    FI --> DC["DocumentChunker\nsize + overlap"]
+    FI --> EP["EmbeddingProvider\nVoyage / OpenAI / NL"]
+    FI --> VS["VectorStore\nInMemoryVectorStore"]
+    VS --> FC["FolderContext\n.retrieve(for: query)"]
+    FC --> RB["AIRequestBuilder\n.ragContext(_:)"]
+    RB --> AI["AIClient\n.send / .stream"]
+```
+
+### Core protocols & types
 
 - [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
+- [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
+- [ ] `DocumentChunker` — configurable `chunkSize` + `overlap`; `ChunkSource` for citations
+- [ ] `DocumentChunk` / `ChunkSource` — `Sendable`, `Identifiable`
+- [ ] `VectorStore` protocol — `add`, `search`, `remove(fileURL:)`, `removeAll`
+- [ ] `ScoredChunk` — chunk + cosine similarity score
+- [ ] `RAGContext` — carries `[ScoredChunk]` ready for injection
+- [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
+
+### Embedding providers
+
 - [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
-- [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` endpoint (`text-embedding-3-large` / `text-embedding-3-small`)
+- [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` (`text-embedding-3-large` / `text-embedding-3-small`)
 - [ ] `NLEmbeddingProvider` — on-device via `NaturalLanguage.NLEmbedding` (Foundation Models stack, no API key)
 
-### RAG pipeline
+### Document parsers
 
-- [ ] `RAGContext` value type — carries retrieved chunks + relevance scores, ready for injection
-- [ ] Document chunker — configurable chunk size and overlap
-- [ ] In-memory vector store — cosine nearest-neighbor search (zero dependencies)
-- [ ] `contextWindowSize: Int` on `AIProvider` — lets the RAG layer auto-size chunk injection per provider budget
-- [ ] `AIRequestBuilder.ragContext(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
+- [ ] `TextDocumentParser` — `.txt` `.md` `.markdown` `.swift` `.json` `.yaml` `.xml`
+- [ ] `PDFDocumentParser` — PDFKit, one section per page; `#if canImport(PDFKit)` guard
+
+### Storage
+
+- [ ] `InMemoryVectorStore` — actor; cosine nearest-neighbour via `vDSP` / pure-Swift fallback
+
+### Indexing & retrieval
+
+- [ ] `FolderIndexer` actor — concurrent file processing (max 8 tasks), batch embedding (×32), mtime-based incremental re-index
+- [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim via `tokenBudgetFraction`
+
+### Injection
+
+- [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets the RAG layer auto-size chunk injection
+- [ ] `AIRequestBuilder.ragContext(_:)` — injects `<context>[1]…[N]</context>` block as `.text` `ContentBlock` items
 
 ### OpenAI managed path (optional)
 
 - [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
 
+### Package
+
+- [ ] `Package.swift` — add `AIProviderKitRAG` library product and target
+
 ### Testing
 
-- [ ] Unit tests — in-memory store, mock embedding provider, chunk injection verification
-- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs
+- [ ] Unit tests — in-memory store, mock embedding provider, chunk injection verification, budget trimming, incremental re-index
+- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
 
 ---
 
