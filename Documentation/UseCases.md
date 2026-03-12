@@ -250,7 +250,7 @@ print(response.text)
 
 ## UC-10 · Provider Swap
 
-> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `OpenAIProvider` planned for 0.2.0; `FoundationModelProvider` planned for 0.3.0.
+> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `FoundationModelProvider` planned for 0.2.0; `OpenAIProvider` planned for 0.3.0.
 
 **Actor:** iOS/macOS app
 **Goal:** Switch AI providers without changing any application logic.
@@ -275,16 +275,16 @@ func makeClient(for provider: AppSettings.Provider) -> AIClient {
                 authorization: APIKeyAuthorization(apiKey: Secrets.anthropicKey)
             )
         )
-    case .openAI:
+    case .onDevice:
         // Planned — 0.2.0
+        return AIClient(provider: FoundationModelProvider())
+    case .openAI:
+        // Planned — 0.3.0
         return AIClient(
             provider: OpenAIProvider(
                 authorization: APIKeyAuthorization(apiKey: Secrets.openAIKey)
             )
         )
-    case .onDevice:
-        // Planned — 0.3.0
-        return AIClient(provider: FoundationModelProvider())
     }
 }
 

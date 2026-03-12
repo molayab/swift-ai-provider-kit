@@ -23,8 +23,8 @@ graph TD
 
     subgraph Providers
         Claude["ClaudeProvider"]
-        OpenAI["OpenAIProvider *(0.2.0)*"]
-        FM["FoundationModelProvider *(0.3.0)*"]
+        OpenAI["OpenAIProvider *(0.3.0)*"]
+        FM["FoundationModelProvider *(0.2.0)*"]
     end
 
     subgraph Persistence
