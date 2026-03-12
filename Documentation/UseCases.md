@@ -1,5 +1,26 @@
 # Use Cases
 
+## Contents
+
+| # | Use Case | Status |
+|---|---|---|
+| [UC-01](#uc-01--simple-text-conversation) | Simple Text Conversation | ✅ 0.1.0 |
+| [UC-02](#uc-02--multi-turn-conversation) | Multi-Turn Conversation | ✅ 0.1.0 |
+| [UC-03](#uc-03--streaming-response) | Streaming Response | ✅ 0.1.0 |
+| [UC-04](#uc-04--tool-use-automatic) | Tool Use (Automatic) | ✅ 0.1.0 |
+| [UC-05](#uc-05--recipe-prompt-template) | Recipe (Prompt Template) | ✅ 0.1.0 |
+| [UC-06](#uc-06--skill-execution) | Skill Execution | ✅ 0.1.0 |
+| [UC-07](#uc-07--in-app-log-viewer) | In-App Log Viewer | ✅ 0.1.0 |
+| [UC-08](#uc-08--vision-image-input) | Vision (Image Input) | ✅ 0.1.0 |
+| [UC-09](#uc-09--custom-tool-definition) | Custom Tool Definition | ✅ 0.1.0 |
+| [UC-10](#uc-10--provider-swap) | Provider Swap | ⏳ 0.1.0+ |
+| [UC-11](#uc-11--ephemeral-conversation-store-planned--040) | Ephemeral Conversation Store | 🔜 0.4.0 |
+| [UC-12](#uc-12--file-system-persistence-planned--050) | File System Persistence | 🔜 0.5.0 |
+| [UC-13](#uc-13--swiftdata-persistence-planned--060) | SwiftData Persistence | 🔜 0.6.0 |
+| [UC-14](#uc-14--folder-as-context-planned--070--077) | Folder-as-Context | 🔜 0.7.0–0.7.7 |
+
+---
+
 ## UC-01 · Simple Text Conversation
 
 > **Status:** Available — 0.1.0

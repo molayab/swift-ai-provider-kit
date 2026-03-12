@@ -1,5 +1,33 @@
 # Context: Folder-as-Context Support
 
+## Contents
+
+- [Problem Statement](#problem-statement)
+- [Goals](#goals)
+- [Proposed Architecture](#proposed-architecture)
+  - [Layer Overview](#layer-overview)
+  - [Indexing Pipeline](#indexing-pipeline)
+  - [Retrieval & Injection Flow](#retrieval--injection-flow)
+  - [Module Structure](#module-structure)
+- [New Protocols and Types](#new-protocols-and-types)
+  - [1. DocumentParser](#1-documentparser--file--text)
+  - [2. DocumentChunker](#2-documentchunker--text--fixed-size-overlapping-chunks)
+  - [3. EmbeddingProvider](#3-embeddingprovider--texts--float-vectors)
+  - [4. VectorStore](#4-vectorstore--store-and-search-embeddings)
+  - [5. RetrievalContext](#5-retrievalcontext--retrieved-chunks-ready-for-injection)
+  - [6. FolderIndexer](#6-folderindexer--actor-that-owns-the-indexing-pipeline)
+  - [7. FolderContext](#7-foldercontext--high-level-user-facing-entry-point)
+  - [8. AIRequestBuilder extension](#8-airequestbuilder-extension--inject-retrievalcontext)
+  - [9. contextWindowSize on AIProvider](#9-contextwindowsize-on-aiprovider)
+- [Usage Example](#usage-example)
+- [Incremental Indexing Example](#incremental-indexing-example)
+- [Module Layout](#module-layout)
+- [Open Questions](#open-questions)
+- [Implementation Tasks](#implementation-tasks)
+- [References](#references)
+
+---
+
 > **Status:** Proposed
 > **Milestones:** 0.7.0 – 0.7.7 — Context
 > **Relates to:** [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md), [`ROADMAP.md`](../../ROADMAP.md#070--context-core-protocols--types)

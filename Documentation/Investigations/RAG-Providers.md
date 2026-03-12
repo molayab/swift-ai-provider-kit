@@ -1,5 +1,19 @@
 # Context Layer — Provider Viability Investigation
 
+## Contents
+
+- [Summary](#summary)
+- [Per-Provider Analysis](#per-provider-analysis)
+  - [Anthropic Claude](#anthropic-claude)
+  - [OpenAI](#openai)
+  - [Apple Foundation Models](#apple-foundation-models-on-device)
+- [Cross-Provider Comparison](#cross-provider-comparison)
+- [Proposed Architecture](#proposed-architecture)
+- [Open Questions](#open-questions)
+- [References](#references)
+
+---
+
 > **Date:** 2026-03-10
 > **Status:** Accepted — scheduled for milestones 0.7.0 – 0.7.7
 > **Scope:** Feasibility of a provider-agnostic context retrieval layer (`AIProviderKitContext`) across all three MVP providers

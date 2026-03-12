@@ -1,5 +1,18 @@
 # Architecture
 
+## Contents
+
+- [Package Structure](#package-structure)
+- [Module Dependency Graph](#module-dependency-graph)
+- [Core Layer — AIProviderKit](#core-layer--aiproviderkitkit)
+- [Request / Response Flow](#request--response-flow)
+- [Streaming Flow](#streaming-flow)
+- [ClaudeProvider Internals](#claudeprovider-internals)
+- [Context Layer — AIProviderKitContext](#context-layer--aiproviderkitcontext)
+- [Logging Architecture](#logging-architecture)
+
+---
+
 ## Package Structure
 
 ```mermaid

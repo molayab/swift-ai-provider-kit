@@ -1,5 +1,15 @@
 # Persistence Layer Design (0.4 – 0.6)
 
+## Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [0.4.0 — Core Protocol & In-Memory](#040--core-protocol--in-memory)
+- [0.5.0 — File System Backend](#050--file-system-backend)
+- [0.6.0 — Database Backend](#060--database-backend)
+
+---
+
 > **Status:** Planned
 > **Milestones:** 0.4.0 · 0.5.0 · 0.6.0
 > **Created:** 2026-03-12
