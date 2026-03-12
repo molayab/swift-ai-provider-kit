@@ -30,41 +30,127 @@ This issue proposes adding **folder-as-context RAG** to `AIProviderKitRAG`: a hi
 
 ### Layer Overview
 
-```
-┌───────────────────────────────────────────────────────┐
-│                   FolderContext  (high-level API)      │
-│   init(url:embeddingProvider:options:)                 │
-│   func retrieve(for query: String, topK: Int)          │
-│         async throws -> RAGContext                     │
-└──────────────┬────────────────────────────────────────┘
-               │ uses
-   ┌───────────▼────────────┐   ┌──────────────────────┐
-   │    FolderIndexer actor │   │  VectorStore protocol │
-   │  scan → parse → chunk  │──▶│  (InMemoryVectorStore)│
-   │  → embed → store       │   │  store / search       │
-   └───────────┬────────────┘   └──────────────────────┘
-               │ uses
-   ┌───────────▼────────────┐   ┌──────────────────────┐
-   │  DocumentParser proto  │   │ EmbeddingProvider proto│
-   │  TextDocumentParser    │   │ VoyageEmbeddingProvider│
-   │  PDFDocumentParser     │   │ OpenAIEmbeddingProvider│
-   └────────────────────────┘   │ NLEmbeddingProvider   │
-                                └──────────────────────┘
-               │ produces
-   ┌───────────▼────────────┐
-   │  DocumentChunker       │
-   │  (size + overlap cfg)  │
-   └────────────────────────┘
+```mermaid
+graph TD
+    FC["FolderContext (actor)\ninit(url:embeddingProvider:options:)\nretrieve(for:) → RAGContext"]
 
-Injection point:
-   AIRequestBuilder.ragContext(_:RAGContext) → ContentBlock.text items
+    FI["FolderIndexer (actor)\nscan → parse → chunk → embed → store"]
+
+    DP["DocumentParser (protocol)\nTextDocumentParser\nPDFDocumentParser"]
+
+    DC["DocumentChunker\nchunkSize + overlap\nChunkSource for citations"]
+
+    EP["EmbeddingProvider (protocol)\nVoyageEmbeddingProvider\nOpenAIEmbeddingProvider\nNLEmbeddingProvider"]
+
+    VS["VectorStore (protocol)\nInMemoryVectorStore\ncosine similarity via vDSP"]
+
+    RB["AIRequestBuilder extension\n.ragContext(_:)\n→ ContentBlock.text injection"]
+
+    AI["AIClient\n.send(_:) / .stream(_:)"]
+
+    FC -->|owns| FI
+    FI -->|uses| DP
+    FI -->|uses| DC
+    FI -->|uses| EP
+    FI -->|stores in| VS
+    FC -->|produces| RB
+    RB -->|builds| AI
+```
+
+### Indexing Pipeline
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant FolderContext
+    participant FolderIndexer
+    participant DocumentParser
+    participant DocumentChunker
+    participant EmbeddingProvider
+    participant VectorStore
+
+    App->>FolderContext: init(url:embeddingProvider:options:)
+    FolderContext->>FolderIndexer: index(url:)
+    FolderIndexer->>FolderIndexer: scan directory (recursive, skip hidden)
+    loop each file (concurrent, max 8 tasks)
+        FolderIndexer->>DocumentParser: parse(url:) → [String]
+        DocumentParser-->>FolderIndexer: sections
+        FolderIndexer->>DocumentChunker: chunk(text:source:) → [DocumentChunk]
+        DocumentChunker-->>FolderIndexer: chunks
+    end
+    FolderIndexer->>EmbeddingProvider: embed([chunk.text, …]) batched ×32
+    EmbeddingProvider-->>FolderIndexer: [[Float]]
+    FolderIndexer->>VectorStore: add(chunk:embedding:) for each
+    FolderContext-->>App: state = .ready
+```
+
+### Retrieval & Injection Flow
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant FolderContext
+    participant EmbeddingProvider
+    participant VectorStore
+    participant AIRequestBuilder
+    participant AIClient
+
+    App->>FolderContext: retrieve(for: query)
+    FolderContext->>EmbeddingProvider: embed([query]) → [[Float]]
+    EmbeddingProvider-->>FolderContext: queryVector
+    FolderContext->>VectorStore: search(query: queryVector, topK: N)
+    VectorStore-->>FolderContext: [ScoredChunk]
+    FolderContext-->>App: RAGContext
+
+    App->>AIRequestBuilder: .ragContext(ragContext)
+    Note over AIRequestBuilder: Prepends <context>[1]…[N]</context>\nto first user message
+    App->>AIRequestBuilder: .addMessage(.user(text: query))
+    App->>AIRequestBuilder: .build() → AIRequest
+    App->>AIClient: send(request)
+    AIClient-->>App: AIResponse
+```
+
+### Module Structure
+
+```mermaid
+graph LR
+    subgraph AIProviderKitRAG
+        direction TB
+        FC2[FolderContext]
+        FI2[FolderIndexer]
+        DC2[DocumentChunker]
+        DP2[DocumentParser]
+        EP2[EmbeddingProvider]
+        VS2[VectorStore]
+        RB2[AIRequestBuilder+RAG]
+    end
+
+    subgraph AIProviderKit
+        AIC[AIClient]
+        ARB[AIRequestBuilder]
+        CB[ContentBlock]
+        AP[AIProvider]
+    end
+
+    subgraph ClaudeProvider
+        CP[ClaudeProvider]
+    end
+
+    subgraph FoundationModels["Foundation Models Stack"]
+        NL[NLEmbeddingProvider]
+    end
+
+    AIProviderKitRAG -->|imports| AIProviderKit
+    ClaudeProvider -->|imports| AIProviderKit
+    NL -->|imports| AIProviderKitRAG
+    RB2 -->|extends| ARB
 ```
 
 ---
 
-### New Protocols and Types
+## New Protocols and Types
 
-#### 1. `DocumentParser` — file → text
+### 1. `DocumentParser` — file → text
 
 ```swift
 // AIProviderKitRAG
@@ -89,7 +175,7 @@ public struct PDFDocumentParser: DocumentParser { … }   // uses PDFKit (Apple 
 
 ---
 
-#### 2. `DocumentChunker` — text → fixed-size overlapping chunks
+### 2. `DocumentChunker` — text → fixed-size overlapping chunks
 
 ```swift
 public struct DocumentChunker: Sendable {
@@ -117,15 +203,13 @@ public struct ChunkSource: Sendable {
 
 ---
 
-#### 3. `EmbeddingProvider` — texts → float vectors
+### 3. `EmbeddingProvider` — texts → float vectors
 
 ```swift
-// AIProviderKitRAG (promoted from the investigation doc)
 public protocol EmbeddingProvider: Sendable {
     func embed(_ texts: [String]) async throws -> [[Float]]
 }
 
-// Implementations (ship in AIProviderKitRAG; no mandatory external deps)
 public struct VoyageEmbeddingProvider: EmbeddingProvider {
     public init(apiKey: String, model: VoyageModel = .voyage3Large)
 }
@@ -141,12 +225,12 @@ public struct NLEmbeddingProvider: EmbeddingProvider {
 ```
 
 **Design notes:**
-- `VoyageEmbeddingProvider` and `OpenAIEmbeddingProvider` use the same zero-dependency `URLSessionHTTPClient` already present in `ClaudeProvider`; no new networking code.
-- `NLEmbeddingProvider` is the recommended choice for `FoundationModelProvider` (stays fully on-device, fits the 3K token budget).
+- `VoyageEmbeddingProvider` and `OpenAIEmbeddingProvider` reuse the same zero-dependency `URLSessionHTTPClient` already present in `ClaudeProvider`; no new networking code.
+- `NLEmbeddingProvider` is recommended for `FoundationModelProvider` (fully on-device, fits the 3K token budget).
 
 ---
 
-#### 4. `VectorStore` — store and search embeddings
+### 4. `VectorStore` — store and search embeddings
 
 ```swift
 public protocol VectorStore: Sendable {
@@ -167,12 +251,12 @@ public actor InMemoryVectorStore: VectorStore { … }
 
 **Design notes:**
 - Cosine similarity is computed with `vDSP` (Accelerate framework) where available; falls back to a pure-Swift implementation on Linux.
-- `remove(fileURL:)` makes incremental re-indexing possible: when a file changes, remove its old chunks and re-index.
-- The `VectorStore` protocol allows future `SQLiteVectorStore` (using `sqlite-vec`) to drop in with zero call-site changes — planned post-1.0.
+- `remove(fileURL:)` makes incremental re-indexing possible: when a file changes, remove its old chunks and re-index only that file.
+- The `VectorStore` protocol allows a future `SQLiteVectorStore` (`sqlite-vec`) to drop in with zero call-site changes — planned post-1.0.
 
 ---
 
-#### 5. `RAGContext` — retrieved chunks ready for injection
+### 5. `RAGContext` — retrieved chunks ready for injection
 
 ```swift
 public struct RAGContext: Sendable {
@@ -185,7 +269,7 @@ public struct RAGContext: Sendable {
 
 ---
 
-#### 6. `FolderIndexer` — actor that owns the indexing pipeline
+### 6. `FolderIndexer` — actor that owns the indexing pipeline
 
 ```swift
 public actor FolderIndexer {
@@ -213,12 +297,12 @@ public actor FolderIndexer {
 **Design notes:**
 - Embedding calls are batched (default batch size: 32) to minimise API round-trips.
 - Files are indexed concurrently via `withThrowingTaskGroup`, bounded to 8 concurrent tasks to avoid memory pressure.
-- A `lastModifiedDate` cache enables incremental re-indexing: files unchanged since last index pass are skipped.
-- Emits `IndexingState.indexing(progress:)` updates so a SwiftUI view can display a progress indicator.
+- A `lastModifiedDate` cache enables incremental re-indexing: files unchanged since the last pass are skipped.
+- Emits `IndexingState.indexing(progress:)` updates so a SwiftUI view can show a progress indicator.
 
 ---
 
-#### 7. `FolderContext` — high-level, user-facing entry point
+### 7. `FolderContext` — high-level, user-facing entry point
 
 ```swift
 public struct FolderContextOptions: Sendable {
@@ -250,7 +334,7 @@ public actor FolderContext {
 
 ---
 
-#### 8. `AIRequestBuilder` extension — inject `RAGContext`
+### 8. `AIRequestBuilder` extension — inject `RAGContext`
 
 ```swift
 // Extension in AIProviderKitRAG
@@ -278,7 +362,7 @@ AIClient is an actor that owns a ToolRegistry…
 
 ---
 
-#### 9. `contextWindowSize` on `AIProvider`
+### 9. `contextWindowSize` on `AIProvider`
 
 ```swift
 // AIProviderKit core — non-breaking addition
