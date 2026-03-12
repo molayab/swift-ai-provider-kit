@@ -89,35 +89,73 @@ Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, 
 
 ---
 
-## 0.7.0 — Retrieval-Augmented Generation (RAG)
+## 0.7.0 — RAG: Core Protocols & Types
 
-Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies. See [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md) for the full design.
+Foundation for `AIProviderKitRAG` — the optional RAG library product. See [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md) for the full design.
 
 - [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
+- [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
+- [ ] `DocumentChunker` — configurable `chunkSize` + `overlap`
+- [ ] `DocumentChunk` / `ChunkSource` — `Sendable`, `Identifiable`; `ChunkSource` carries file URL + index for citations
+- [ ] `VectorStore` protocol — `add`, `search`, `remove(fileURL:)`, `removeAll`
+- [ ] `ScoredChunk` — chunk + cosine similarity score
+- [ ] `RAGContext` — carries `[ScoredChunk]` ready for injection
+- [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
+- [ ] `Package.swift` — add `AIProviderKitRAG` library product and target
+
+---
+
+## 0.7.1 — RAG: Embedding Providers
+
 - [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
 - [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` (`text-embedding-3-large` / `text-embedding-3-small`)
 - [ ] `NLEmbeddingProvider` — on-device via `NaturalLanguage.NLEmbedding` (Foundation Models stack, no API key)
-- [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
+
+---
+
+## 0.7.2 — RAG: Document Parsers
+
 - [ ] `TextDocumentParser` — `.txt` `.md` `.markdown` `.swift` `.json` `.yaml` `.xml`
 - [ ] `PDFDocumentParser` — PDFKit, one section per page; `#if canImport(PDFKit)` guard
-- [ ] `DocumentChunker` — configurable `chunkSize` + `overlap`; `ChunkSource` for citations
-- [ ] `VectorStore` protocol + `InMemoryVectorStore` — cosine nearest-neighbour via `vDSP` / pure-Swift fallback
-- [ ] `RAGContext` — carries `[ScoredChunk]` (chunk + score) ready for injection
-- [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
+
+---
+
+## 0.7.3 — RAG: Storage
+
+- [ ] `InMemoryVectorStore` — actor; cosine nearest-neighbour via `vDSP` / pure-Swift fallback
+
+---
+
+## 0.7.4 — RAG: Indexing & Retrieval
+
 - [ ] `FolderIndexer` actor — concurrent file processing (max 8 tasks), batch embedding (×32), mtime-based incremental re-index
-- [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim
+- [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim via `tokenBudgetFraction`
+
+---
+
+## 0.7.5 — RAG: Injection
+
 - [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets `FolderContext` auto-size chunk injection
 - [ ] `AIRequestBuilder.ragContext(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
-- [ ] `Tool.fileSearch(vectorStoreIds:)` — OpenAI Responses API managed RAG path (optional)
-- [ ] `Package.swift` — add `AIProviderKitRAG` library product and target
+
+---
+
+## 0.7.6 — RAG: OpenAI Managed Path
+
+- [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
+
+---
+
+## 0.7.7 — RAG: Testing
+
 - [ ] Unit tests — in-memory store, mock embedding provider, chunk injection, budget trimming, incremental re-index
-- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs
+- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
 
 ---
 
 ## 1.0.0 — MVP
 
-All of 0.2–0.7, plus:
+All of 0.2–0.7.7, plus:
 
 - [ ] Stable public API guarantee (SemVer from this point forward)
 - [ ] Comprehensive DocC documentation for all public symbols
