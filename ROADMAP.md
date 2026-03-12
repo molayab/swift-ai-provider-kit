@@ -46,35 +46,9 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 
 ---
 
-## Persistence Design (0.4 – 0.6)
-
-The persistence layer is **fully modular and swappable**. A single
-`SupportedConversationStore` enum selects and configures the backend at
-`AIClient` initialisation time — swapping storage is a one-line change
-with no other code modifications required.
-
-```swift
-// Ephemeral in-memory (default, zero dependencies)
-let client = AIClient(provider: claude, store: .ephemeralMemory)
-
-// File system (cross-platform, no extra frameworks)
-let client = AIClient(provider: claude, store: .fileSystem(directory: .applicationSupport))
-
-// Database — SwiftData (querying, migrations, multi-process)
-let client = AIClient(provider: claude, store: .database(configuration: ModelConfiguration("Conversations")))
-```
-
-Each case resolves internally to a concrete type conforming to
-`ConversationStore`. Callers never reference those types directly — only
-the enum case and the shared protocol surface are public API.
-
----
-
 ## 0.4.0 — Persistence: Core Protocol & In-Memory
 
-Establishes the persistence contract and a zero-dependency default backend.
-All higher-level `AIClient` APIs are introduced here; later versions add
-new `ConversationStoreBackend` cases without changing any call sites.
+Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Issues/persistence-layer.md) for the full design.
 
 - [ ] `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
 - [ ] `SupportedConversationStore` enum — `.ephemeralMemory` / `.fileSystem` / `.database` cases
@@ -90,9 +64,7 @@ new `ConversationStoreBackend` cases without changing any call sites.
 
 ## 0.5.0 — Persistence: File System Backend
 
-Maximum compatibility — works on every Apple platform and Linux without
-any additional frameworks. Ships as `AIProviderKitPersistenceFS`; importing
-it unlocks the `.fileSystem` case on `ConversationStoreBackend`.
+Ships as `AIProviderKitPersistenceFS`; works on every Apple platform and Linux without additional frameworks.
 
 - [ ] `FileSystemConversationStore` — backing type for `.fileSystem(directory:)` case
 - [ ] Atomic writes — write to temp file, rename on success, no partial-write corruption
@@ -106,9 +78,7 @@ it unlocks the `.fileSystem` case on `ConversationStoreBackend`.
 
 ## 0.6.0 — Persistence: Database Backend
 
-SwiftData-backed store for apps that need querying, indexing, or
-multi-process access. Ships as `AIProviderKitPersistenceDB`; importing it
-unlocks the `.swiftData` case on `ConversationStoreBackend`.
+Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, and multi-process access.
 
 - [ ] `SwiftDataConversationStore` — backing type for `.database(configuration:)` case (iOS 17+ / macOS 14+)
 - [ ] Schema migrations — versioned `ModelContainer` configuration
@@ -121,73 +91,27 @@ unlocks the `.swiftData` case on `ConversationStoreBackend`.
 
 ## 0.7.0 — Retrieval-Augmented Generation (RAG)
 
-Provider-agnostic RAG helper layer. Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies.
-
-- Full design: [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md)
-- Provider feasibility analysis: [`Documentation/Investigations/RAG-Providers.md`](Investigations/RAG-Providers.md)
-
-### Pipeline overview
-
-```mermaid
-graph LR
-    Folder["📁 Folder URL"] --> FI["FolderIndexer\n(actor)"]
-    FI --> DP["DocumentParser\n.txt .md .pdf …"]
-    FI --> DC["DocumentChunker\nsize + overlap"]
-    FI --> EP["EmbeddingProvider\nVoyage / OpenAI / NL"]
-    FI --> VS["VectorStore\nInMemoryVectorStore"]
-    VS --> FC["FolderContext\n.retrieve(for: query)"]
-    FC --> RB["AIRequestBuilder\n.ragContext(_:)"]
-    RB --> AI["AIClient\n.send / .stream"]
-```
-
-### Core protocols & types
+Ships as `AIProviderKitRAG` — an optional library product with no mandatory external dependencies. See [`Documentation/Issues/rag-folder-context.md`](Issues/rag-folder-context.md) for the full design.
 
 - [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
-- [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
-- [ ] `DocumentChunker` — configurable `chunkSize` + `overlap`; `ChunkSource` for citations
-- [ ] `DocumentChunk` / `ChunkSource` — `Sendable`, `Identifiable`
-- [ ] `VectorStore` protocol — `add`, `search`, `remove(fileURL:)`, `removeAll`
-- [ ] `ScoredChunk` — chunk + cosine similarity score
-- [ ] `RAGContext` — carries `[ScoredChunk]` ready for injection
-- [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
-
-### Embedding providers
-
 - [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
 - [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` (`text-embedding-3-large` / `text-embedding-3-small`)
 - [ ] `NLEmbeddingProvider` — on-device via `NaturalLanguage.NLEmbedding` (Foundation Models stack, no API key)
-
-### Document parsers
-
+- [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
 - [ ] `TextDocumentParser` — `.txt` `.md` `.markdown` `.swift` `.json` `.yaml` `.xml`
 - [ ] `PDFDocumentParser` — PDFKit, one section per page; `#if canImport(PDFKit)` guard
-
-### Storage
-
-- [ ] `InMemoryVectorStore` — actor; cosine nearest-neighbour via `vDSP` / pure-Swift fallback
-
-### Indexing & retrieval
-
+- [ ] `DocumentChunker` — configurable `chunkSize` + `overlap`; `ChunkSource` for citations
+- [ ] `VectorStore` protocol + `InMemoryVectorStore` — cosine nearest-neighbour via `vDSP` / pure-Swift fallback
+- [ ] `RAGContext` — carries `[ScoredChunk]` (chunk + score) ready for injection
+- [ ] `IndexingState` — `.idle` / `.indexing(progress: Double)` / `.ready`
 - [ ] `FolderIndexer` actor — concurrent file processing (max 8 tasks), batch embedding (×32), mtime-based incremental re-index
-- [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim via `tokenBudgetFraction`
-
-### Injection
-
-- [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets the RAG layer auto-size chunk injection
-- [ ] `AIRequestBuilder.ragContext(_:)` — injects `<context>[1]…[N]</context>` block as `.text` `ContentBlock` items
-
-### OpenAI managed path (optional)
-
-- [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
-
-### Package
-
+- [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim
+- [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets `FolderContext` auto-size chunk injection
+- [ ] `AIRequestBuilder.ragContext(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
+- [ ] `Tool.fileSearch(vectorStoreIds:)` — OpenAI Responses API managed RAG path (optional)
 - [ ] `Package.swift` — add `AIProviderKitRAG` library product and target
-
-### Testing
-
-- [ ] Unit tests — in-memory store, mock embedding provider, chunk injection verification, budget trimming, incremental re-index
-- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
+- [ ] Unit tests — in-memory store, mock embedding provider, chunk injection, budget trimming, incremental re-index
+- [ ] Integration tests — round-trip RAG query against real Claude and OpenAI APIs
 
 ---
 
