@@ -36,21 +36,31 @@ graph LR
     App["Your App"]
 
     subgraph shipped["Shipped modules"]
-        Core["AIProviderKit\n(zero dependencies)"]
+        Core["AIProviderKit"]
         Claude["ClaudeProvider"]
         UI["AIProviderKitUI"]
     end
 
     subgraph planned["Planned modules"]
-        FM["FoundationModelProvider\n(0.2.0)"]
-        OpenAI["OpenAIProvider\n(0.3.0)"]
+        FM["FoundationModelProvider"]
+        OpenAI["OpenAIProvider"]
     end
 
     App --> Claude
+    App --> OpenAI
+    App --> FM
+    App --> PFS
+    App --> PDB
+    App --> CTX
     App --> UI
     App --> Core
 
     Claude --> Core
+    OpenAI --> Core
+    FM --> Core
+    PFS --> Core
+    PDB --> Core
+    CTX --> Core
     UI --> Core
     FM -.-> Core
     OpenAI -.-> Core
@@ -68,6 +78,7 @@ classDiagram
         <<protocol>>
         +identifier: String
         +capabilities: Set~AICapability~
+        +contextWindowSize: Int
         +send(AIRequest) AIResponse
     }
 
@@ -288,6 +299,60 @@ The package uses Swift 6 strict concurrency throughout. Both `StrictConcurrency`
 **Structured concurrency** is used for parallel tool execution: `AIClient.executeTools` uses `withThrowingTaskGroup` to run all tool calls from a single model turn concurrently.
 
 **MainActor isolation**: `AILogStore` is `@MainActor`-isolated and uses `@Observable` for SwiftUI reactivity. `AILogger` forwards entries to `AILogStore.shared` via `Task { @MainActor in ... }`.
+
+---
+
+## Context Layer — AIProviderKitContext
+
+> Planned for milestones 0.6.0 – 0.6.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
+
+```mermaid
+graph TD
+    FC["FolderContext (actor)\nHigh-level entry point"]
+    FI["FolderIndexer (actor)\nscan → parse → chunk → embed → store"]
+    DP["DocumentParser (protocol)\nTextDocumentParser · PDFDocumentParser"]
+    DC["DocumentChunker\nchunkSize + overlap · ChunkSource"]
+    EP["EmbeddingProvider (protocol)\nVoyage · OpenAI · NLEmbedding"]
+    VS["VectorStore (protocol)\nInMemoryVectorStore"]
+    RC["RetrievalContext\n[ScoredChunk] ready for injection"]
+    RB["AIRequestBuilder\n.context(RetrievalContext)"]
+    AI["AIClient\n.send / .stream"]
+
+    FC -->|owns| FI
+    FI -->|uses| DP
+    FI -->|uses| DC
+    FI -->|uses| EP
+    FI -->|stores in| VS
+    VS -->|search result| RC
+    FC -->|returns| RC
+    RC -->|injected via| RB
+    RB -->|builds AIRequest for| AI
+```
+
+### Context Retrieval Flow
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant FolderContext
+    participant EmbeddingProvider
+    participant VectorStore
+    participant AIRequestBuilder
+    participant AIClient
+
+    App->>FolderContext: init(url:embeddingProvider:options:)
+    Note over FolderContext: Indexes folder on init (async)
+    App->>FolderContext: retrieve(for: query)
+    FolderContext->>EmbeddingProvider: embed([query])
+    EmbeddingProvider-->>FolderContext: [[Float]]
+    FolderContext->>VectorStore: search(query:topK:)
+    VectorStore-->>FolderContext: [ScoredChunk]
+    FolderContext-->>App: RetrievalContext
+    App->>AIRequestBuilder: .context(retrievalContext)
+    App->>AIRequestBuilder: .addMessage(.user(text: query))
+    App->>AIClient: send(request)
+    AIClient-->>App: AIResponse
+```
 
 ---
 

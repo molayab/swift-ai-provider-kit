@@ -15,7 +15,7 @@
 ---
 
 > **Date:** 2026-03-10
-> **Status:** Accepted — scheduled for milestones 0.7.0 – 0.7.7
+> **Status:** Accepted — scheduled for milestones 0.6.0 – 0.6.7
 > **Scope:** Feasibility of a provider-agnostic context retrieval layer (`AIProviderKitContext`) across all three MVP providers
 
 ---
@@ -154,7 +154,7 @@ let request = try AIRequestBuilder()
 ## Open Questions
 
 - Should `EmbeddingProvider` live in `AIProviderKit` core (adding a dependency boundary) or in a new `AIProviderKitContext` library product?
-- Vector store backend: in-memory only for 0.7.0, or ship a SQLite adapter from day one?
+- Vector store backend: in-memory only for 0.6.0, or ship a SQLite adapter from day one?
 - Token budget property: hard-code per model or let the provider report it dynamically?
 - Should `RetrievalContext` be injected automatically by `AIClient` (if one is registered) or always manually by the caller?
 

@@ -1,20 +1,16 @@
-# Persistence Layer Design (0.4 – 0.6)
+# Persistence Layer Design (0.3 – 0.5)
 
 ## Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [0.4.0 — Core Protocol & In-Memory](#040--core-protocol--in-memory)
-- [0.5.0 — File System Backend](#050--file-system-backend)
-- [0.6.0 — Database Backend](#060--database-backend)
-
----
+- [0.3.0 — Core Protocol & In-Memory](#030--core-protocol--in-memory)
+- [0.4.0 — File System Backend](#040--file-system-backend)
+- [0.5.0 — Database Backend](#050--database-backend)
 
 > **Status:** Planned
-> **Milestones:** 0.4.0 · 0.5.0 · 0.6.0
+> **Milestones:** 0.3.0 · 0.4.0 · 0.5.0
 > **Created:** 2026-03-12
-
----
 
 ## Overview
 
@@ -33,8 +29,6 @@ let client = AIClient(provider: claude, store: .database(configuration: ModelCon
 
 Each case resolves internally to a concrete type conforming to `ConversationStore`. Callers never reference those types directly — only the enum case and the shared protocol surface are public API.
 
----
-
 ## Architecture
 
 ```mermaid
@@ -49,12 +43,10 @@ graph TD
 
     AIClient --> SupportedConversationStore
 
-    EM --> EMCS["EphemeralMemoryConversationStore\n(0.4.0 · AIProviderKit)"]
-    FS --> FSCS["FileSystemConversationStore\n(0.5.0 · AIProviderKitPersistenceFS)"]
-    DB --> SDCS["SwiftDataConversationStore\n(0.6.0 · AIProviderKitPersistenceDB)"]
+    EM --> EMCS["EphemeralMemoryConversationStore\n(0.3.0 · AIProviderKit)"]
+    FS --> FSCS["FileSystemConversationStore\n(0.4.0 · AIProviderKitPersistenceFS)"]
+    DB --> SDCS["SwiftDataConversationStore\n(0.5.0 · AIProviderKitPersistenceDB)"]
 ```
-
----
 
 ## 0.4.0 — Core Protocol & In-Memory
 
@@ -69,8 +61,6 @@ Establishes the persistence contract and a zero-dependency default backend. All 
 - Conversation management API — list, load, delete, archive
 - Token-budget trimming — prune oldest turns when context limit is approached
 
----
-
 ## 0.5.0 — File System Backend
 
 Works on every Apple platform and Linux without any additional frameworks. Ships as `AIProviderKitPersistenceFS`; importing it unlocks the `.fileSystem` case on `SupportedConversationStore`.
@@ -80,8 +70,6 @@ Works on every Apple platform and Linux without any additional frameworks. Ships
 - Async I/O — file operations offloaded off the calling actor, never blocking
 - Conversation index file — fast list / search without loading all turn payloads
 - Import / export — portable conversation JSON bundles
-
----
 
 ## 0.6.0 — Database Backend
 
