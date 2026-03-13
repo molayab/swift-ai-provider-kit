@@ -1,5 +1,5 @@
 ---
-applyTo: "Sources/{ClaudeProvider,AppleIntelligenceProvider,OpenAIProvider}/**/*.swift"
+applyTo: "Sources/*Provider/**/*.swift"
 ---
 
 # Provider Implementation Rules
