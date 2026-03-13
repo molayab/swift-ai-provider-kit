@@ -13,7 +13,7 @@ public actor SkillRegistry {
         skills.removeValue(forKey: id)
     }
 
-    public func skill(id: String) throws -> any Skill {
+    public func skill(id: String) throws(AIError) -> any Skill {
         guard let skill = skills[id] else {
             throw AIError.skillNotFound(id)
         }

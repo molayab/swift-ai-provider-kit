@@ -1,3 +1,5 @@
+import AIProviderKit
+
 /// A single Foundation Models inference session.
 ///
 /// This protocol is the testability seam: production code uses `LiveFMSession`
@@ -13,5 +15,5 @@ protocol FMSessionProtocol: Sendable {
 /// Inject a `MockFMSessionFactory` in tests; the default `DefaultFMSessionFactory`
 /// creates `LiveFMSession` instances backed by `FoundationModels.LanguageModelSession`.
 protocol FMSessionFactory: Sendable {
-    func makeSession(for request: FMRequest) throws -> any FMSessionProtocol
+    func makeSession(for request: FMRequest) throws(AIError) -> any FMSessionProtocol
 }

@@ -61,15 +61,27 @@ public final class ClaudeProvider: StreamableProvider {
 
     // MARK: - AIProvider
 
-    public func send(_ request: AIRequest) async throws -> AIResponse {
+    public func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         let claudeRequest = requestMapper.map(request, stream: false)
         let httpRequest = try await buildHTTPRequest(body: claudeRequest)
-        let httpResponse = try await httpClient.send(httpRequest)
+
+        let httpResponse: HTTPResponse
+        do {
+            httpResponse = try await httpClient.send(httpRequest)
+        } catch let urlError as URLError {
+            throw AIError.networkError(urlError)
+        } catch {
+            throw AIError.networkError(URLError(.unknown))
+        }
 
         try validateStatus(httpResponse)
 
-        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: httpResponse.body)
-        return responseMapper.map(claudeResponse)
+        do {
+            let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: httpResponse.body)
+            return responseMapper.map(claudeResponse)
+        } catch {
+            throw AIError.decodingFailed(underlying: error)
+        }
     }
 
     // MARK: - StreamableProvider
@@ -96,7 +108,7 @@ public final class ClaudeProvider: StreamableProvider {
 
     // MARK: - Private helpers
 
-    private func buildHTTPRequest<Body: Encodable>(body: Body) async throws -> HTTPRequest {
+    private func buildHTTPRequest<Body: Encodable>(body: Body) async throws(AIError) -> HTTPRequest {
         var headers = try await authorization.authorizationHeaders()
         headers["anthropic-version"] = Self.anthropicVersion
         headers["content-type"] = "application/json"
@@ -116,7 +128,7 @@ public final class ClaudeProvider: StreamableProvider {
         )
     }
 
-    private func validateStatus(_ response: HTTPResponse) throws {
+    private func validateStatus(_ response: HTTPResponse) throws(AIError) {
         guard !(200...299).contains(response.statusCode) else { return }
 
         let body = String(data: response.body, encoding: .utf8)

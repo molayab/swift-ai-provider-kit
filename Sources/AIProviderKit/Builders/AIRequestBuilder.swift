@@ -100,7 +100,7 @@ public final class AIRequestBuilder {
     /// Validates and returns the constructed `AIRequest`.
     ///
     /// - Throws: `AIError.requestBuildingFailed` if required fields are missing.
-    public func build() throws -> AIRequest {
+    public func build() throws(AIError) -> AIRequest {
         guard let model else {
             throw AIError.requestBuildingFailed("A model must be specified.")
         }

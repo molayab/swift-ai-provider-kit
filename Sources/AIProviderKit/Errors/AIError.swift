@@ -2,28 +2,18 @@ import Foundation
 
 /// Errors thrown by AIProviderKit operations.
 public enum AIError: Error, Sendable {
-
     case authorizationFailed(String)
-
     case networkError(URLError)
     case invalidResponse(statusCode: Int, body: String?)
-
     case decodingFailed(underlying: any Error)
     case encodingFailed(underlying: any Error)
-
     case providerUnsupported(capability: AICapability)
-
     case toolExecutionFailed(toolName: String, underlying: any Error)
     case toolNotFound(String)
-
     case recipeRenderingFailed(recipeId: String, missingKeys: [String])
     case recipeNotFound(String)
-
     case skillNotFound(String)
-
     case requestBuildingFailed(String)
-
-    /// Rate limit hit. `retryAfter` is in seconds when provided by the server.
     case rateLimitExceeded(retryAfter: TimeInterval?)
     case contextLengthExceeded
     case invalidModel(String)

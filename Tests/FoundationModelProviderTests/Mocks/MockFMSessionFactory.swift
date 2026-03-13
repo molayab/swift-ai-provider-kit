@@ -48,12 +48,12 @@ final class MockFMSessionFactory: FMSessionFactory, @unchecked Sendable {
     var session: MockFMSession = MockFMSession()
 
     /// Error to throw from `makeSession(for:)` if non-nil.
-    var stubbedError: (any Error)?
+    var stubbedError: AIError?
 
     private(set) var makeSessionCallCount = 0
     private(set) var lastRequest: FMRequest?
 
-    func makeSession(for request: FMRequest) throws -> any FMSessionProtocol {
+    func makeSession(for request: FMRequest) throws(AIError) -> any FMSessionProtocol {
         makeSessionCallCount += 1
         lastRequest = request
         if let error = stubbedError { throw error }

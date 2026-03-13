@@ -19,10 +19,6 @@ let package = Package(
             name: "ClaudeProvider",
             targets: ["ClaudeProvider"]
         ),
-        .library(
-            name: "AIProviderKitUI",
-            targets: ["AIProviderKitUI"]
-        ),
         // Post-MVP: OpenAI support
         // .library(name: "OpenAIProvider", targets: ["OpenAIProvider"]),
         //
@@ -65,18 +61,6 @@ let package = Package(
             name: "FoundationModelProvider",
             dependencies: ["AIProviderKit"],
             path: "Sources/FoundationModelProvider",
-            swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny"),
-                .enableUpcomingFeature("StrictConcurrency")
-            ]
-        ),
-
-        // MARK: - UI
-
-        .target(
-            name: "AIProviderKitUI",
-            dependencies: ["AIProviderKit"],
-            path: "Sources/AIProviderKitUI",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")

@@ -9,13 +9,17 @@ import AIProviderKit
 /// device is detected at runtime. Otherwise throws `AIError.providerUnsupported`.
 struct DefaultFMSessionFactory: FMSessionFactory {
 
-    func makeSession(for request: FMRequest) throws -> any FMSessionProtocol {
+    func makeSession(for request: FMRequest) throws(AIError) -> any FMSessionProtocol {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, macOS 26.0, *) {
             guard SystemLanguageModel.default.isAvailable else {
                 throw AIError.providerUnsupported(capability: .text)
             }
-            return try LiveFMSession(request: request)
+            do {
+                return try LiveFMSession(request: request)
+            } catch {
+                throw AIError.requestBuildingFailed("Invalid tool schema: \(error.localizedDescription)")
+            }
         } else {
             throw AIError.providerUnsupported(capability: .text)
         }

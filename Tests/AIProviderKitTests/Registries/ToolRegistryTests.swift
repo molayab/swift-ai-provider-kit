@@ -131,8 +131,8 @@ struct ToolRegistryTests {
         }
     }
 
-    @Test("execute propagates handler errors")
-    func execute_handlerThrows_propagatesError() async {
+    @Test("execute wraps handler errors in toolExecutionFailed")
+    func execute_handlerThrows_wrapsInToolExecutionFailed() async {
         // Given
         struct HandlerError: Error {}
         let registry = ToolRegistry()
@@ -146,7 +146,7 @@ struct ToolRegistryTests {
         await registry.register(tool)
 
         // When / Then
-        await #expect(throws: HandlerError.self) {
+        await #expect(throws: AIError.self) {
             try await registry.execute(toolName: "failing", input: .null)
         }
     }

@@ -67,13 +67,21 @@ public final class FoundationModelProvider: StreamableProvider {
 
     // MARK: - AIProvider
 
-    public func send(_ request: AIRequest) async throws -> AIResponse {
+    public func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         let modelId = request.model.identifier
         logger?.info("FoundationModelProvider: send — model=\(modelId)")
 
         let fmRequest = requestMapper.map(request)
         let session = try sessionFactory.makeSession(for: fmRequest)
-        let fmResponse = try await session.respond(to: fmRequest)
+
+        let fmResponse: FMResponse
+        do {
+            fmResponse = try await session.respond(to: fmRequest)
+        } catch let error as AIError {
+            throw error
+        } catch {
+            throw AIError.decodingFailed(underlying: error)
+        }
 
         let response = responseMapper.map(fmResponse, model: modelId)
         logger?.info("FoundationModelProvider: received response — stopReason=\(response.stopReason.rawValue)")

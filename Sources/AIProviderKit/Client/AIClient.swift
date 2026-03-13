@@ -43,7 +43,7 @@ public actor AIClient {
     ///
     /// If the model requests tool calls, they are executed automatically and
     /// a follow-up request is sent until the model stops requesting tools.
-    public func send(_ request: AIRequest) async throws -> AIResponse {
+    public func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         logger?.info("[\(provider.identifier)] Sending request model=\(request.model.identifier) messages=\(request.messages.count)")
 
         var response = try await provider.send(request)
@@ -84,7 +84,7 @@ public actor AIClient {
         values: [String: String] = [:],
         model: AIModel,
         additionalTools: [Tool] = []
-    ) async throws -> AIResponse {
+    ) async throws(AIError) -> AIResponse {
         let rendered = try recipe.render(with: values)
         let request = try AIRequestBuilder()
             .model(model)
@@ -122,15 +122,21 @@ public actor AIClient {
     private func executeTools(
         _ uses: [ContentBlock.ToolUseContent],
         registry: ToolRegistry
-    ) async throws -> [(use: ContentBlock.ToolUseContent, result: JSONValue)] {
-        try await withThrowingTaskGroup(of: (ContentBlock.ToolUseContent, JSONValue).self) { group in
-            for use in uses {
-                group.addTask {
-                    let result = try await registry.execute(toolName: use.name, input: use.input)
-                    return (use, result)
+    ) async throws(AIError) -> [(use: ContentBlock.ToolUseContent, result: JSONValue)] {
+        do {
+            return try await withThrowingTaskGroup(of: (ContentBlock.ToolUseContent, JSONValue).self) { group in
+                for use in uses {
+                    group.addTask {
+                        let result = try await registry.execute(toolName: use.name, input: use.input)
+                        return (use, result)
+                    }
                 }
+                return try await group.reduce(into: []) { $0.append($1) }
             }
-            return try await group.reduce(into: []) { $0.append($1) }
+        } catch let error as AIError {
+            throw error
+        } catch {
+            throw AIError.toolExecutionFailed(toolName: "unknown", underlying: error)
         }
     }
 
