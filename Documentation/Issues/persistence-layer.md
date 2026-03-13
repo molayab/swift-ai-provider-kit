@@ -1,15 +1,15 @@
-# Persistence Layer Design (0.4 – 0.6)
+# Persistence Layer Design (0.3 – 0.5)
 
 ## Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [0.4.0 — Core Protocol & In-Memory](#040--core-protocol--in-memory)
-- [0.5.0 — File System Backend](#050--file-system-backend)
-- [0.6.0 — Database Backend](#060--database-backend)
+- [0.3.0 — Core Protocol & In-Memory](#030--core-protocol--in-memory)
+- [0.4.0 — File System Backend](#040--file-system-backend)
+- [0.5.0 — Database Backend](#050--database-backend)
 
 > **Status:** Planned
-> **Milestones:** 0.4.0 · 0.5.0 · 0.6.0
+> **Milestones:** 0.3.0 · 0.4.0 · 0.5.0
 > **Created:** 2026-03-12
 
 ## Overview
@@ -43,9 +43,9 @@ graph TD
 
     AIClient --> SupportedConversationStore
 
-    EM --> EMCS["EphemeralMemoryConversationStore\n(0.4.0 · AIProviderKit)"]
-    FS --> FSCS["FileSystemConversationStore\n(0.5.0 · AIProviderKitPersistenceFS)"]
-    DB --> SDCS["SwiftDataConversationStore\n(0.6.0 · AIProviderKitPersistenceDB)"]
+    EM --> EMCS["EphemeralMemoryConversationStore\n(0.3.0 · AIProviderKit)"]
+    FS --> FSCS["FileSystemConversationStore\n(0.4.0 · AIProviderKitPersistenceFS)"]
+    DB --> SDCS["SwiftDataConversationStore\n(0.5.0 · AIProviderKitPersistenceDB)"]
 ```
 
 ## 0.4.0 — Core Protocol & In-Memory

@@ -29,8 +29,8 @@
 ---
 
 > **Status:** Proposed
-> **Milestones:** 0.7.0 – 0.7.7 — Context
-> **Relates to:** [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md), [`ROADMAP.md`](../../ROADMAP.md#070--context-core-protocols--types)
+> **Milestones:** 0.6.0 – 0.6.7 — Context
+> **Relates to:** [`Documentation/Investigations/RAG-Providers.md`](../Investigations/RAG-Providers.md), [`ROADMAP.md`](../../ROADMAP.md#060--context-core-protocols--types)
 > **Created:** 2026-03-12
 
 ---
@@ -487,11 +487,11 @@ Sources/
 | # | Question | Options | Recommendation |
 |---|----------|---------|----------------|
 | 1 | Should `EmbeddingProvider` live in `AIProviderKit` core or `AIProviderKitContext`? | Core (simpler imports) vs. Context-only (keeps core zero-dep) | **Context-only** — core must stay dependency-free |
-| 2 | Vector store persistence between app launches? | In-memory only for 0.7.0 vs. ship a file-based store | **In-memory for 0.7.0**; `SQLiteVectorStore` post-1.0 |
+| 2 | Vector store persistence between app launches? | In-memory only for 0.6.0 vs. ship a file-based store | **In-memory for 0.6.0**; `SQLiteVectorStore` post-1.0 |
 | 3 | `contextWindowSize`: hard-code per model or let provider report dynamically? | Hard-coded map vs. protocol property | **Protocol property** with a sensible default (200K) |
 | 4 | Auto-inject via `AIClient` or always manual via builder? | Automatic (register a `FolderContext` on `AIClient`) vs. manual (`.context(_:)` on builder) | **Manual** — keeps `AIClient` surface stable and injection explicit |
-| 5 | Chunking strategy: character-based or token-based? | Character count (zero deps) vs. token count (needs a tokenizer per provider) | **Character-based for 0.7.0** with a `~4 chars/token` heuristic |
-| 6 | Should `FolderContext` watch the directory for live changes? | Passive (manual `reindex()` call) vs. active (`FSEvents` / `kqueue`) | **Passive for 0.7.0**; active watching is a post-1.0 enhancement |
+| 5 | Chunking strategy: character-based or token-based? | Character count (zero deps) vs. token count (needs a tokenizer per provider) | **Character-based for 0.6.0** with a `~4 chars/token` heuristic |
+| 6 | Should `FolderContext` watch the directory for live changes? | Passive (manual `reindex()` call) vs. active (`FSEvents` / `kqueue`) | **Passive for 0.6.0**; active watching is a post-1.0 enhancement |
 
 ---
 

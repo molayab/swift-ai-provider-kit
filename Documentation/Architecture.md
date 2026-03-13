@@ -304,7 +304,7 @@ The package uses Swift 6 strict concurrency throughout. Both `StrictConcurrency`
 
 ## Context Layer — AIProviderKitContext
 
-> Planned for milestones 0.7.0 – 0.7.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
+> Planned for milestones 0.6.0 – 0.6.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
 ```mermaid
 graph TD
