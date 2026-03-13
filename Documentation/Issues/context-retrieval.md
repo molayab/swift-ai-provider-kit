@@ -270,7 +270,7 @@ public protocol VectorStore: Sendable {
 
 public struct ScoredChunk: Sendable {
     public let chunk: DocumentChunk
-    public let score: Float   // cosine similarity ∈ [0, 1]
+    public let score: Float   // cosine similarity ∈ [-1, 1]
 }
 
 // Default implementation — zero dependencies, in-memory

@@ -77,7 +77,7 @@ Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, 
 
 ## 0.7.0 — Context: Core Protocols & Types
 
-Foundation for `AIProviderKitContext` — the optional context retrieval library product. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
+Foundation for `AIProviderKitContext` — the optional context retrieval library product. See [`Documentation/Issues/context-retrieval.md`](Documentation/Issues/context-retrieval.md) for the full design.
 
 - [ ] `EmbeddingProvider` protocol — `embed(_ texts: [String]) async throws -> [[Float]]`
 - [ ] `DocumentParser` protocol — `parse(url: URL) async throws -> [String]`
