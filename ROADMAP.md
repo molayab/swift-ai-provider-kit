@@ -40,7 +40,7 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 
 ## 0.4.0 — Persistence: Core Protocol & In-Memory
 
-Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Issues/persistence-layer.md) for the full design.
+Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Documentation/Issues/persistence-layer.md) for the full design.
 
 - [ ] `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
 - [ ] `SupportedConversationStore` enum — `.ephemeralMemory` / `.fileSystem` / `.database` cases
