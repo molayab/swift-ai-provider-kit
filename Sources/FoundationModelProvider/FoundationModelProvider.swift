@@ -2,9 +2,8 @@ import AIProviderKit
 
 /// An `AIProvider` implementation using Apple's on-device Foundation Models framework.
 ///
-/// Requires a device and OS version that supports Apple Intelligence
-/// (`iOS 18.1+` / `macOS 15.1+`). Check `FoundationModelAvailability.isAvailable`
-/// before instantiating this provider in production.
+/// Requires iOS 26+ / macOS 26+ with Apple Intelligence enabled.
+/// Check `FoundationModelAvailability.isAvailable` before instantiating this provider.
 ///
 /// ```swift
 /// guard FoundationModelAvailability.isAvailable else {
@@ -21,7 +20,7 @@ import AIProviderKit
 /// | `.text`        | ✅        |
 /// | `.streaming`   | ✅        |
 /// | `.systemPrompt`| ✅        |
-/// | `.tools`       | ⚠️ injected as prompt context (native @Tool bridge is a future milestone) |
+/// | `.tools`       | ✅ native via `FMToolBridge` / `FoundationModels.Tool` |
 /// | `.vision`      | ❌        |
 public final class FoundationModelProvider: StreamableProvider {
 
