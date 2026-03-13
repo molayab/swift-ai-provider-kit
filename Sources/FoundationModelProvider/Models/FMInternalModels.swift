@@ -24,8 +24,10 @@ struct FMMessage: Sendable {
 struct FMToolDefinition: Sendable {
     let name: String
     let description: String
+    /// Original schema kept as-is so `LiveFMSession` can build a native `FMToolBridge`.
+    let inputSchema: JSONSchema
+    /// JSON-encoded schema string used only by the prompt-injection fallback path.
     let parametersSchemaJSON: String
-    /// The original handler, retained so `LiveFMSession` can execute the tool locally.
     let handler: @Sendable (JSONValue) async throws -> JSONValue
 }
 

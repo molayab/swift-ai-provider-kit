@@ -5,9 +5,8 @@ import AIProviderKit
 
 /// The production `FMSessionFactory`.
 ///
-/// On platforms where `FoundationModels` is available and a capable device is detected
-/// at runtime, this returns a `LiveFMSession`. On all other platforms or devices it
-/// throws `AIError.providerUnsupported(capability: .text)`.
+/// Returns a `LiveFMSession` when `FoundationModels` is available and a capable
+/// device is detected at runtime. Otherwise throws `AIError.providerUnsupported`.
 struct DefaultFMSessionFactory: FMSessionFactory {
 
     func makeSession(for request: FMRequest) throws -> any FMSessionProtocol {
@@ -16,7 +15,7 @@ struct DefaultFMSessionFactory: FMSessionFactory {
             guard SystemLanguageModel.default.isAvailable else {
                 throw AIError.providerUnsupported(capability: .text)
             }
-            return LiveFMSession(request: request)
+            return try LiveFMSession(request: request)
         } else {
             throw AIError.providerUnsupported(capability: .text)
         }
@@ -34,13 +33,23 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
 
     private let session: LanguageModelSession
 
-    init(request: FMRequest) {
-        // `Instructions` is a top-level FoundationModels type; String conforms to
-        // `InstructionsRepresentable` so it can be passed directly.
+    /// - Throws: `GenerationSchema.SchemaError` if any tool's `inputSchema` is invalid.
+    init(request: FMRequest) throws {
+        // Build native FMToolBridge instances so the model can call tools directly
+        // during inference — no prompt injection needed.
+        let toolBridges: [any FoundationModels.Tool] = try request.tools.map { toolDef in
+            try FMToolBridge(
+                name: toolDef.name,
+                description: toolDef.description,
+                inputSchema: toolDef.inputSchema,
+                handler: toolDef.handler
+            )
+        }
+
         if let prompt = request.systemPrompt, !prompt.isEmpty {
-            session = LanguageModelSession(instructions: Instructions(prompt))
+            session = LanguageModelSession(tools: toolBridges, instructions: Instructions(prompt))
         } else {
-            session = LanguageModelSession()
+            session = LanguageModelSession(tools: toolBridges)
         }
     }
 
@@ -48,7 +57,8 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
 
     func respond(to request: FMRequest) async throws -> FMResponse {
         let prompt = buildPrompt(from: request)
-        // `respond(to: String)` returns `Response<String>` where `.content` is `String`.
+        // With tools registered, the session calls them automatically during inference.
+        // `respond(to:)` returns only after all tool calls are resolved.
         let response = try await session.respond(to: prompt)
         return FMResponse(
             content: response.content,
@@ -62,9 +72,8 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
         return AsyncThrowingStream { continuation in
             Task {
                 do {
-                    // `Snapshot.content` is `String.PartiallyGenerated` which equals `String`
-                    // since String's PartiallyGenerated defaults to Self.
-                    // Each snapshot holds the full accumulated text — compute deltas manually.
+                    // `Snapshot.content` is `String.PartiallyGenerated == String` —
+                    // each snapshot holds the full accumulated text; compute deltas manually.
                     var previousLength = 0
                     for try await snapshot in session.streamResponse(to: prompt) {
                         let accumulated: String = snapshot.content
@@ -87,23 +96,7 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
     // MARK: - Private
 
     private func buildPrompt(from request: FMRequest) -> String {
-        // Tool definitions are injected as prompt context because the FoundationModels
-        // compile-time @Tool protocol cannot be dynamically bridged from AIProviderKit.Tool.
-        // A native @Tool integration is tracked as a future milestone.
-        var parts: [String] = []
-
-        if !request.tools.isEmpty {
-            let toolDescriptions = request.tools.map { tool in
-                "- \(tool.name): \(tool.description)"
-            }.joined(separator: "\n")
-            parts.append("Available tools:\n\(toolDescriptions)")
-        }
-
-        if let lastMessage = request.messages.last {
-            parts.append(lastMessage.content)
-        }
-
-        return parts.joined(separator: "\n\n")
+        request.messages.last?.content ?? ""
     }
 }
 #endif

@@ -48,6 +48,7 @@ struct FMRequestMapper: Sendable {
         return FMToolDefinition(
             name: tool.name,
             description: tool.description,
+            inputSchema: tool.inputSchema,
             parametersSchemaJSON: schemaJSON,
             handler: tool.execute(with:)
         )
