@@ -1,17 +1,17 @@
-# Persistence Layer Design (0.4 – 0.6)
+# Persistence Layer Design (0.3 – 0.5)
 
 ## Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [0.4.0 — Core Protocol & In-Memory](#040--core-protocol--in-memory)
-- [0.5.0 — File System Backend](#050--file-system-backend)
-- [0.6.0 — Database Backend](#060--database-backend)
+- [0.3.0 — Core Protocol & In-Memory](#030--core-protocol--in-memory)
+- [0.4.0 — File System Backend](#040--file-system-backend)
+- [0.5.0 — Database Backend](#050--database-backend)
 
 ---
 
 > **Status:** Planned
-> **Milestones:** 0.4.0 · 0.5.0 · 0.6.0
+> **Milestones:** 0.3.0 · 0.4.0 · 0.5.0
 > **Created:** 2026-03-12
 
 ---
@@ -49,14 +49,14 @@ graph TD
 
     AIClient --> SupportedConversationStore
 
-    EM --> EMCS["EphemeralMemoryConversationStore\n(0.4.0 · AIProviderKit)"]
-    FS --> FSCS["FileSystemConversationStore\n(0.5.0 · AIProviderKitPersistenceFS)"]
-    DB --> SDCS["SwiftDataConversationStore\n(0.6.0 · AIProviderKitPersistenceDB)"]
+    EM --> EMCS["EphemeralMemoryConversationStore\n(0.3.0 · AIProviderKit)"]
+    FS --> FSCS["FileSystemConversationStore\n(0.4.0 · AIProviderKitPersistenceFS)"]
+    DB --> SDCS["SwiftDataConversationStore\n(0.5.0 · AIProviderKitPersistenceDB)"]
 ```
 
 ---
 
-## 0.4.0 — Core Protocol & In-Memory
+## 0.3.0 — Core Protocol & In-Memory
 
 Establishes the persistence contract and a zero-dependency default backend. All higher-level `AIClient` APIs are introduced here; later milestones add new backend cases without changing any call sites.
 
@@ -71,7 +71,7 @@ Establishes the persistence contract and a zero-dependency default backend. All 
 
 ---
 
-## 0.5.0 — File System Backend
+## 0.4.0 — File System Backend
 
 Works on every Apple platform and Linux without any additional frameworks. Ships as `AIProviderKitPersistenceFS`; importing it unlocks the `.fileSystem` case on `SupportedConversationStore`.
 
@@ -83,7 +83,7 @@ Works on every Apple platform and Linux without any additional frameworks. Ships
 
 ---
 
-## 0.6.0 — Database Backend
+## 0.5.0 — Database Backend
 
 SwiftData-backed store for apps that need querying, indexing, or multi-process access. Ships as `AIProviderKitPersistenceDB`; importing it unlocks the `.database` case on `SupportedConversationStore`.
 

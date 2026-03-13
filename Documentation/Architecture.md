@@ -23,17 +23,17 @@ graph TD
 
     subgraph Providers
         Claude["ClaudeProvider"]
-        OpenAI["OpenAIProvider *(0.3.0)*"]
+        OpenAI["OpenAIProvider *(post-1.0)*"]
         FM["FoundationModelProvider *(0.2.0)*"]
     end
 
     subgraph Persistence
-        PFS["AIProviderKitPersistenceFS *(0.5.0)*"]
-        PDB["AIProviderKitPersistenceDB *(0.6.0)*"]
+        PFS["AIProviderKitPersistenceFS *(0.4.0)*"]
+        PDB["AIProviderKitPersistenceDB *(0.5.0)*"]
     end
 
     subgraph Context["Context Retrieval"]
-        CTX["AIProviderKitContext *(0.7.0)*"]
+        CTX["AIProviderKitContext *(0.6.0)*"]
     end
 
     subgraph UI
@@ -219,7 +219,7 @@ classDiagram
 
 ## Context Layer — AIProviderKitContext
 
-> Planned for milestones 0.7.0 – 0.7.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
+> Planned for milestones 0.6.0 – 0.6.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
 ```mermaid
 graph TD

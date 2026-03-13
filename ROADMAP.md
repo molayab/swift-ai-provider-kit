@@ -36,17 +36,7 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 
 ---
 
-## 0.3.0 — OpenAI Provider
-
-- [ ] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
-- [ ] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`
-- [ ] Map OpenAI function-calling to `ContentBlock.toolUse` / `toolResult`
-- [ ] Unit tests — `MockHTTPClient` pattern mirroring `ClaudeProviderTests`
-- [ ] Integration tests — `swift package integration-tests` extended for OpenAI
-
----
-
-## 0.4.0 — Persistence: Core Protocol & In-Memory
+## 0.3.0 — Persistence: Core Protocol & In-Memory
 
 Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Issues/persistence-layer.md) for the full design.
 
@@ -62,7 +52,7 @@ Establishes the persistence contract and a zero-dependency default backend. See 
 
 ---
 
-## 0.5.0 — Persistence: File System Backend
+## 0.4.0 — Persistence: File System Backend
 
 Ships as `AIProviderKitPersistenceFS`; works on every Apple platform and Linux without additional frameworks.
 
@@ -76,7 +66,7 @@ Ships as `AIProviderKitPersistenceFS`; works on every Apple platform and Linux w
 
 ---
 
-## 0.6.0 — Persistence: Database Backend
+## 0.5.0 — Persistence: Database Backend
 
 Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, and multi-process access.
 
@@ -89,7 +79,7 @@ Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, 
 
 ---
 
-## 0.7.0 — Context: Core Protocols & Types
+## 0.6.0 — Context: Core Protocols & Types
 
 Foundation for `AIProviderKitContext` — the optional context retrieval library product. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
@@ -105,7 +95,7 @@ Foundation for `AIProviderKitContext` — the optional context retrieval library
 
 ---
 
-## 0.7.1 — Context: Embedding Providers
+## 0.6.1 — Context: Embedding Providers
 
 - [ ] `VoyageEmbeddingProvider` — Voyage AI REST API (recommended for Claude stack, requires separate API key)
 - [ ] `OpenAIEmbeddingProvider` — OpenAI `/v1/embeddings` (`text-embedding-3-large` / `text-embedding-3-small`)
@@ -113,40 +103,40 @@ Foundation for `AIProviderKitContext` — the optional context retrieval library
 
 ---
 
-## 0.7.2 — Context: Document Parsers
+## 0.6.2 — Context: Document Parsers
 
 - [ ] `TextDocumentParser` — `.txt` `.md` `.markdown` `.swift` `.json` `.yaml` `.xml`
 - [ ] `PDFDocumentParser` — PDFKit, one section per page; `#if canImport(PDFKit)` guard
 
 ---
 
-## 0.7.3 — Context: Storage
+## 0.6.3 — Context: Storage
 
 - [ ] `InMemoryVectorStore` — actor; cosine nearest-neighbour via `vDSP` / pure-Swift fallback
 
 ---
 
-## 0.7.4 — Context: Indexing & Retrieval
+## 0.6.4 — Context: Indexing & Retrieval
 
 - [ ] `FolderIndexer` actor — concurrent file processing (max 8 tasks), batch embedding (×32), mtime-based incremental re-index
 - [ ] `FolderContext` actor — high-level API wrapping `FolderIndexer`; token-budget auto-trim via `tokenBudgetFraction`
 
 ---
 
-## 0.7.5 — Context: Injection
+## 0.6.5 — Context: Injection
 
 - [ ] `contextWindowSize: Int` on `AIProvider` (default `200_000`) — lets `FolderContext` auto-size chunk injection
 - [ ] `AIRequestBuilder.context(_:)` — injects retrieved chunks as `.text` `ContentBlock` items
 
 ---
 
-## 0.7.6 — Context: OpenAI Managed Path
+## 0.6.6 — Context: OpenAI Managed Path
 
 - [ ] `Tool.fileSearch(vectorStoreIds:)` — maps to OpenAI Responses API `file_search` tool; bypasses client-side pipeline
 
 ---
 
-## 0.7.7 — Context: Testing
+## 0.6.7 — Context: Testing
 
 - [ ] Unit tests — in-memory store, mock embedding provider, chunk injection, budget trimming, incremental re-index
 - [ ] Integration tests — round-trip context query against real Claude and OpenAI APIs (requires `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`)
@@ -155,18 +145,19 @@ Foundation for `AIProviderKitContext` — the optional context retrieval library
 
 ## 1.0.0 — MVP
 
-All of 0.2–0.7.7, plus:
+All of 0.2–0.6.7, plus:
 
 - [ ] Stable public API guarantee (SemVer from this point forward)
 - [ ] Comprehensive DocC documentation for all public symbols
 - [ ] Token-counting helpers per provider
 - [ ] Full test coverage report ≥ 85 %
-- [ ] Example app (SwiftUI) demonstrating all three providers + persistence + Context
+- [ ] Example app (SwiftUI) demonstrating Claude + Foundation Models + persistence + Context
 
 ---
 
 ## Beyond 1.0.0 (ideas, not committed)
 
+- OpenAI Provider — Chat Completions API (text, vision, tools, streaming)
 - Anthropic extended thinking / reasoning steps
 - OpenAI Assistants API (thread + file management) — being deprecated mid-2026 in favour of Responses API
 - Prompt caching support (Anthropic / OpenAI)
