@@ -26,8 +26,8 @@ let package = Package(
         // Post-MVP: OpenAI support
         // .library(name: "OpenAIProvider", targets: ["OpenAIProvider"]),
         //
-        // Post-MVP: Apple Foundation Models (on-device inference, iOS 26+)
-        // .library(name: "FoundationModelProvider", targets: ["FoundationModelProvider"]),
+        // Apple Foundation Models (on-device inference, iOS 18.1+ / macOS 15.1+)
+        .library(name: "FoundationModelProvider", targets: ["FoundationModelProvider"]),
 
         // Integration test runner (not part of the library)
         .executable(name: "IntegrationTests", targets: ["IntegrationTests"]),
@@ -59,8 +59,17 @@ let package = Package(
         // Post-MVP: OpenAI
         // .target(name: "OpenAIProvider", dependencies: ["AIProviderKit"], path: "Sources/OpenAIProvider"),
 
-        // Post-MVP: Apple Foundation Models
-        // .target(name: "FoundationModelProvider", dependencies: ["AIProviderKit"], path: "Sources/FoundationModelProvider"),
+        // MARK: - Foundation Models
+
+        .target(
+            name: "FoundationModelProvider",
+            dependencies: ["AIProviderKit"],
+            path: "Sources/FoundationModelProvider",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
+        ),
 
         // MARK: - UI
 
@@ -112,6 +121,15 @@ let package = Package(
             name: "ClaudeProviderTests",
             dependencies: ["ClaudeProvider", "AIProviderKit"],
             path: "Tests/ClaudeProviderTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
+        ),
+        .testTarget(
+            name: "FoundationModelProviderTests",
+            dependencies: ["FoundationModelProvider", "AIProviderKit"],
+            path: "Tests/FoundationModelProviderTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
