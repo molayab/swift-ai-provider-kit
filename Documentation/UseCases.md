@@ -14,10 +14,10 @@
 | [UC-08](#uc-08--vision-image-input) | Vision (Image Input) | ✅ 0.1.0 |
 | [UC-09](#uc-09--custom-tool-definition) | Custom Tool Definition | ✅ 0.1.0 |
 | [UC-10](#uc-10--provider-swap) | Provider Swap | ⏳ 0.1.0+ |
-| [UC-11](#uc-11--ephemeral-conversation-store-planned--040) | Ephemeral Conversation Store | 🔜 0.4.0 |
-| [UC-12](#uc-12--file-system-persistence-planned--050) | File System Persistence | 🔜 0.5.0 |
-| [UC-13](#uc-13--swiftdata-persistence-planned--060) | SwiftData Persistence | 🔜 0.6.0 |
-| [UC-14](#uc-14--folder-as-context-planned--070--077) | Folder-as-Context | 🔜 0.7.0–0.7.7 |
+| [UC-11](#uc-11--ephemeral-conversation-store-planned--030) | Ephemeral Conversation Store | 🔜 0.3.0 |
+| [UC-12](#uc-12--file-system-persistence-planned--040) | File System Persistence | 🔜 0.4.0 |
+| [UC-13](#uc-13--swiftdata-persistence-planned--050) | SwiftData Persistence | 🔜 0.5.0 |
+| [UC-14](#uc-14--folder-as-context-planned--060--067) | Folder-as-Context | 🔜 0.6.0–0.6.7 |
 
 ---
 
@@ -250,7 +250,7 @@ print(response.text)
 
 ## UC-10 · Provider Swap
 
-> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `FoundationModelProvider` planned for 0.2.0; `OpenAIProvider` planned for 0.3.0.
+> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `FoundationModelProvider` planned for 0.2.0; `OpenAIProvider` planned post-1.0.
 
 **Actor:** iOS/macOS app
 **Goal:** Switch AI providers without changing any application logic.
@@ -279,7 +279,7 @@ func makeClient(for provider: AppSettings.Provider) -> AIClient {
         // Planned — 0.2.0
         return AIClient(provider: FoundationModelProvider())
     case .openAI:
-        // Planned — 0.3.0
+        // Planned — post-1.0
         return AIClient(
             provider: OpenAIProvider(
                 authorization: APIKeyAuthorization(apiKey: Secrets.openAIKey)
@@ -295,7 +295,7 @@ print(response.text)
 
 ---
 
-## UC-11 · Ephemeral Conversation Store *(planned — 0.4.0)*
+## UC-11 · Ephemeral Conversation Store *(planned — 0.3.0)*
 
 > **Status:** Not yet implemented. API shown below reflects the planned design.
 
@@ -327,7 +327,7 @@ let conversations = try await client.conversations()
 
 ---
 
-## UC-12 · File System Persistence *(planned — 0.5.0)*
+## UC-12 · File System Persistence *(planned — 0.4.0)*
 
 > **Status:** Not yet implemented. Requires `AIProviderKitPersistenceFS`.
 
@@ -356,7 +356,7 @@ try bundle.write(to: exportURL)
 
 ---
 
-## UC-13 · SwiftData Persistence *(planned — 0.6.0)*
+## UC-13 · SwiftData Persistence *(planned — 0.5.0)*
 
 > **Status:** Not yet implemented. Requires `AIProviderKitPersistenceDB` (iOS 17+ / macOS 14+).
 
@@ -395,7 +395,7 @@ struct ConversationList: View {
 
 ---
 
-## UC-14 · Folder-as-Context *(planned — 0.7.0 – 0.7.7)*
+## UC-14 · Folder-as-Context *(planned — 0.6.0 – 0.6.7)*
 
 > **Status:** Not yet implemented. Requires `AIProviderKitContext`. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
 
