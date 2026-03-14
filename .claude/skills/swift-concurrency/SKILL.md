@@ -1,9 +1,7 @@
 ---
 name: swift-concurrency
-description: 'Diagnose data races, convert callback-based code to async/await, implement actor isolation patterns, resolve Sendable conformance issues, and guide Swift 6/6.2 migration. Use when developers mention: (1) Swift Concurrency, async/await, actors, or tasks, (2) "use Swift Concurrency" or "modern concurrency patterns", (3) migrating to Swift 6 or Swift 6.2, (4) data races or thread safety issues, (5) refactoring closures to async/await, (6) @MainActor, Sendable, or actor isolation, (7) concurrent code architecture or performance optimization, (8) concurrency-related linter warnings, (9) @concurrent, NonisolatedNonsendingByDefault, isolated conformances, or Approachable Concurrency.'
-user-invocable: true
-disable-model-invocation: false
-allowed-tools: Read, Grep, Bash
+description: 'Diagnoses data races, converts callback-based code to async/await, implements actor isolation patterns, resolves Sendable conformance issues, and guides Swift 6/6.2 migration. Use when developers mention: (1) Swift Concurrency, async/await, actors, or tasks, (2) "use Swift Concurrency" or "modern concurrency patterns", (3) migrating to Swift 6 or Swift 6.2, (4) data races or thread safety issues, (5) refactoring closures to async/await, (6) @MainActor, Sendable, or actor isolation, (7) concurrent code architecture or performance optimization, (8) concurrency-related linter warnings, (9) @concurrent, NonisolatedNonsendingByDefault, isolated conformances, or Approachable Concurrency.'
+allowed-tools: Read, Grep, Glob, Bash(swift *)
 ---
 # Swift Concurrency
 
@@ -17,7 +15,7 @@ allowed-tools: Read, Grep, Bash
    - a documented safety invariant
    - a follow-up ticket to remove or migrate it
 6. For migration work, optimize for minimal blast radius (small, reviewable changes) and follow the validation loop: **Build → Fix errors → Rebuild → Only proceed when clean**.
-7. Course references are for deeper learning only. Use them sparingly and only when they clearly help answer the developer's question.
+7. Load reference files on-demand from the `references/` directory. Read only the specific file relevant to the current diagnostic — do not preload all reference files at once.
 
 ## Triage Checklist (Before Advising)
 
@@ -56,86 +54,55 @@ Prefer edits that preserve behavior while satisfying data-race safety.
 
 - **UI-bound types**: isolate the type or specific members to `@MainActor` (justify why UI-bound).
 - **Global/static mutable state**: move into an `actor` or isolate to `@MainActor` if UI-only.
-- **Background work**: for work that should always hop off the caller’s isolation, move expensive work into an `async` function marked `@concurrent`; for work that doesn’t touch isolated state but can inherit the caller’s isolation (for example with `NonisolatedNonsendingByDefault`), use `nonisolated` without `@concurrent`, or use an `actor` to guard mutable state.
+- **Background work**: for work that should always hop off the caller's isolation, mark `@concurrent`; for work that can inherit the caller's isolation (e.g. with `NonisolatedNonsendingByDefault`), use `nonisolated` without `@concurrent`, or use an `actor` to guard mutable state.
 - **Sendable errors**: prefer immutable/value types; avoid `@unchecked Sendable` unless you can prove and document thread safety.
 
-## Quick Fix Playbook (Common Diagnostics -> Minimal Fix)
+## Quick Fix Playbook (Common Diagnostics → Minimal Fix)
 
 - **"Main actor-isolated ... cannot be used from a nonisolated context"**
   - Quick fix: if UI-bound, make the caller `@MainActor` or hop with `await MainActor.run { ... }`.
-  - Escalate if this is non-UI code or causes reentrancy; use `references/actors.md`.
+  - Escalate if this is non-UI code or causes reentrancy → load `references/actors.md`.
 - **"Actor-isolated type does not conform to protocol"**
   - Quick fix: add isolated conformance (e.g., `extension Foo: @MainActor SomeProtocol`).
-  - Escalate if the protocol requirements must be `nonisolated`; use `references/actors.md`.
+  - Escalate if protocol requirements must be `nonisolated` → load `references/actors.md`.
 - **"Sending value of non-Sendable type ... risks causing data races"**
   - Quick fix: confine access inside an actor or convert to a value type with immutable (`let`) state.
-  - Escalate before `@unchecked Sendable`; use `references/sendable.md` and `references/threading.md`.
+  - Escalate before `@unchecked Sendable` → load `references/sendable.md` and `references/threading.md`.
 - **SwiftLint `async_without_await`**
-  - Quick fix: remove `async` if not required; if required by protocol/override/@concurrent, use narrow suppression with rationale. See `references/linting.md`.
+  - Quick fix: remove `async` if not required; if required by protocol/override/@concurrent, use narrow suppression with rationale → load `references/linting.md`.
 - **"wait(...) is unavailable from asynchronous contexts" (XCTest)**
-  - Quick fix: use `await fulfillment(of:)` or Swift Testing equivalents. See `references/testing.md`.
+  - Quick fix: use `await fulfillment(of:)` or Swift Testing equivalents → load `references/testing.md`.
 
 ## Escalation Path (When Quick Fixes Aren't Enough)
 
 1. Gather project settings (default isolation, strict concurrency level, upcoming features).
 2. Re-evaluate isolation boundaries and which types cross them.
-3. Use the decision tree + references for the deeper fix.
+3. Load the relevant reference file from the decision tree below.
 4. If behavior changes are possible, document the invariant and add tests/verification steps.
 
-## Quick Decision Tree
+## Reference Files — Load On-Demand
 
-When a developer needs concurrency guidance, follow this decision tree:
+Load only the file that matches the developer's immediate problem. Do not read multiple files speculatively.
 
-1. **Starting fresh with async code?**
-   - Read `references/async-await-basics.md` for foundational patterns
-   - For parallel operations → `references/tasks.md` (async let, task groups)
+| Problem | Load |
+|---------|------|
+| Starting fresh with async/await, URLSession, or async let | `references/async-await-basics.md` |
+| Task lifecycle, cancellation, priorities, task groups | `references/tasks.md` |
+| Actor isolation, @MainActor, reentrancy, custom executors, Mutex | `references/actors.md` |
+| Sendable conformance, @unchecked Sendable, region isolation, `sending` | `references/sendable.md` |
+| Thread/task relationship, suspension points, isolation domains | `references/threading.md` |
+| Retain cycles in tasks, weak self patterns | `references/memory-management.md` |
+| AsyncSequence, AsyncStream, bridging callbacks | `references/async-sequences.md` |
+| AsyncAlgorithms, debounce, merge, Combine migration | `references/async-algorithms.md` |
+| Core Data, NSManagedObject, custom executors | `references/core-data.md` |
+| Profiling with Instruments, suspension point reduction | `references/performance.md` |
+| XCTest async patterns, Swift Testing, flaky test fixes | `references/testing.md` |
+| SwiftLint async_without_await, suppression strategies | `references/linting.md` |
+| Swift 6 migration strategy, @preconcurrency, FRP migration | `references/migration.md` |
+| Swift 6.2 @concurrent, isolated conformances, NonisolatedNonsendingByDefault | `references/swift-6-2.md` |
+| Term definitions | `references/glossary.md` |
 
-2. **Protecting shared mutable state?**
-   - Need to protect class-based state → `references/actors.md` (actors, @MainActor)
-   - Need thread-safe value passing → `references/sendable.md` (Sendable conformance)
-
-3. **Managing async operations?**
-   - Structured async work → `references/tasks.md` (Task, child tasks, cancellation)
-   - Streaming data → `references/async-sequences.md` (AsyncSequence, AsyncStream)
-
-4. **Working with legacy frameworks or migrating to Swift 6.2?**
-   - Core Data integration → `references/core-data.md`
-   - General Swift 6 migration → `references/migration.md`
-   - Swift 6.2 Approachable Concurrency (`@concurrent`, isolated conformances, NonisolatedNonsendingByDefault) → `references/swift-6-2.md`
-
-5. **Performance or debugging issues?**
-   - Slow async code → `references/performance.md` (profiling, suspension points)
-   - Testing concerns → `references/testing.md` (XCTest, Swift Testing)
-
-6. **Understanding threading behavior?**
-   - Read `references/threading.md` for thread/task relationship and isolation
-
-7. **Memory issues with tasks?**
-   - Read `references/memory-management.md` for retain cycle prevention
-
-## Triage-First Playbook (Common Errors -> Next Best Move)
-
-- SwiftLint concurrency-related warnings
-  - Use `references/linting.md` for rule intent and preferred fixes; avoid dummy awaits as “fixes”.
-- SwiftLint `async_without_await` warning
-  - Remove `async` if not required; if required by protocol/override/@concurrent, prefer narrow suppression over adding fake awaits. See `references/linting.md`.
-- "Sending value of non-Sendable type ... risks causing data races"
-  - First: identify where the value crosses an isolation boundary
-  - Then: use `references/sendable.md` and `references/threading.md` (especially Swift 6.2 behavior changes)
-- "Main actor-isolated ... cannot be used from a nonisolated context"
-  - First: decide if it truly belongs on `@MainActor`
-  - Then: use `references/actors.md` (global actors, `nonisolated`, isolated parameters) and `references/threading.md` (default isolation)
-- "Class property 'current' is unavailable from asynchronous contexts" (Thread APIs)
-  - Use `references/threading.md` to avoid thread-centric debugging and rely on isolation + Instruments
-- "Actor-isolated type does not conform to protocol" (protocol conformance errors)
-  - First: determine whether the protocol requirements must execute on the actor (for example, UI work on `@MainActor`) or can safely be `nonisolated`.
-  - Then: follow the Quick Fix Playbook entry for actor-isolated protocol conformance and `references/actors.md` for implementation patterns (isolated conformances, `nonisolated` requirements, and escalation steps).
-- XCTest async errors like "wait(...) is unavailable from asynchronous contexts"
-  - Use `references/testing.md` (`await fulfillment(of:)` and Swift Testing patterns)
-- Core Data concurrency warnings/errors
-  - Use `references/core-data.md` (DAO/`NSManagedObjectID`, default isolation conflicts)
-
-## Core Patterns Reference
+## Core Patterns — Quick Reference
 
 ### Concurrency Tool Selection
 
@@ -170,7 +137,7 @@ await withTaskGroup(of: ProcessedItem.self) { group in
 }
 ```
 
-## Swift 6 / 6.2 Migration Quick Guide
+## Swift 6 / 6.2 — Quick Migration Guide
 
 Key changes in Swift 6:
 - **Strict concurrency checking** enabled by default
@@ -178,41 +145,21 @@ Key changes in Swift 6:
 - **Sendable requirements** enforced on boundaries
 - **Isolation checking** for all async boundaries
 
-Swift 6.2 adds **Approachable Concurrency** — async functions stay on the calling actor by default, `@concurrent` opts into background execution, and isolated conformances let `@MainActor` types conform to non-isolated protocols. See `references/swift-6-2.md` for patterns and before/after examples.
+Swift 6.2 adds **Approachable Concurrency** — async functions stay on the calling actor by default, `@concurrent` opts into background execution, and isolated conformances let `@MainActor` types conform to non-isolated protocols. Load `references/swift-6-2.md` for patterns and before/after examples.
 
 ### Migration Validation Loop
 
 Apply this cycle for each migration change:
 
-1. **Build** — Run `swift build` or Xcode build to surface new diagnostics
+1. **Build** — Run `swift build` to surface new diagnostics
 2. **Fix** — Address one category of error at a time (e.g., all Sendable issues first)
 3. **Rebuild** — Confirm the fix compiles cleanly before moving on
-4. **Test** — Run the test suite to catch regressions (`swift test` or Cmd+U)
+4. **Test** — Run `swift test` to catch regressions
 5. **Only proceed** to the next file/module when all diagnostics are resolved
 
-If a fix introduces new warnings, resolve them before continuing. Never batch multiple unrelated fixes — keep commits small and reviewable.
+Never batch multiple unrelated fixes — keep commits small and reviewable. For detailed steps, load `references/migration.md`.
 
-For detailed Swift 6 migration steps, see `references/migration.md`. For Swift 6.2 patterns, see `references/swift-6-2.md`.
-
-## Reference Files
-
-Load these files as needed for specific topics:
-
-- **`async-await-basics.md`** - async/await syntax, execution order, async let, URLSession patterns
-- **`tasks.md`** - Task lifecycle, cancellation, priorities, task groups, structured vs unstructured
-- **`threading.md`** - Thread/task relationship, suspension points, isolation domains, nonisolated
-- **`memory-management.md`** - Retain cycles in tasks, memory safety patterns
-- **`actors.md`** - Actor isolation, @MainActor, global actors, reentrancy, custom executors, Mutex
-- **`sendable.md`** - Sendable conformance, value/reference types, @unchecked, region isolation
-- **`linting.md`** - Concurrency-focused lint rules and SwiftLint `async_without_await`
-- **`async-sequences.md`** - AsyncSequence, AsyncStream, when to use vs regular async methods
-- **`core-data.md`** - NSManagedObject sendability, custom executors, isolation conflicts
-- **`performance.md`** - Profiling with Instruments, reducing suspension points, execution strategies
-- **`testing.md`** - XCTest async patterns, Swift Testing, concurrency testing utilities
-- **`migration.md`** - Swift 6 migration strategy, closure-to-async conversion, @preconcurrency, FRP migration
-- **`swift-6-2.md`** - Swift 6.2 Approachable Concurrency: @concurrent, isolated conformances, NonisolatedNonsendingByDefault, MainActor default inference
-
-## Verification Checklist (When You Change Concurrency Code)
+## Verification Checklist (After Changing Concurrency Code)
 
 1. Confirm build settings (default isolation, strict concurrency, upcoming features) before interpreting diagnostics.
 2. **Build** — Verify the project compiles without new warnings or errors.
@@ -221,11 +168,3 @@ Load these files as needed for specific topics:
 5. **Lifetime** — If lifetime-related, verify deinit/cancellation behavior (see `references/memory-management.md`).
 6. Check `Task.isCancelled` in long-running operations.
 7. Never use semaphores or locks in async contexts — use actors or `Mutex` instead.
-
-## Glossary
-
-See `references/glossary.md` for quick definitions of core concurrency terms used across this skill.
-
----
-
-**References**: [The Swift Programming Language — Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) · [Swift Concurrency by Example — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency) · [Swift 6 Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
