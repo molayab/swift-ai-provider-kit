@@ -1,23 +1,25 @@
 ---
 name: add-provider
-description: Implement a complete new AI provider (e.g. OpenAI, Gemini) following the AIProviderKit mapper pattern, including Package.swift registration, mapper pair, HTTPClient, model constants, and unit tests. Use when the user wants to add support for a new AI model provider.
+description: Scaffold a complete new AI provider for AIProviderKit. Use when asked to 'add a provider', 'integrate OpenAI', 'add Gemini support', 'implement a new model provider', or 'add support for [any AI API]'. Follows the mapper pattern — no changes to AIClient needed.
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 argument-hint: "[ProviderName]"
 ---
 
-# Add a New AI Provider: $ARGUMENTS
+You are a Swift 6 package architect implementing a new AI provider for AIProviderKit. Apply the Open/Closed Principle: no changes to `AIClient` or any existing provider are required.
 
-Implement `$ARGUMENTS` as a first-class AIProviderKit provider. The Open/Closed Principle applies — no changes to `AIClient` or any existing provider are required.
+## Constraints
 
-Reference: `Documentation/AddingAProvider.md`
+✅ Always: mirror ClaudeProvider's folder structure exactly, keep all mapping logic in mapper types, use `ContentBlock` as the only cross-boundary content type, use `JSONValue` for all tool I/O, inject auth via `AuthorizationProvider`
 
----
+⚠️ Ask first: if the provider's API uses a non-standard auth scheme, pagination model, or lacks SSE streaming
 
-## Step 1 — Read existing providers first
+🚫 Never: hardcode API keys, call `URLSession` directly in provider or mapper code, put mapping logic inside the provider class, use `Any` or `[String: Any]`
 
-Before writing anything, read `ClaudeProvider` (the canonical HTTP-based reference):
+## Step 1 — Read first
+
+Before writing a single line, read these files:
 
 ```
 Sources/ClaudeProvider/ClaudeProvider.swift
@@ -26,22 +28,20 @@ Sources/ClaudeProvider/Mapping/ClaudeRequestMapper.swift
 Sources/ClaudeProvider/Mapping/ClaudeResponseMapper.swift
 Sources/ClaudeProvider/Models/ClaudeModels.swift
 Sources/ClaudeProvider/Networking/HTTPClient.swift
-Sources/ClaudeProvider/Networking/URLSessionHTTPClient.swift
-Tests/ClaudeProviderTests/ClaudeProviderTests.swift
 Tests/ClaudeProviderTests/Mocks/MockHTTPClient.swift
+Documentation/AddingAProvider.md
+Package.swift
 ```
-
----
 
 ## Step 2 — Register in Package.swift
 
-Add to `Package.swift` (products first, then targets, then test targets):
+Add in this order — products array, then targets array, then test targets array:
 
 ```swift
-// products array:
+// products:
 .library(name: "$ARGUMENTSProvider", targets: ["$ARGUMENTSProvider"]),
 
-// targets array:
+// targets (after existing providers):
 .target(
     name: "$ARGUMENTSProvider",
     dependencies: ["AIProviderKit"],
@@ -53,7 +53,7 @@ Add to `Package.swift` (products first, then targets, then test targets):
     plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
 ),
 
-// test targets array:
+// test targets:
 .testTarget(
     name: "$ARGUMENTSProviderTests",
     dependencies: ["$ARGUMENTSProvider", "AIProviderKit"],
@@ -66,207 +66,70 @@ Add to `Package.swift` (products first, then targets, then test targets):
 ),
 ```
 
----
+## Step 3 — Create files
 
-## Step 3 — Create the file structure
-
-Mirror the ClaudeProvider layout exactly:
+Mirror ClaudeProvider's layout exactly:
 
 ```
 Sources/$ARGUMENTSProvider/
-├── $ARGUMENTSProvider.swift              # Provider class (root of the folder)
+├── $ARGUMENTSProvider.swift           ← StreamableProvider conformance
 ├── Authorization/
-│   └── $ARGUMENTSAuthorization.swift     # AuthorizationProvider conformance
+│   └── $ARGUMENTSAuthorization.swift  ← AuthorizationProvider
 ├── Mapping/
-│   ├── $ARGUMENTSRequestMapper.swift     # AIRequest → provider request body
-│   └── $ARGUMENTSResponseMapper.swift    # provider response/SSE → AIResponse / AIStreamEvent
+│   ├── $ARGUMENTSRequestMapper.swift  ← AIRequest → provider body
+│   └── $ARGUMENTSResponseMapper.swift ← provider response/SSE → AIResponse
 ├── Models/
-│   └── $ARGUMENTSModels.swift            # AIModel constants + internal Codable types
+│   └── $ARGUMENTSModels.swift         ← AIModel constants + internal Codable types
 └── Networking/
-    ├── HTTPClient.swift                  # copy of the HTTPClient protocol from ClaudeProvider
-    └── URLSession$ARGUMENTSClient.swift  # URLSession-backed implementation
+    ├── HTTPClient.swift               ← copy from ClaudeProvider verbatim
+    └── URLSession$ARGUMENTSClient.swift
 
 Tests/$ARGUMENTSProviderTests/
-├── $ARGUMENTSProviderTests.swift         # Provider-level integration tests (MockHTTPClient)
+├── $ARGUMENTSProviderTests.swift
 ├── Authorization/
 │   └── $ARGUMENTSAuthorizationTests.swift
 ├── Mapping/
 │   ├── $ARGUMENTSRequestMapperTests.swift
 │   └── $ARGUMENTSResponseMapperTests.swift
 └── Mocks/
-    └── MockHTTPClient.swift
+    └── MockHTTPClient.swift           ← copy from ClaudeProviderTests verbatim
 ```
 
----
+> For Swift code templates for each file, see `references/templates.md`.
 
-## Step 4 — Implement each file
+## Step 4 — Implement
 
-### `$ARGUMENTSProvider.swift`
+Write each file using the templates in `references/templates.md` as a starting point. Key mapping responsibilities:
 
-```swift
-import AIProviderKit
-import Foundation
-
-public final class $ARGUMENTSProvider: StreamableProvider, Sendable {
-
-    public let identifier = "$ARGUMENTS_LOWERCASED"
-    public let capabilities: Set<AICapability> = [.text, .tools, .streaming, .systemPrompt]
-
-    private let authorization: any AuthorizationProvider
-    private let httpClient: any HTTPClient
-    private let requestMapper = $ARGUMENTSRequestMapper()
-    private let responseMapper = $ARGUMENTSResponseMapper()
-
-    public init(
-        authorization: any AuthorizationProvider,
-        httpClient: any HTTPClient = URLSession$ARGUMENTSClient()
-    ) {
-        self.authorization = authorization
-        self.httpClient = httpClient
-    }
-
-    public func send(_ request: AIRequest) async throws -> AIResponse {
-        let headers = try await authorization.authorizationHeaders()
-        let mapped = requestMapper.map(request)
-        let data = try await httpClient.send(mapped, headers: headers)
-        return try responseMapper.map(data, model: request.model.id)
-    }
-
-    public func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
-        AsyncThrowingStream { continuation in
-            Task {
-                do {
-                    let headers = try await self.authorization.authorizationHeaders()
-                    let mapped = self.requestMapper.map(request)
-                    for try await chunk in self.httpClient.stream(mapped, headers: headers) {
-                        let event = try self.responseMapper.mapStreamEvent(chunk)
-                        continuation.yield(event)
-                    }
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
-    }
-}
-```
-
-### `Authorization/$ARGUMENTSAuthorization.swift`
-
-```swift
-import AIProviderKit
-import Foundation
-
-public struct $ARGUMENTSAuthorization: AuthorizationProvider, Sendable {
-
-    private let apiKey: String
-
-    public init(apiKey: String) {
-        self.apiKey = apiKey
-    }
-
-    public func authorizationHeaders() async throws -> [String: String] {
-        ["Authorization": "Bearer \(apiKey)"]
-    }
-}
-```
-
-### `Mapping/$ARGUMENTSRequestMapper.swift`
-
-```swift
-import AIProviderKit
-import Foundation
-
-struct $ARGUMENTSRequestMapper: Sendable {
-
-    func map(_ request: AIRequest) -> $ARGUMENTSRequest {
-        // Convert AIRequest → provider-specific Codable struct.
-        // Map ContentBlock array → provider message format.
-        // Map Tool definitions → provider tool/function schema.
-        // Map sampling params (temperature, topP, maxTokens).
-    }
-}
-```
-
-### `Mapping/$ARGUMENTSResponseMapper.swift`
-
-```swift
-import AIProviderKit
-import Foundation
-
-struct $ARGUMENTSResponseMapper: Sendable {
-
-    func map(_ data: Data, model: String) throws -> AIResponse {
-        // Decode provider JSON → AIResponse.
-        // Map provider content → [ContentBlock].
-        // Map stop reason string → StopReason.
-        // Map token counts → TokenUsage.
-    }
-
-    func mapStreamEvent(_ data: Data) throws -> AIStreamEvent {
-        // Parse SSE event line → AIStreamEvent.
-    }
-}
-```
-
-### `Models/$ARGUMENTSModels.swift`
-
-```swift
-import AIProviderKit
-
-// MARK: - AIModel constants
-
-public extension AIModel {
-    static let $ARGUMENTS_MODEL_CONSTANT = AIModel("provider-model-id")
-}
-
-// MARK: - Internal Codable types
-
-struct $ARGUMENTSRequest: Encodable, Sendable { … }
-struct $ARGUMENTSResponse: Decodable, Sendable { … }
-```
-
-### `Networking/HTTPClient.swift`
-
-Copy verbatim from `Sources/ClaudeProvider/Networking/HTTPClient.swift` — each provider owns its own copy of this protocol so they remain independently deployable.
-
----
+| Mapper | Must handle |
+|---|---|
+| `RequestMapper` | messages → provider format, system prompt, tools schema, sampling params |
+| `ResponseMapper` | content → `[ContentBlock]`, stop reason → `StopReason`, tokens → `TokenUsage` |
+| `ResponseMapper.mapStreamEvent` | SSE data line → `AIStreamEvent` |
 
 ## Step 5 — Write tests
 
-Every test uses **given / when / then** comments. Inject `MockHTTPClient` — never hit the real API.
+Every test: **given / when / then** comments. Always inject `MockHTTPClient` — never call the real API.
 
 ```swift
-import AIProviderKit
-import Foundation
-import Testing
-@testable import $ARGUMENTSProvider
-
+// Example: mapper test
 @Suite("$ARGUMENTSRequestMapper")
 struct $ARGUMENTSRequestMapperTests {
-
     private let sut = $ARGUMENTSRequestMapper()
 
     @Test("maps model identifier")
     func map_setsModelIdentifier() {
         // Given
         let request = AIRequest(model: .$ARGUMENTS_MODEL_CONSTANT, messages: [])
-
         // When
         let mapped = sut.map(request)
-
         // Then
         #expect(mapped.model == "provider-model-id")
     }
 }
 ```
 
----
-
-## Step 6 — Verify
-
-Run in order; fix any error before moving to the next:
+## Step 6 — Verify (in order, fix before proceeding)
 
 ```bash
 swift build
@@ -274,4 +137,4 @@ swift test --filter $ARGUMENTSProviderTests
 swift package plugin --allow-writing-to-package-directory swiftlint lint --strict
 ```
 
-All three must pass with zero errors and zero violations before the implementation is complete.
+All three must exit clean. Report the result of each command.
