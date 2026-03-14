@@ -46,7 +46,8 @@ func searchReturnsResults() async {
 
 Mark test with actor if system under test requires it.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 11.2: Testing concurrent code using Swift Testing](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Testing asynchronous code — Apple Developer Documentation](https://developer.apple.com/documentation/testing/testing-asynchronous-code)
+> **Reference**: [Meet Swift Testing — WWDC24](https://developer.apple.com/videos/play/wwdc2024/10179/)
 
 ## Awaiting Async Callbacks
 
@@ -228,7 +229,7 @@ func isLoadingState() async throws {
 
 **Add package**: `https://github.com/pointfreeco/swift-concurrency-extras.git`
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 11.3: Using Swift Concurrency Extras by Point-Free](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [swift-concurrency-extras — Point-Free (open source)](https://github.com/pointfreeco/swift-concurrency-extras)
 
 ### Serial execution required
 
@@ -298,7 +299,7 @@ final class DatabaseTests: XCTestCase {
 
 Mark as `async throws` to call async methods.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 11.1: Testing concurrent code using XCTest](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Testing asynchronous code — Apple Developer Documentation](https://developer.apple.com/documentation/testing/testing-asynchronous-code)
 
 ### Main serial executor for all tests
 
@@ -558,8 +559,8 @@ struct SetupTrait: TestTrait, TestScoping {
 
 ## Further Learning
 
-For advanced testing patterns, real-world examples, and migration strategies:
-- [Swift Testing Documentation](https://developer.apple.com/documentation/testing)
-- [Swift Concurrency Extras](https://github.com/pointfreeco/swift-concurrency-extras)
-- [Swift Concurrency Course](https://www.swiftconcurrencycourse.com)
+- [Swift Testing — Apple Developer Documentation](https://developer.apple.com/documentation/testing) — Official Swift Testing framework reference
+- [Testing asynchronous code — Apple Developer Documentation](https://developer.apple.com/documentation/testing/testing-asynchronous-code) — Async testing patterns
+- [Meet Swift Testing — WWDC24](https://developer.apple.com/videos/play/wwdc2024/10179/) — Introduction to Swift Testing
+- [swift-concurrency-extras — Point-Free (open source)](https://github.com/pointfreeco/swift-concurrency-extras) — Tools for reliable concurrency testing
 

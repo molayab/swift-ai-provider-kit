@@ -228,4 +228,4 @@ See `references/glossary.md` for quick definitions of core concurrency terms use
 
 ---
 
-**Note**: This skill is based on the comprehensive [Swift Concurrency Course](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=skill-footer) by Antoine van der Lee.
+**References**: [The Swift Programming Language — Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) · [Swift Concurrency by Example — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency) · [Swift 6 Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)

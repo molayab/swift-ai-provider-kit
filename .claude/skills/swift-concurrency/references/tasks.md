@@ -36,7 +36,7 @@ final class ImageLoader {
 
 Tasks run regardless of whether you keep a reference.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.1: Introduction to tasks in Swift Concurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
 
 ## Cancellation
 
@@ -88,7 +88,8 @@ parent.cancel() // Both children notified
 
 Children must still check `Task.isCancelled` to stop work.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.2: Task cancellation](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [How to cancel a Task — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/how-to-cancel-a-task)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
 
 ## Error Handling
 
@@ -128,7 +129,7 @@ let safeTask: Task<String, Never> = Task {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.3: Error handling in Tasks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
 
 ## SwiftUI Integration
 
@@ -163,7 +164,7 @@ When `searchQuery` changes:
 1. Previous task cancels
 2. New task starts with updated value
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.12: Running tasks in SwiftUI](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [task(_:priority:_:) — Apple Developer Documentation](https://developer.apple.com/documentation/swiftui/view/task(_:priority:_:))
 
 ### Priority configuration
 
@@ -226,7 +227,8 @@ let images = try await withThrowingTaskGroup(of: UIImage.self) { group in
 
 **Critical**: Errors in child tasks don't automatically fail the group. Use iteration (`for try await`, `next()`, `reduce()`) to propagate errors.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.5: Task Groups](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [withTaskGroup — Apple Developer Documentation](https://developer.apple.com/documentation/swift/withtaskgroup(of:returning:isolation:body:))
+> **Reference**: [Explore structured concurrency in Swift — WWDC21](https://developer.apple.com/videos/play/wwdc2021/10134/)
 
 ### Early termination on error
 
@@ -325,7 +327,8 @@ for await _ in NotificationCenter.default.notifications(
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.6: Discarding Task Groups](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [withDiscardingTaskGroup — Apple Developer Documentation](https://developer.apple.com/documentation/swift/withdiscardingtaskgroup(returning:isolation:body:))
+> **Reference**: [SE-0381: Discard results of discarding task groups — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0381-task-group-discard-results.md)
 
 ## Structured vs Unstructured Tasks
 
@@ -346,7 +349,7 @@ await withTaskGroup(of: Data.self) { group in
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.7: The difference between structured and unstructured tasks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 
 ### Unstructured (use sparingly)
 
@@ -386,7 +389,7 @@ Task.detached(priority: .background) {
 
 **Prefer**: Task groups or `async let` for most parallel work.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.4: Detached Tasks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
 
 ## Task Priorities
 
@@ -436,7 +439,8 @@ System automatically elevates priority to prevent priority inversion:
 - Actor waiting on lower-priority task
 - High-priority task awaiting `.value` of lower-priority task
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.8: Managing Task priorities](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [TaskPriority — Apple Developer Documentation](https://developer.apple.com/documentation/swift/taskpriority)
+> **Reference**: [How to control the priority of a task — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/how-to-control-the-priority-of-a-task)
 
 ## Task.sleep() vs Task.yield()
 
@@ -493,7 +497,8 @@ func search(_ query: String) async {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.10: Task.yield() vs. Task.sleep()](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task.sleep(for:tolerance:clock:) — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task/sleep(for:tolerance:clock:))
+> **Reference**: [Task.yield() — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task/yield())
 
 ## async let vs TaskGroup
 
@@ -550,7 +555,7 @@ let data = try await withTimeout(.seconds(5)) {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 3.14: Creating a Task timeout handler using a Task Group (advanced)](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [withThrowingTaskGroup — Apple Developer Documentation](https://developer.apple.com/documentation/swift/withthrowingtaskgroup(of:returning:isolation:body:))
 
 ## Common Patterns
 
@@ -600,5 +605,7 @@ let profile = Profile(
 
 ## Further Learning
 
-For hands-on examples, advanced patterns, and migration strategies, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task) — Official Task API reference
+- [Explore structured concurrency in Swift — WWDC21](https://developer.apple.com/videos/play/wwdc2021/10134/) — Apple session introducing task groups
+- [Swift Concurrency by Example — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency) — Practical task patterns and examples
 

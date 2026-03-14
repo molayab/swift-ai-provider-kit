@@ -18,7 +18,8 @@ actor Counter {
 
 **Key guarantee**: Only one task can access mutable state at a time (serialized access).
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.1: Understanding actors in Swift Concurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Actor — Apple Developer Documentation](https://developer.apple.com/documentation/swift/actor)
+> **Reference**: [Protect mutable state with Swift actors — WWDC21](https://developer.apple.com/videos/play/wwdc2021/10133/)
 
 ## Actor Isolation
 
@@ -116,7 +117,7 @@ func applyFilter(_ image: UIImage) -> UIImage {
 
 **Use private init** to prevent creating multiple executors.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.2: An introduction to Global Actors](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [GlobalActor — Apple Developer Documentation](https://developer.apple.com/documentation/swift/globalactor)
 
 ## @MainActor Best Practices
 
@@ -167,7 +168,8 @@ func methodB() {
 
 **Prefer**: Explicit `@MainActor` or `await MainActor.run` over `assumeIsolated`.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.3: When and how to use @MainActor](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [How to use @MainActor to run code on the main queue — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/how-to-use-mainactor-to-run-code-on-the-main-queue)
+> **Reference**: [MainActor — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/MainActor)
 
 ## Isolated vs Nonisolated
 
@@ -270,7 +272,7 @@ extension BankAccount: CustomStringConvertible {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.4: Isolated vs. non-isolated access in actors](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0306: Actors — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0306-actors.md)
 
 ## Isolated Deinit (Swift 6.2+)
 
@@ -288,7 +290,7 @@ actor FileDownloader {
 
 **Requires**: iOS 18.4+, macOS 15.4+
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.5: Using Isolated synchronous deinit](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0371: Isolated synchronous deinit — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md)
 
 ## Global Actor Isolated Conformance (Swift 6.2+)
 
@@ -310,7 +312,7 @@ extension PersonViewModel: @MainActor Equatable {
 
 **Enable**: `InferIsolatedConformances` upcoming feature.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.6: Adding isolated conformance to protocols](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0470: Isolated conformances — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0470-isolated-conformances.md)
 
 ## Actor Reentrancy
 
@@ -360,7 +362,7 @@ func deposit(amount: Double) async {
 
 **Rule**: Don't assume state is unchanged after `await`.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.7: Understanding actor reentrancy](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [What is actor reentrancy and how can it cause problems? — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/what-is-actor-reentrancy-and-how-can-it-cause-problems)
 
 ## #isolation Macro
 
@@ -428,7 +430,7 @@ func process(
 
 **Note**: This pattern keeps the `non-Sendable` value alive and accessible within the `Task`. The `Task` runs on the caller's isolation domain, so no cross-isolation "sending" occurs.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.8: Inheritance of actor isolation using the #isolation macro](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0420: Inheritance of actor isolation — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0420-inheritance-of-actor-isolation.md)
 
 ## Custom Actor Executors
 
@@ -475,7 +477,7 @@ actor LoggingActor {
 
 **Default executor is usually sufficient.**
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.9: Using a custom actor executor](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0392: Custom actor executors — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0392-custom-actor-executors.md)
 
 ## Mutex: Alternative to Actors
 
@@ -547,7 +549,8 @@ func decrement() throws {
 - Need logical isolation
 - Working in async context
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 5.10: Using a Mutex as an alternative to actors](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Mutex — Apple Developer Documentation](https://developer.apple.com/documentation/synchronization/mutex)
+> **Reference**: [Synchronization — Apple Developer Documentation](https://developer.apple.com/documentation/synchronization)
 
 ## Common Patterns
 
@@ -636,5 +639,7 @@ Need thread-safe mutable state?
 
 ## Further Learning
 
-For migration strategies, advanced patterns, and real-world examples, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) — Official Swift language reference (Actors section)
+- [Protect mutable state with Swift actors — WWDC21](https://developer.apple.com/videos/play/wwdc2021/10133/) — Apple session introducing actors
+- [Swift Concurrency by Example — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency) — Practical actor patterns
 

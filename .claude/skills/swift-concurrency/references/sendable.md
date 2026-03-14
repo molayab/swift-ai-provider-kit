@@ -12,7 +12,7 @@ public protocol Sendable {}
 
 Empty protocol, but triggers compiler verification of thread-safety.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.1: Explaining the concept of Sendable in Swift](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ## Isolation Domains
 
@@ -100,7 +100,7 @@ print(await counter.getValue())
 
 **Key difference**: Swift Concurrency prevents data races but not race conditions. You must still ensure proper sequencing.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.2: Understanding Data Races vs. Race Conditions: Key Differences Explained](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable and @Sendable closures — HackingWithSwift](https://www.hackingwithswift.com/swift/5.5/sendable)
 
 ## Value Types (Structs, Enums)
 
@@ -152,7 +152,7 @@ public struct Location: Sendable {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.3: Conforming your code to the Sendable protocol](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ### Copy-on-write makes mutability safe
 
@@ -164,7 +164,7 @@ public struct Person: Sendable {
 
 Each mutation creates a copy, preventing concurrent access to same instance.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.4: Sendable and Value Types](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ## Reference Types (Classes)
 
@@ -227,7 +227,7 @@ final class GamePurchaser {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.5: Sendable and Reference Types](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable and @Sendable closures — HackingWithSwift](https://www.hackingwithswift.com/swift/5.5/sendable)
 
 ## Functions and Closures (@Sendable)
 
@@ -270,7 +270,7 @@ store.filter { [query] contact in
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.6: Using @Sendable with closures](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable and @Sendable closures — HackingWithSwift](https://www.hackingwithswift.com/swift/5.5/sendable)
 
 ## @unchecked Sendable
 
@@ -335,7 +335,7 @@ actor Cache {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.7: Using @unchecked Sendable](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ## Region-Based Isolation
 
@@ -407,7 +407,8 @@ func createArticle(title: String) -> sending Article {
 
 Transfers ownership to caller's region.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.8: Understanding region-based isolation and the sending keyword](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0414: Region-based isolation — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md)
+> **Reference**: [SE-0430: Transferring parameters and results — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md)
 
 ## Global Variables
 
@@ -454,7 +455,7 @@ struct APIProvider: Sendable {
 
 Use `private(set)` to limit mutation points.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.9: Concurrency-safe global variables](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ## Custom Locks + Sendable
 
@@ -502,7 +503,7 @@ actor BankAccount {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 4.10: Combining Sendable with custom Locks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable)
 
 ## Decision Tree
 
@@ -574,5 +575,7 @@ class ViewModel: ObservableObject {
 
 ## Further Learning
 
-For migration strategies, real-world examples, and actor patterns, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Sendable — Apple Developer Documentation](https://developer.apple.com/documentation/Swift/Sendable) — Official Sendable protocol reference
+- [Sendable and @Sendable closures — HackingWithSwift](https://www.hackingwithswift.com/swift/5.5/sendable) — Practical Sendable patterns
+- [SE-0414: Region-based isolation — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md) — Flow-sensitive isolation analysis
 

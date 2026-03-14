@@ -14,7 +14,7 @@ System-level resource that runs instructions. High overhead for creation and swi
 
 **Key insight**: No direct relationship between one task and one thread.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 7.1: How Threads relate to Tasks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 
 **Important (Swift 6+)**: Avoid using `Thread.current` inside async contexts. In Swift 6 language mode, `Thread.current` is unavailable from asynchronous contexts and will fail to compile. Prefer reasoning in terms of isolation domains; use Instruments and the debugger to observe execution when needed.
 
@@ -101,7 +101,7 @@ Task(priority: .userInitiated) {
 
 You're describing the nature of work, not assigning threads. Swift optimizes execution.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 7.2: Getting rid of the "Threading Mindset"](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 
 ## Suspension Points
 
@@ -168,7 +168,7 @@ func deposit(amount: Int) async {
 
 **Rule**: Don't mutate actor state after suspension points.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 7.3: Understanding Task suspension points](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 
 ## Thread Execution Patterns
 
@@ -266,7 +266,8 @@ nonisolated(nonsending) func storeTouch(...) async {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 7.4: Dispatching to different threads using nonisolated(nonsending) and @concurrent (Updated for Swift 6.2)](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Approachable Concurrency vision — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/visions/approachable-concurrency.md)
+> **Reference**: [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/)
 
 **Use when**: Method doesn't need to switch isolation, avoiding Sendable requirements.
 
@@ -311,9 +312,9 @@ class C {
 struct S {
     func f() {} // Inferred: @MyActor (explicit override)
 }
-
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 7.5: Controlling the default isolation domain (Updated for Swift 6.2)](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
 ```
+
+> **Reference**: [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/)
 
 ### Per-module setting
 
@@ -448,5 +449,7 @@ Seeing Sendable warnings?
 
 ## Further Learning
 
-For migration strategies, real-world examples, and advanced threading patterns, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) — Official Swift language reference
+- [Approachable Concurrency vision — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/visions/approachable-concurrency.md) — Design goals for Swift 6.2 concurrency
+- [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/) — @concurrent, NonisolatedNonsendingByDefault, and default isolation changes
 

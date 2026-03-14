@@ -15,7 +15,7 @@ Swift 6 doesn't fundamentally change how Swift Concurrency works—it **enforces
 
 > **Important**: You can adopt strict concurrency checking gradually while still compiling under Swift 5. You don't need to flip the Swift 6 switch immediately.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.2: The impact of Swift 6 on Swift Concurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
 ---
 
@@ -44,7 +44,7 @@ A common migration experience:
 
 **Why this happens**: Fixing isolation in one place often exposes issues elsewhere. This is normal and manageable with the right strategy.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.1: Challenges in migrating to Swift Concurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
 ---
 
@@ -120,7 +120,7 @@ Don't blindly add `@MainActor` to fix warnings. Consider:
 
 **Exception**: For app projects (not frameworks), consider enabling **Default Actor Isolation** to `@MainActor`, since most app code needs main thread access.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.3: The six migration habits for a successful migration](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Migration Strategy — Swift.org](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/migrationstrategy/)
 
 ---
 
@@ -246,7 +246,8 @@ Enables multiple upcoming features at once:
 
 **⚠️ Warning**: Don't just flip this switch for existing projects. Use migration tooling (see below) to migrate to each feature individually first.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.5: The Approachable Concurrency build setting (Updated for Swift 6.2)](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Approachable Concurrency vision — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/visions/approachable-concurrency.md)
+> **Reference**: [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/)
 
 ### 8. Enable Upcoming Features
 
@@ -281,7 +282,7 @@ Swift Language Version = Swift 6
 
 If you've completed all previous steps, you should have minimal new errors.
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.4: Steps to migrate existing code to Swift 6 and Strict Concurrency Checking](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Migration Strategy — Swift.org](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/migrationstrategy/)
 
 ---
 
@@ -331,9 +332,9 @@ The tool automatically:
 - `InferIsolatedConformances` (SE-470)
 - More features will add migration support over time
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.6: Migration tooling for upcoming Swift features](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
-**Additional resource**: [Migration Tooling Video](https://youtu.be/FK9XFxSWZPg?si=2z_ybn1t1YCJow5k)
+**Additional resource**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
 ---
 
@@ -390,7 +391,7 @@ func fetchImage(urlRequest: URLRequest) async throws -> UIImage {
 - No nested closures
 - Automatic error propagation
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.7: Techniques for rewriting closures to async/await syntax](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
 ---
 
@@ -435,7 +436,7 @@ The compiler will warn if `@preconcurrency` is unused:
 '@preconcurrency' attribute on module 'SomeModule' is unused
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.8: How and when to use @preconcurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [SE-0337: Incremental migration to concurrency checking — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md)
 
 ---
 
@@ -578,7 +579,7 @@ Task { [weak self] in
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.9: Migrating away from Functional Reactive Programming like RxSwift or Combine](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift Async Algorithms — Apple (open source)](https://github.com/apple/swift-async-algorithms)
 
 ---
 
@@ -1014,7 +1015,7 @@ token = NotificationCenter.default.addObserver(
 - Compile-time thread safety
 - Clear isolation guarantees
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.10: Migrating to concurrency-safe notifications](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/)
 
 ---
 
@@ -1052,7 +1053,7 @@ This is the "concurrency rabbit hole":
 - Focus on one module at a time
 - Don't try to fix everything at once
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 12.11: Frequently Asked Questions (FAQ) around Swift 6 Migrations](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/)
 
 ---
 
@@ -1070,7 +1071,7 @@ Migration to Swift 6 is a journey, not a sprint:
 The result is **compile-time thread safety**, more maintainable code, and a future-proof codebase.
 
 **Additional resources**:
-- [Approachable Concurrency Video](https://youtu.be/y_Qc8cT-O_g?si=y4C1XQDGtyIOLW81)
-- [Migration Tooling Video](https://youtu.be/FK9XFxSWZPg?si=2z_ybn1t1YCJow5k)
-- [Swift Concurrency Course](https://www.swiftconcurrencycourse.com) for in-depth migration strategies
+- [Swift 6 Concurrency Migration Guide — Swift.org](https://www.swift.org/migration/documentation/migrationguide/) — Official step-by-step migration guide
+- [Approachable Concurrency — Swift Evolution vision](https://github.com/swiftlang/swift-evolution/blob/main/visions/approachable-concurrency.md) — Design rationale for Swift 6.2 changes
+- [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/) — Release notes for approachable concurrency features
 

@@ -21,7 +21,7 @@ Task {
 - Harder to track when memory should be released
 - Long-running tasks can hold references indefinitely
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 8.1: Overview of memory management in Swift Concurrency](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
 
 ## Retain Cycles
 
@@ -100,7 +100,8 @@ task = Task { [weak self] in
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 8.2: Preventing retain cycles when using Tasks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task)
+> **Reference**: [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 
 Loop exits when `self` becomes `nil`.
 
@@ -538,5 +539,7 @@ When object won't deallocate:
 
 ## Further Learning
 
-For migration strategies, real-world examples, and advanced memory patterns, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Task — Apple Developer Documentation](https://developer.apple.com/documentation/swift/task) — Task lifecycle and cancellation
+- [Concurrency — The Swift Programming Language](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) — Official Swift language reference
+- [SE-0371: Isolated synchronous deinit — Swift Evolution](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md) — Isolated deinit for actor cleanup
 

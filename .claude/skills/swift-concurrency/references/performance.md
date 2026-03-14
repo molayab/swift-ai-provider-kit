@@ -71,7 +71,7 @@ Main Thread:
 - **Suspended**: Waiting (at await)
 - **Ending**: Completing
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 10.1: Using Xcode Instruments to find performance bottlenecks](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Visualize and optimize Swift concurrency — WWDC22](https://developer.apple.com/videos/play/wwdc2022/110350/)
 
 ## Identifying Issues
 
@@ -238,7 +238,7 @@ func update() async {
 nonisolated(nonsending) func process() async { }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 10.2: Reducing suspension points by managing isolation effectively](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Visualize and optimize Swift concurrency — WWDC22](https://developer.apple.com/videos/play/wwdc2022/110350/)
 
 ### 4. Use non-suspending APIs
 
@@ -312,9 +312,11 @@ Task {
     let data = await generate() // Suspension 1
     self.items.append(data) // Suspension 2 (back to main)
 }
+```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 10.3: Using Xcode Instruments to detect and remove suspension points](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [Visualize and optimize Swift concurrency — WWDC22](https://developer.apple.com/videos/play/wwdc2022/110350/)
 
+```swift
 // After: One suspension
 Task { @concurrent in
     let data = generate() // No suspension (synchronous)
@@ -375,11 +377,11 @@ await withTaskGroup(of: Result.self) { group in
 // Use when:
 // - Multiple independent operations
 // - Time-to-first-result matters
-
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 10.4: How to choose between serialized, asynchronous, and parallel execution](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
 // - Work scales with collection size
 // - Proven beneficial by profiling
 ```
+
+> **Reference**: [Visualize and optimize Swift concurrency — WWDC22](https://developer.apple.com/videos/play/wwdc2022/110350/)
 
 ## Parallelism Costs
 
@@ -570,5 +572,7 @@ actor Store {
 
 ## Further Learning
 
-For real-world optimization examples, profiling techniques, and advanced performance patterns, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [Visualize and optimize Swift concurrency — WWDC22](https://developer.apple.com/videos/play/wwdc2022/110350/) — Instruments profiling for concurrency
+- [Analyze hangs with Instruments — WWDC23](https://developer.apple.com/videos/play/wwdc2023/10248/) — Identifying main-thread hangs
+- [Explore structured concurrency in Swift — WWDC21](https://developer.apple.com/videos/play/wwdc2021/10134/) — Structured vs unstructured execution patterns
 

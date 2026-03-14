@@ -83,7 +83,8 @@ mutating func next() async -> Int? {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 6.1: Working with asynchronous sequences](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [AsyncSequence — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncsequence)
+> **Reference**: [What's the difference between Sequence, AsyncSequence, and AsyncStream? — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/whats-the-difference-between-sequence-asyncsequence-and-asyncstream)
 
 ## AsyncStream
 
@@ -124,7 +125,7 @@ do {
 }
 ```
 
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 6.2: Using AsyncStream and AsyncThrowingStream in your code](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
+> **Reference**: [AsyncStream — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncstream)
 
 ## Bridging Closures to Streams
 
@@ -533,9 +534,10 @@ func fetchData() async throws -> Data
 
 // Not this
 func fetchData() -> AsyncThrowingStream<Data, Error>
-
-> **Course Deep Dive**: This topic is covered in detail in [Lesson 6.3: Deciding between AsyncSequence, AsyncStream, or regular asynchronous methods](https://www.swiftconcurrencycourse.com?utm_source=github&utm_medium=agent-skill&utm_campaign=lesson-reference)
 ```
+
+> **Reference**: [AsyncSequence — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncsequence)
+> **Reference**: [AsyncStream — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncstream)
 
 ## Common Patterns
 
@@ -666,5 +668,8 @@ for await value in stream {
 
 ## Further Learning
 
-For real-world migration examples, performance patterns, and advanced stream techniques, see [Swift Concurrency Course](https://www.swiftconcurrencycourse.com).
+- [AsyncSequence — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncsequence) — Protocol reference and built-in operators
+- [AsyncStream — Apple Developer Documentation](https://developer.apple.com/documentation/swift/asyncstream) — Creating async sequences from callbacks
+- [What's the difference between Sequence, AsyncSequence, and AsyncStream? — HackingWithSwift](https://www.hackingwithswift.com/quick-start/concurrency/whats-the-difference-between-sequence-asyncsequence-and-asyncstream) — Practical comparison guide
+- [Swift Async Algorithms — Apple (open source)](https://github.com/apple/swift-async-algorithms) — debounce, merge, combineLatest, and more
 
