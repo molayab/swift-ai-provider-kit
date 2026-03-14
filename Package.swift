@@ -3,6 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "AIProviderKit",
+    dependencies: [
+        .package(url: "https://github.com/realm/SwiftLint", from: "0.57.0")
+    ],
     platforms: [
         .iOS(.v26),
         .macOS(.v14),
@@ -38,6 +41,7 @@ let package = Package(
         .target(
             name: "AIProviderKit",
             path: "Sources/AIProviderKit",
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -50,6 +54,7 @@ let package = Package(
             name: "ClaudeProvider",
             dependencies: ["AIProviderKit"],
             path: "Sources/ClaudeProvider",
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -68,6 +73,7 @@ let package = Package(
             name: "AIProviderKitUI",
             dependencies: ["AIProviderKit"],
             path: "Sources/AIProviderKitUI",
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -103,6 +109,7 @@ let package = Package(
             name: "AIProviderKitTests",
             dependencies: ["AIProviderKit"],
             path: "Tests/AIProviderKitTests",
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -112,6 +119,7 @@ let package = Package(
             name: "ClaudeProviderTests",
             dependencies: ["ClaudeProvider", "AIProviderKit"],
             path: "Tests/ClaudeProviderTests",
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")

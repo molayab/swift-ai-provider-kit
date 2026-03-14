@@ -1,0 +1,174 @@
+# SwiftLint configuration for AIProviderKit
+# Mirrors the coding conventions observed in the codebase:
+#   - 4-space indentation, same-line opening braces
+#   - MARK: comments for section grouping
+#   - public/private access modifiers everywhere
+#   - Swift 6, StrictConcurrency, ExistentialAny
+
+# ── Paths ──────────────────────────────────────────────────────────────────────
+included:
+  - Sources
+  - Tests
+
+excluded:
+  - Sources/IntegrationTests    # live-API runner, not subject to lint
+  - .build
+
+# ── Rules: disabled ────────────────────────────────────────────────────────────
+disabled_rules:
+  - todo                        # TODOs are used intentionally in comments/roadmap
+  - file_header                 # no mandatory file-header template
+  - trailing_comma              # not enforced in this project
+
+# ── Rules: opt-in ──────────────────────────────────────────────────────────────
+opt_in_rules:
+  - array_init
+  - attributes
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - discouraged_optional_boolean
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - enum_case_associated_values_count
+  - explicit_init
+  - fallthrough
+  - fatal_error_message
+  - first_where
+  - flatmap_over_map_reduce
+  - identical_operands
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - literal_expression_end_indentation
+  - lower_acl_than_parent
+  - modifier_order
+  - multiline_arguments
+  - multiline_function_chains
+  - multiline_parameters
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - return_value_from_void_function
+  - sorted_imports
+  - toggle_bool
+  - trailing_closure
+  - unneeded_parentheses_in_closure_argument
+  - unused_import
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+# ── Line length ─────────────────────────────────────────────────────────────────
+line_length:
+  warning: 130
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+# ── File length ─────────────────────────────────────────────────────────────────
+file_length:
+  warning: 400
+  error: 600
+
+# ── Type body length ────────────────────────────────────────────────────────────
+type_body_length:
+  warning: 200
+  error: 300
+
+# ── Function body length ────────────────────────────────────────────────────────
+function_body_length:
+  warning: 60
+  error: 100
+
+# ── Cyclomatic complexity ────────────────────────────────────────────────────────
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+# ── Nesting ─────────────────────────────────────────────────────────────────────
+nesting:
+  type_level:
+    warning: 2
+  function_level:
+    warning: 3
+
+# ── Identifier names ────────────────────────────────────────────────────────────
+identifier_name:
+  min_length:
+    warning: 2
+  max_length:
+    warning: 50
+    error: 60
+  excluded:
+    - id
+    - ok
+    - or
+    - i
+    - j
+
+# ── Type names ──────────────────────────────────────────────────────────────────
+type_name:
+  min_length: 2
+  max_length:
+    warning: 50
+    error: 60
+
+# ── Vertical whitespace ─────────────────────────────────────────────────────────
+vertical_whitespace:
+  max_empty_lines: 1
+
+# ── Trailing whitespace ─────────────────────────────────────────────────────────
+trailing_whitespace:
+  ignores_empty_lines: true
+  ignores_comments: false
+
+# ── Colon ───────────────────────────────────────────────────────────────────────
+colon:
+  flexible_right_spacing: false
+  apply_to_dictionaries: true
+
+# ── Opening brace ───────────────────────────────────────────────────────────────
+opening_brace:
+  allow_multiline_func: true
+
+# ── MARK ────────────────────────────────────────────────────────────────────────
+mark:
+  # Enforce "// MARK: - Section" format (dash required, matches project style)
+
+# ── Attributes ──────────────────────────────────────────────────────────────────
+attributes:
+  always_on_same_line:
+    - "@discardableResult"
+    - "@objc"
+  always_on_line_above:
+    - "@Suite"
+    - "@Test"
+
+# ── Multiline arguments ─────────────────────────────────────────────────────────
+multiline_arguments:
+  first_argument_location: any_line
+  only_enforce_after_first_closure_on_first_line: true
+
+# ── Modifier order ───────────────────────────────────────────────────────────────
+modifier_order:
+  preferred_modifier_order:
+    - acl
+    - setterACL
+    - dynamic
+    - mutating
+    - lazy
+    - final
+    - required
+    - convenience
+    - typeMethods
+    - owned
+
+# ── Reporter ─────────────────────────────────────────────────────────────────────
+reporter: "xcode"
