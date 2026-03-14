@@ -5,7 +5,7 @@ let package = Package(
     name: "AIProviderKit",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v26),
         .watchOS(.v11),
         .tvOS(.v26),
         .visionOS(.v2)
@@ -19,18 +19,17 @@ let package = Package(
             name: "ClaudeProvider",
             targets: ["ClaudeProvider"]
         ),
-        .library(
-            name: "AIProviderKitUI",
-            targets: ["AIProviderKitUI"]
-        ),
         // Post-MVP: OpenAI support
         // .library(name: "OpenAIProvider", targets: ["OpenAIProvider"]),
         //
-        // Post-MVP: Apple Foundation Models (on-device inference, iOS 26+)
-        // .library(name: "FoundationModelProvider", targets: ["FoundationModelProvider"]),
+        // Apple Intelligence (on-device inference, iOS 26+ / macOS 26+)
+        .library(name: "AppleIntelligenceProvider", targets: ["AppleIntelligenceProvider"]),
 
         // Integration test runner (not part of the library)
         .executable(name: "IntegrationTests", targets: ["IntegrationTests"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", exact: "0.63.2")
     ],
     targets: [
         // MARK: - Core
@@ -41,7 +40,8 @@ let package = Package(
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
         ),
 
         // MARK: - Claude
@@ -53,32 +53,31 @@ let package = Package(
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
         ),
 
         // Post-MVP: OpenAI
         // .target(name: "OpenAIProvider", dependencies: ["AIProviderKit"], path: "Sources/OpenAIProvider"),
 
-        // Post-MVP: Apple Foundation Models
-        // .target(name: "FoundationModelProvider", dependencies: ["AIProviderKit"], path: "Sources/FoundationModelProvider"),
-
-        // MARK: - UI
+        // MARK: - Apple Intelligence (Foundation Models)
 
         .target(
-            name: "AIProviderKitUI",
+            name: "AppleIntelligenceProvider",
             dependencies: ["AIProviderKit"],
-            path: "Sources/AIProviderKitUI",
+            path: "Sources/AppleIntelligenceProvider",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
         ),
 
         // MARK: - Integration Tests
 
         .executableTarget(
             name: "IntegrationTests",
-            dependencies: ["AIProviderKit", "ClaudeProvider"],
+            dependencies: ["AIProviderKit", "ClaudeProvider", "AppleIntelligenceProvider"],
             path: "Sources/IntegrationTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
@@ -90,7 +89,7 @@ let package = Package(
             capability: .command(
                 intent: .custom(
                     verb: "integration-tests",
-                    description: "Run live integration tests against AI providers. Set ANTHROPIC_API_KEY before running."
+                    description: "Run live integration tests. Usage: swift package integration-tests <claude|apple-intelligence|all>"
                 ),
                 permissions: []
             ),
@@ -106,7 +105,8 @@ let package = Package(
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
         ),
         .testTarget(
             name: "ClaudeProviderTests",
@@ -115,7 +115,18 @@ let package = Package(
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
+        ),
+        .testTarget(
+            name: "AppleIntelligenceProviderTests",
+            dependencies: ["AppleIntelligenceProvider", "AIProviderKit"],
+            path: "Tests/AppleIntelligenceProviderTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
         )
     ]
 )

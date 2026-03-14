@@ -11,7 +11,7 @@ public protocol AIProvider: Sendable {
     var capabilities: Set<AICapability> { get }
 
     /// Sends a request and awaits a complete response.
-    func send(_ request: AIRequest) async throws -> AIResponse
+    func send(_ request: AIRequest) async throws(AIError) -> AIResponse
 }
 
 /// Extends `AIProvider` with server-sent event streaming.
@@ -24,7 +24,7 @@ public protocol StreamableProvider: AIProvider {
 // MARK: - Default capability guard
 
 public extension AIProvider {
-    func assertSupports(_ capability: AICapability) throws {
+    func assertSupports(_ capability: AICapability) throws(AIError) {
         guard capabilities.contains(capability) else {
             throw AIError.providerUnsupported(capability: capability)
         }

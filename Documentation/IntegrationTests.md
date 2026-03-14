@@ -1,19 +1,38 @@
 # Integration Tests
 
-Integration tests run against the **real provider APIs** and verify that the full
+Integration tests run against **real provider APIs and on-device models** and verify that the full
 request/response cycle works end-to-end. They are intentionally kept separate from
 the unit test suite so they never run in CI by default and never require API keys
 to pass the build.
 
 ---
 
+## Suites
+
+| Suite | File | Prerequisite |
+|---|---|---|
+| **Claude** | `ClaudeIntegrationSuite.swift` | `ANTHROPIC_API_KEY` env var |
+| **Apple Intelligence** | `AppleIntelligenceIntegrationSuite.swift` | Apple Intelligence enabled device (iOS 26+ / macOS 26+) |
+
+---
+
 ## Prerequisites
+
+### Claude suite
 
 | Requirement | Detail |
 |---|---|
 | API key | `ANTHROPIC_API_KEY` environment variable set to a valid Anthropic key |
 | Network | Outbound HTTPS to `api.anthropic.com` |
-| Platform | macOS 14+ (the tests are a command-line executable) |
+| Platform | macOS 26+ (the tests are a command-line executable) |
+
+### Apple Intelligence suite
+
+| Requirement | Detail |
+|---|---|
+| Device | Apple Intelligence enabled (iPhone 15 Pro / iPad / Apple Silicon Mac) |
+| OS | iOS 26+ or macOS 26+ |
+| Network | Not required (on-device inference) |
 
 ---
 
@@ -22,15 +41,21 @@ to pass the build.
 ### Via the SPM command plugin (recommended)
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
-```
+# Claude suite
+ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests claude
 
-This builds the `IntegrationTests` executable if needed and runs it in one step.
+# Apple Intelligence suite (no API key needed)
+swift package integration-tests apple-intelligence
+
+# Both suites (skips any that are unavailable)
+ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests all
+```
 
 ### Directly
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... swift run IntegrationTests
+ANTHROPIC_API_KEY=sk-ant-... swift run IntegrationTests claude
+swift run IntegrationTests apple-intelligence
 ```
 
 ### In CI (opt-in)
@@ -42,18 +67,21 @@ workflow or job:
 - name: Integration tests
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-  run: swift package integration-tests
+  run: swift package integration-tests claude
 ```
 
 Keep integration tests in a separate workflow (e.g. `integration.yml`) triggered
 manually or on a schedule, not on every push, to control API costs.
 
+The Apple Intelligence suite requires a physical Apple Silicon device and cannot
+run on GitHub Actions runners — it exits gracefully with a warning when
+`AppleIntelligenceAvailability.isAvailable` is `false`.
+
 ---
 
 ## What is tested
 
-All tests run against `claude-haiku-4-5` (fastest / lowest cost model) and are
-located in `Sources/IntegrationTests/ClaudeIntegrationSuite.swift`.
+Both suites run the same five test scenarios against their respective providers.
 
 | Test | AIClient method | What it checks |
 |---|---|---|
@@ -63,25 +91,29 @@ located in `Sources/IntegrationTests/ClaudeIntegrationSuite.swift`.
 | **Recipe rendering** | `send(recipe:values:model:)` | `{{text}}` and `{{language}}` placeholders substituted, response non-empty |
 | **Skill execution** | `execute(skillId:input:model:)` | `SummarizerSkill` registered, executed, `SkillResult.output` non-empty |
 
+Claude tests use `claude-haiku-4-5` (fastest / lowest cost model).
+Apple Intelligence tests use `.appleIntelligenceDefault`.
+
 ---
 
 ## Project structure
 
 ```
 Sources/IntegrationTests/
-├── IntegrationApp.swift          @main entry — guards for ANTHROPIC_API_KEY
-├── ClaudeIntegrationSuite.swift  Actor with test runner and all test cases
-└── SummarizerSkill.swift         Skill fixture used by the skill test
+├── IntegrationApp.swift                       @main entry — routes to suite by CLI argument
+├── ClaudeIntegrationSuite.swift               Claude (Anthropic API) test cases
+├── AppleIntelligenceIntegrationSuite.swift    On-device Apple Intelligence test cases
+└── SummarizerSkill.swift                      Skill fixture shared by both suites
 
 Plugins/RunIntegrationTests/
-└── RunIntegrationTestsPlugin.swift  SPM command plugin (verb: integration-tests)
+└── RunIntegrationTestsPlugin.swift            SPM command plugin (verb: integration-tests)
 ```
 
 ---
 
 ## Adding a new test case
 
-1. Open `Sources/IntegrationTests/ClaudeIntegrationSuite.swift`.
+1. Open the suite file for the provider you want to test.
 2. Add a private `async throws` method following the given / when / then pattern:
 
 ```swift
@@ -118,5 +150,5 @@ Sources/IntegrationTests/
 └── OpenAIIntegrationSuite.swift   mirrors ClaudeIntegrationSuite
 ```
 
-Then invoke both suites from `IntegrationApp.main()`, guarded by their respective
-environment variables (`OPENAI_API_KEY`, etc.).
+Add a new `case` to the CLI switch in `IntegrationApp.swift`, guarded by the
+provider's prerequisite (API key, device capability, etc.).

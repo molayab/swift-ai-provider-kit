@@ -13,7 +13,7 @@ public actor RecipeRegistry {
         recipes.removeValue(forKey: id)
     }
 
-    public func recipe(id: String) throws -> Recipe {
+    public func recipe(id: String) throws(AIError) -> Recipe {
         guard let recipe = recipes[id] else {
             throw AIError.recipeNotFound(id)
         }

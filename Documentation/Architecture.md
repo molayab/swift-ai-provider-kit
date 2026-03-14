@@ -17,15 +17,15 @@
 
 ## Overview
 
-AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 14+, watchOS 11+, tvOS 26+, and visionOS 2+, built with Swift 6 and full strict concurrency compliance.
+AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 26+, watchOS 11+, tvOS 26+, and visionOS 2+, built with Swift 6 and full strict concurrency compliance.
 
 The package ships three library products today:
 
 - **AIProviderKit** -- the core module containing protocols, models, builders, registries, and the `AIClient` actor. Zero external dependencies.
 - **ClaudeProvider** -- the Anthropic Messages API implementation. Depends only on `AIProviderKit`.
-- **AIProviderKitUI** -- an optional SwiftUI `AILogView` for in-app log viewing. Depends only on `AIProviderKit`.
+- **AppleIntelligenceProvider** -- on-device inference via Apple Intelligence (iOS 26+ / macOS 26+). Depends only on `AIProviderKit`; requires the `FoundationModels` framework at runtime.
 
-Additional provider modules (`FoundationModelProvider`, `OpenAIProvider`) and persistence/context modules are planned for future milestones but do not exist in the codebase today.
+Additional provider modules (`OpenAIProvider`) and persistence/context modules are planned for future milestones but do not exist in the codebase today.
 
 ---
 
@@ -38,31 +38,19 @@ graph LR
     subgraph shipped["Shipped modules"]
         Core["AIProviderKit"]
         Claude["ClaudeProvider"]
-        UI["AIProviderKitUI"]
+        FM["AppleIntelligenceProvider"]
     end
 
     subgraph planned["Planned modules"]
-        FM["FoundationModelProvider"]
         OpenAI["OpenAIProvider"]
     end
 
     App --> Claude
-    App --> OpenAI
     App --> FM
-    App --> PFS
-    App --> PDB
-    App --> CTX
-    App --> UI
     App --> Core
 
     Claude --> Core
-    OpenAI --> Core
     FM --> Core
-    PFS --> Core
-    PDB --> Core
-    CTX --> Core
-    UI --> Core
-    FM -.-> Core
     OpenAI -.-> Core
 ```
 

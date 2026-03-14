@@ -6,10 +6,10 @@ final class MockAIProvider: AIProvider, @unchecked Sendable {
     let capabilities: Set<AICapability> = [.text, .tools, .streaming, .systemPrompt]
 
     var stubbedResponse: AIResponse = MockData.response
-    var stubbedError: (any Error)?
+    var stubbedError: AIError?
     var receivedRequests: [AIRequest] = []
 
-    func send(_ request: AIRequest) async throws -> AIResponse {
+    func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         receivedRequests.append(request)
         if let error = stubbedError { throw error }
         return stubbedResponse

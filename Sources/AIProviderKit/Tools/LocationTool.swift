@@ -1,4 +1,5 @@
 import CoreLocation
+import MapKit
 
 /// A ready-to-use `Tool` that provides the device's current location to the model.
 ///
@@ -52,7 +53,11 @@ public enum LocationTool: ToolGroup {
             let manager = CLLocationManager()
             manager.delegate = delegate
             manager.desiredAccuracy = kCLLocationAccuracyBest
+            #if os(tvOS)
+            manager.requestAlwaysAuthorization()
+            #else
             manager.requestWhenInUseAuthorization()
+            #endif
             manager.requestLocation()
             // Keep delegate alive during the async operation.
             _ = delegate
@@ -60,15 +65,20 @@ public enum LocationTool: ToolGroup {
     }
 
     private static func reverseGeocode(_ location: CLLocation) async throws -> String {
-        let geocoder = CLGeocoder()
-        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-        guard let placemark = placemarks.first else { return "" }
-        return [
-            placemark.name,
-            placemark.locality,
-            placemark.administrativeArea,
-            placemark.country
-        ].compactMap { $0 }.joined(separator: ", ")
+        try await withCheckedThrowingContinuation { continuation in
+            guard let request = MKReverseGeocodingRequest(location: location) else {
+                continuation.resume(returning: "")
+                return
+            }
+            request.getMapItems { items, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                let address = items?.first?.addressRepresentations?.fullAddress(includingRegion: true, singleLine: true) ?? ""
+                continuation.resume(returning: address)
+            }
+        }
     }
 }
 

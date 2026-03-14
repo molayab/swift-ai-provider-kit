@@ -15,7 +15,7 @@ public struct APIKeyAuthorization: AuthorizationProvider {
         self.apiKey = apiKey
     }
 
-    public func authorizationHeaders() async throws -> [String: String] {
+    public func authorizationHeaders() async throws(AIError) -> [String: String] {
         guard !apiKey.isEmpty else {
             throw AIError.authorizationFailed("API key must not be empty.")
         }

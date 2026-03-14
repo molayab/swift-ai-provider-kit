@@ -1,0 +1,62 @@
+import AIProviderKit
+import Foundation
+
+// MARK: - Internal FM Request
+
+/// Internal representation of a mapped Foundation Models request.
+struct FMRequest: Sendable {
+    let systemPrompt: String?
+    let messages: [FMMessage]
+    let tools: [FMToolDefinition]
+    let maxTokens: Int
+    let temperature: Double?
+}
+
+// MARK: - Internal FM Message
+
+struct FMMessage: Sendable {
+    let role: String
+    let content: String
+}
+
+// MARK: - Internal FM Tool Definition
+
+struct FMToolDefinition: Sendable {
+    let name: String
+    let description: String
+    /// Original schema kept as-is so `LiveFMSession` can build a native `FMToolBridge`.
+    let inputSchema: JSONSchema
+    /// JSON-encoded schema string used only by the prompt-injection fallback path.
+    let parametersSchemaJSON: String
+    let handler: @Sendable (JSONValue) async throws -> JSONValue
+}
+
+// MARK: - Internal FM Response
+
+struct FMResponse: Sendable {
+    let content: String
+    let toolCalls: [FMToolCall]
+    let stopReason: FMStopReason
+}
+
+// MARK: - Internal FM Tool Call
+
+struct FMToolCall: Sendable {
+    let id: String
+    let name: String
+    let argumentsJSON: String
+}
+
+// MARK: - Internal FM Stop Reason
+
+enum FMStopReason: String, Sendable {
+    case endTurn   = "end_turn"
+    case maxTokens = "max_tokens"
+    case toolUse   = "tool_use"
+}
+
+// MARK: - Internal FM Stream Delta
+
+struct FMStreamDelta: Sendable {
+    let text: String
+}

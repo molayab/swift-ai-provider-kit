@@ -9,9 +9,34 @@
   <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2014%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
 </p>
 
-A modular Swift package for integrating AI providers in a provider-agnostic way. Swap between Claude, OpenAI, or on-device models without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
+A modular Swift package for integrating AI providers in a provider-agnostic way. Swap between Claude, on-device Apple Intelligence, or future providers without changing application code — with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
 
 Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
+
+---
+
+## Table of Contents
+
+- [Providers](#providers)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Examples](#examples)
+- [Architecture](#architecture)
+- [Roadmap](#roadmap)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Providers
+
+| Provider | Module | Status | Notes |
+|---|---|---|---|
+| **Claude** (Anthropic) | `ClaudeProvider` | ✅ Shipped | Full streaming, tools, vision |
+| **Apple Intelligence** | `AppleIntelligenceProvider` | ✅ Shipped | On-device, iOS 26+ / macOS 26+, requires Apple Intelligence enabled |
+| **OpenAI** | `OpenAIProvider` | 🔜 0.2.0 | Planned |
 
 ---
 
@@ -20,19 +45,18 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | Feature | Description |
 |---|---|
 | **Provider abstraction** | Swap providers without changing application code |
-| **Automatic tool execution** | The client executes tool calls and follows up automatically |
+| **Automatic tool execution** | `AIClient` executes tool calls and follows up automatically |
 | **Streaming** | Server-sent event streaming via `AsyncThrowingStream` |
+| **On-device inference** | Private, offline inference via Apple Intelligence (`FoundationModels`) |
 | **Recipes** | Reusable `{{placeholder}}` prompt templates |
-| **Skills** | Composable capabilities (tools + recipe + post-processing) |
+| **Skills** | Composable capabilities — tools + recipe + post-processing |
 | **Registries** | Thread-safe `actor`-based stores for tools, skills, and recipes |
-| **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app `AILogView` |
-| **Predefined tools** | Location, Calendar, and Reminders tools ready to use |
+| **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app capture via `AILogStore` |
+| **Predefined tools** | Location, Calendar, and Reminders tools ready to drop in |
 
 ---
 
 ## Installation
-
-### Swift Package Manager
 
 ```swift
 dependencies: [
@@ -43,24 +67,23 @@ dependencies: [
 Add the products you need:
 
 ```swift
-.product(name: "AIProviderKit",   package: "AIProviderKit"),   // Core
-.product(name: "ClaudeProvider",  package: "AIProviderKit"),   // Claude (Anthropic)
-.product(name: "AIProviderKitUI", package: "AIProviderKit"),   // SwiftUI log viewer (optional)
+.product(name: "AIProviderKit", package: "AIProviderKit"),            // Core (always required)
+.product(name: "ClaudeProvider", package: "AIProviderKit"),            // Claude — Anthropic API
+.product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device Apple Intelligence
 ```
 
 ---
 
 ## Quick Start
 
+### Claude (Anthropic)
+
 ```swift
 import AIProviderKit
 import ClaudeProvider
 
 let client = AIClient(
-    provider: ClaudeProvider(
-        authorization: APIKeyAuthorization(apiKey: "sk-ant-..."),
-        logger: AILogger(subsystem: "com.myapp", category: "ai")
-    )
+    provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "sk-ant-..."))
 )
 
 let response = try await client.send(
@@ -68,6 +91,28 @@ let response = try await client.send(
         .model(.claudeSonnet4)
         .systemPrompt("You are a helpful assistant.")
         .addMessage(.user(text: "What is the capital of France?"))
+        .build()
+)
+print(response.text)
+```
+
+### Apple Intelligence (on-device)
+
+```swift
+import AIProviderKit
+import AppleIntelligenceProvider
+
+guard AppleIntelligenceAvailability.isAvailable else {
+    // Device doesn't support Apple Intelligence — fall back to a remote provider
+    return
+}
+
+let client = AIClient(provider: AppleIntelligenceProvider())
+
+let response = try await client.send(
+    AIRequestBuilder()
+        .model(.appleIntelligenceDefault)
+        .addMessage(.user(text: "Summarise this in one sentence."))
         .build()
 )
 print(response.text)
@@ -82,10 +127,10 @@ Full, copy-paste ready examples are in the [`Examples/`](Examples/) folder.
 | File | What it shows |
 |---|---|
 | [`01_BasicChat.swift`](Examples/01_BasicChat.swift) | Single-turn and multi-turn conversation |
-| [`02_StreamingChat.swift`](Examples/02_StreamingChat.swift) | SSE streaming integrated into a SwiftUI `@Observable` view model |
-| [`03_ToolUse.swift`](Examples/03_ToolUse.swift) | Custom tools + predefined `CalendarTool` / `LocationTool`, auto-execution loop |
+| [`02_StreamingChat.swift`](Examples/02_StreamingChat.swift) | SSE streaming in a SwiftUI `@Observable` view model |
+| [`03_ToolUse.swift`](Examples/03_ToolUse.swift) | Custom tools + predefined `CalendarTool` / `LocationTool` |
 | [`04_RecipesAndSkills.swift`](Examples/04_RecipesAndSkills.swift) | Reusable prompt templates and composable Skills |
-| [`05_LoggingSetup.swift`](Examples/05_LoggingSetup.swift) | `AILogStore` + `AILogView` debug sheet in a SwiftUI app |
+| [`05_LoggingSetup.swift`](Examples/05_LoggingSetup.swift) | `AILogStore` log capture in a SwiftUI app |
 
 ### Streaming
 
@@ -100,11 +145,11 @@ for try await event in client.stream(request) {
 ### Tool use
 
 ```swift
-// 1. Register tools
+// Register tools once
 await client.toolRegistry.register(LocationTool.make())
 await client.toolRegistry.registerAll(CalendarTool.self)
 
-// 2. Send — tool calls are executed and followed up automatically
+// Tool calls are executed and followed up automatically
 let response = try await client.send(
     AIRequestBuilder()
         .model(.claudeSonnet4)
@@ -112,49 +157,15 @@ let response = try await client.send(
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
 )
-print(response.text)
 ```
 
----
+### Custom tools
 
-## Architecture
-
-```
-AIProviderKit          Core protocols, models, builders, registries, client
-ClaudeProvider         Anthropic Messages API implementation
-AIProviderKitUI        SwiftUI log viewer (optional dependency)
-```
-
-See [`Documentation/Architecture.md`](Documentation/Architecture.md) for full class diagrams and sequence diagrams.
-
-### Key types
-
-| Type | Role |
-|---|---|
-| `AIClient` | Main entry point (actor). Orchestrates the provider, registries, and auto tool-execution loop. |
-| `AIProvider` | Protocol every provider implements. |
-| `StreamableProvider` | Extends `AIProvider` with SSE streaming. |
-| `AIRequestBuilder` | Fluent, validated request construction. |
-| `Tool` / `ToolGroup` | A callable function (or group of functions) the model can invoke. |
-| `Recipe` | A `{{placeholder}}` prompt template. |
-| `Skill` | A bundle of tools + recipe + post-processing logic. |
-| `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
-| `AILogView` | SwiftUI view showing live log entries from `AILogStore`. |
-
----
-
-## Tools
-
-Register predefined tools or define your own:
+<details>
+<summary>Define and register a custom tool</summary>
 
 ```swift
-// Predefined — bulk-register an entire ToolGroup
-await client.toolRegistry.register(LocationTool.make())
-await client.toolRegistry.registerAll(CalendarTool.self)
-await client.toolRegistry.registerAll(RemindersTool.self)
-
-// Custom
-let myTool = Tool(
+let searchTool = Tool(
     name: "search_products",
     description: "Searches the product catalog.",
     inputSchema: .object(
@@ -166,12 +177,12 @@ let myTool = Tool(
     let results = try await ProductService.search(query)
     return .array(results.map { .string($0.name) })
 }
-await client.toolRegistry.register(myTool)
+await client.toolRegistry.register(searchTool)
 ```
 
----
+</details>
 
-## Recipes
+### Recipes
 
 ```swift
 let recipe = Recipe(
@@ -180,8 +191,6 @@ let recipe = Recipe(
     systemPrompt: "You are a concise summarizer.",
     userPromptTemplate: "Summarize in {{style}} style:\n\n{{text}}"
 )
-await client.recipeRegistry.register(recipe)
-
 let response = try await client.send(
     recipe: recipe,
     values: ["style": "bullet points", "text": articleBody],
@@ -189,156 +198,102 @@ let response = try await client.send(
 )
 ```
 
----
-
-## Logging
+### Logging
 
 ```swift
-// Enable in-app log capture at startup
+// Capture logs in-app at startup
 AILogStore.shared = AILogStore()
 
-// Attach a logger to the provider
-let logger = AILogger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "ai")
-let provider = ClaudeProvider(authorization: auth, logger: logger)
-
-// Show the log viewer in a debug sheet (import AIProviderKitUI)
-.sheet(isPresented: $showLogs) {
-    AILogView(store: AILogStore.shared ?? AILogStore())
-}
+let provider = ClaudeProvider(
+    authorization: auth,
+    logger: AILogger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "ai")
+)
 ```
 
-All log entries are also written to the system log and visible in **Console.app**.
+All entries are also written to the system log and visible in **Console.app**.
 
 ---
 
-## Use Cases
+## Architecture
 
-Detailed use cases with code examples are in [`Documentation/UseCases.md`](Documentation/UseCases.md):
+```
+AIProviderKit              Core protocols, models, builders, registries, client
+ClaudeProvider             Anthropic Messages API implementation
+AppleIntelligenceProvider  On-device inference via Apple Intelligence (iOS 26+ / macOS 26+)
+```
 
-| ID | Scenario | Status |
+See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class diagrams, sequence diagrams, and the concurrency model.
+
+### Key types
+
+| Type | Role |
+|---|---|
+| `AIClient` | Main entry point (actor). Orchestrates the provider, registries, and auto tool-execution loop. |
+| `AIProvider` | Protocol every provider implements. |
+| `StreamableProvider` | Extends `AIProvider` with SSE streaming. |
+| `AIRequestBuilder` | Fluent, validated request construction. |
+| `Tool` / `ToolGroup` | A callable function (or group) the model can invoke. |
+| `Recipe` | A `{{placeholder}}` prompt template. |
+| `Skill` | A bundle of tools + recipe + post-processing logic. |
+| `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
+
+---
+
+## Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
+
+| Version | Focus | Status |
 |---|---|---|
-| UC-01 | Simple text conversation | ✅ 0.1.0 |
-| UC-02 | Multi-turn conversation | ✅ 0.1.0 |
-| UC-03 | Streaming response | ✅ 0.1.0 |
-| UC-04 | Automatic tool use | ✅ 0.1.0 |
-| UC-05 | Recipe (prompt template) | ✅ 0.1.0 |
-| UC-06 | Skill execution | ✅ 0.1.0 |
-| UC-07 | In-app log viewer | ✅ 0.1.0 |
-| UC-08 | Vision (image input) | ✅ 0.1.0 |
-| UC-09 | Custom tool definition | ✅ 0.1.0 |
-| UC-10 | Provider swap | ✅ 0.1.0 |
-| UC-11 | Ephemeral conversation store | 🔜 0.4.0 |
-| UC-12 | File system persistence | 🔜 0.5.0 |
-| UC-13 | SwiftData persistence | 🔜 0.6.0 |
-
----
-
-## Extending
-
-### Add a new provider
-
-Implement `AIProvider` (and optionally `StreamableProvider`) — `AIClient` works with any conforming type. See [`Documentation/AddingAProvider.md`](Documentation/AddingAProvider.md) for a step-by-step walkthrough.
-
-### CI / GitHub Actions
-
-Every push and pull request to `main` runs two required checks — both must pass before a branch can be merged:
-
-| Check | What it does |
-|---|---|
-| **SwiftLint** | `swiftlint lint --strict` — zero violations required |
-| **Build & Test** | `swift test` — all 194 tests must pass |
-
-SwiftLint is enforced via CI only (not as an SPM build plugin) so downstream consumers are not affected. Run it locally with:
-
-```bash
-# Requires SwiftLint installed (brew install swiftlint)
-swiftlint lint
-```
-
-See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the full workflow details and guidance on adding new workflows.
-
-### Roadmap
-
-See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan. Highlights:
-
-| Version | Focus |
-|---|---|
-| **0.1.0** | Claude provider, core architecture ✅ |
-| **0.2.0** | OpenAI provider |
-| **0.3.0** | Apple Foundation Models (on-device, iOS 26+) |
-| **0.4.0** | Persistence — `SupportedConversationStore` enum + protocol + ephemeral backend |
-| **0.5.0** | Persistence — file system backend (`AIProviderKitPersistenceFS`) |
-| **0.6.0** | Persistence — SwiftData backend (`AIProviderKitPersistenceDB`) |
-| **0.7.0** | RAG — `EmbeddingProvider` protocol, in-memory vector store, `AIProviderKitRAG` |
-| **1.0.0** | Full MVP — stable API, DocC, example app |
-
-The persistence layer is fully modular — a `SupportedConversationStore` enum
-selects and configures the backend at `AIClient` init time. Swapping storage
-is a one-line change:
-
-```swift
-// Ephemeral in-memory (default, zero dependencies)
-let client = AIClient(provider: claude, store: .ephemeralMemory)
-
-// File system — cross-platform, no extra frameworks
-let client = AIClient(provider: claude, store: .fileSystem(directory: .applicationSupport))
-
-// Database — SwiftData, with querying and migrations
-let client = AIClient(provider: claude, store: .database(configuration: ModelConfiguration("Conversations")))
-```
+| **0.1.0** | Core architecture + Claude provider | ✅ Shipped |
+| **0.2.0** | Apple Intelligence provider (on-device) | ✅ Shipped |
+| **0.3.0** | OpenAI provider | 🔜 Next |
+| **0.4.0** | Persistence — core protocol + in-memory backend | 🔜 Planned |
+| **0.5.0** | Persistence — file system backend | 🔜 Planned |
+| **0.6.0** | Persistence — SwiftData backend | 🔜 Planned |
+| **0.7.0** | RAG — embedding protocol + in-memory vector store | 🔜 Planned |
+| **1.0.0** | Stable API, DocC, example app | 🔜 Planned |
 
 ---
 
 ## Testing
 
-### Unit tests
-
-Run the full suite (no API key required — all providers are mocked):
-
 ```bash
+# Unit tests — no API key required
 swift test
-```
 
-### Integration tests
-
-Integration tests exercise the real Claude API. Requires an `ANTHROPIC_API_KEY` environment variable.
-
-```bash
-# Via the SPM command plugin (recommended)
+# Integration tests — requires ANTHROPIC_API_KEY
 ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
-
-# Or directly
-ANTHROPIC_API_KEY=sk-ant-... swift run IntegrationTests
 ```
 
-Covered scenarios:
-
-| Test | What it verifies |
-|---|---|
-| Basic text completion | `AIClient.send()` returns a non-empty `endTurn` response |
-| Streaming | `AIClient.stream()` emits `textDelta` events |
-| Automatic tool execution | Tool registered, called by the model, auto-executed, final response returned |
-| Recipe rendering | `{{placeholder}}` values substituted before send |
-| Skill execution | Skill looked up, recipe applied as system prompt, output post-processed |
-
-See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for full details and guidance on adding new test cases.
+See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for full details.
 
 ---
 
 ## Requirements
 
-| Platform | Minimum | Notes |
-|---|---|---|
-| iOS | 26.0 | Full feature support |
-| macOS | 14.0 (Sonoma) | Full feature support |
-| watchOS | 11.0 | Core + streaming; no `AILogView` |
-| tvOS | 26.0 | Core + streaming; no `AILogView` |
-| visionOS | 2.0 | Full feature support |
-| **Swift** | **6.0** | Strict concurrency, `ExistentialAny` |
-| **Xcode** | **26.0+** | Required to build iOS 26 / macOS 26 targets |
+| Platform | Minimum |
+|---|---|
+| iOS | 26.0 |
+| macOS | 26.0 |
+| watchOS | 11.0 |
+| tvOS | 26.0 |
+| visionOS | 2.0 |
+| **Swift** | **6.0** |
+| **Xcode** | **26.0+** |
 
-> **External dependencies:** none. `AIProviderKit` and `ClaudeProvider` use only
-> the Swift standard library and `Foundation`. `AIProviderKitUI` requires SwiftUI.
+> **External dependencies:** none. All products use only the Swift standard library and `Foundation`. `AppleIntelligenceProvider` additionally requires the `FoundationModels` framework (iOS 26+ / macOS 26+).
+
+---
+
+## Contributing
+
+Contributions are welcome — bug reports, feature requests, and pull requests.
+
+- To add a new AI provider, see [`Documentation/AddingAProvider.md`](Documentation/AddingAProvider.md).
+- For CI setup, see [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md).
+
+Please open an issue before starting significant work so we can align on direction.
 
 ---
 
@@ -346,6 +301,4 @@ See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for
 
 AIProviderKit is released under the **MIT License**.
 
-Copyright © 2026 Mateo Olaya Bernal.
-
-See [`LICENSE`](LICENSE) for the full license text.
+Copyright © 2026 Mateo Olaya Bernal. See [`LICENSE`](LICENSE) for the full text.
