@@ -26,13 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
       - name: Lint
+        # Version pinned via SimplyDanny/SwiftLintPlugins in Package.swift (Package.resolved)
         # --strict  → warnings become errors (blocks merge on any violation)
         # --reporter github-actions-logging → inline PR annotations
-        run: swiftlint lint --strict --reporter github-actions-logging
+        run: swift package plugin --allow-writing-to-package-directory swiftlint lint --strict --reporter github-actions-logging
 
   # ── Job 2: Build & Test ───────────────────────────────────────────────────────
   build-and-test:

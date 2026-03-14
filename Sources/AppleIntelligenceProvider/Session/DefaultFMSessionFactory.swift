@@ -84,7 +84,7 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
                     // Track the previous endpoint as a String.Index so both the guard and
                     // the slice are O(1): endIndex is derived from the stored UTF-8 byte
                     // count, and subscripting with a pre-computed index needs no re-walk.
-                    var previousIndex: String.Index? = nil
+                    var previousIndex: String.Index?
                     for try await snapshot in session.streamResponse(to: prompt) {
                         if Task.isCancelled { break }
                         let accumulated: String = snapshot.content
