@@ -4,7 +4,9 @@ import Foundation
 /// SPM command plugin that builds and runs the `IntegrationTests` executable.
 ///
 /// Invoke with:
-///   ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
+///   ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests claude
+///   swift package integration-tests apple-intelligence
+///   ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests all
 @main
 struct RunIntegrationTestsPlugin: CommandPlugin {
     func performCommand(context: PluginContext, arguments: [String]) async throws {
@@ -12,6 +14,7 @@ struct RunIntegrationTestsPlugin: CommandPlugin {
 
         let process = Process()
         process.executableURL = tool.url
+        process.arguments = arguments
         // Forward the caller's full environment so ANTHROPIC_API_KEY and any
         // other provider secrets are available to the test runner.
         process.environment = ProcessInfo.processInfo.environment
