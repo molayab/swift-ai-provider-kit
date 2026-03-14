@@ -117,7 +117,7 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
     /// `transcript`, so the model always has full multi-turn context. Only the *current*
     /// user turn needs to be passed; replaying prior turns would double-count history.
     private func latestUserPrompt(from request: FMRequest) -> String {
-        request.messages.last(where: { $0.role == "user" })?.content
+        request.messages.last { $0.role == "user" }?.content
             ?? request.messages.last?.content
             ?? ""
     }

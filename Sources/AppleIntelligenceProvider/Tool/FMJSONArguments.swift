@@ -1,6 +1,6 @@
 #if canImport(FoundationModels)
-import FoundationModels
 import AIProviderKit
+import FoundationModels
 
 /// Bridges `FoundationModels.GeneratedContent` tool arguments to `AIProviderKit.JSONValue`.
 ///
@@ -21,16 +21,16 @@ struct FMJSONArguments: ConvertibleFromGeneratedContent, Sendable {
         switch content.kind {
         case .null:
             return .null
-        case .bool(let b):
-            return .bool(b)
-        case .number(let d):
+        case .bool(let boolValue):
+            return .bool(boolValue)
+        case .number(let doubleValue):
             // Preserve integer precision when the number is exactly representable as Int.
-            if let intValue = Int(exactly: d) {
+            if let intValue = Int(exactly: doubleValue) {
                 return .integer(intValue)
             }
-            return .double(d)
-        case .string(let s):
-            return .string(s)
+            return .double(doubleValue)
+        case .string(let stringValue):
+            return .string(stringValue)
         case .array(let items):
             return .array(try items.map { try convert($0) })
         case .structure(let props, let orderedKeys):

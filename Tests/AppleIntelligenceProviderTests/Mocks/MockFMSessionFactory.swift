@@ -1,12 +1,12 @@
-import Foundation
 import AIProviderKit
 @testable import AppleIntelligenceProvider
+import Foundation
 
 // MARK: - MockFMSession
 
 final class MockFMSession: FMSessionProtocol, @unchecked Sendable {
 
-    var stubbedResponse: FMResponse = FMResponse(
+    var stubbedResponse = FMResponse(
         content: "",
         toolCalls: [],
         stopReason: .endTurn
@@ -45,7 +45,7 @@ final class MockFMSession: FMSessionProtocol, @unchecked Sendable {
 final class MockFMSessionFactory: FMSessionFactory, @unchecked Sendable {
 
     /// The session instance returned by `makeSession(for:)`.
-    var session: MockFMSession = MockFMSession()
+    var session = MockFMSession()
 
     /// Error to throw from `makeSession(for:)` if non-nil.
     var stubbedError: AIError?

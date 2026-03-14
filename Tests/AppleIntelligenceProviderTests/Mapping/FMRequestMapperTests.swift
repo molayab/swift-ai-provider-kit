@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 import AIProviderKit
 @testable import AppleIntelligenceProvider
+import Foundation
+import Testing
 
 @Suite("FMRequestMapper")
 struct FMRequestMapperTests {

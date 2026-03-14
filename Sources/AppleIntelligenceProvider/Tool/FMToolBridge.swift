@@ -1,7 +1,7 @@
 #if canImport(FoundationModels)
+import AIProviderKit
 import Foundation
 import FoundationModels
-import AIProviderKit
 
 /// Bridges an `AIProviderKit.Tool` to the `FoundationModels.Tool` protocol.
 ///

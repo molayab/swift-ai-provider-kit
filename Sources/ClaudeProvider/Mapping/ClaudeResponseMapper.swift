@@ -49,11 +49,11 @@ struct ClaudeResponseMapper: Sendable {
 
     private func mapStopReason(_ raw: String?) -> StopReason {
         switch raw {
-        case "end_turn":      return .endTurn
-        case "max_tokens":    return .maxTokens
+        case "end_turn": return .endTurn
+        case "max_tokens": return .maxTokens
         case "stop_sequence": return .stopSequence
-        case "tool_use":      return .toolUse
-        default:              return .unknown
+        case "tool_use": return .toolUse
+        default: return .unknown
         }
     }
 }

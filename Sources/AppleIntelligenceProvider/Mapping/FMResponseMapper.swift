@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 /// Maps internal `FMResponse` / `FMStreamDelta` values to the
 /// provider-agnostic `AIResponse` / `AIStreamEvent` types.

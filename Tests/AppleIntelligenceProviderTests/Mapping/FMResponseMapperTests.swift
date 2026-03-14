@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 import AIProviderKit
 @testable import AppleIntelligenceProvider
+import Foundation
+import Testing
 
 @Suite("FMResponseMapper")
 struct FMResponseMapperTests {
@@ -58,9 +58,11 @@ struct FMResponseMapperTests {
     @Test("maps toolUse stopReason")
     func map_toolUseStopReason_mapsCorrectly() {
         // Given
-        let fmResponse = FMResponse(content: "", toolCalls: [
-            FMToolCall(id: "t1", name: "fn", argumentsJSON: "{}")
-        ], stopReason: .toolUse)
+        let fmResponse = FMResponse(
+            content: "",
+            toolCalls: [FMToolCall(id: "t1", name: "fn", argumentsJSON: "{}")],
+            stopReason: .toolUse
+        )
 
         // When
         let response = sut.map(fmResponse, model: "m")

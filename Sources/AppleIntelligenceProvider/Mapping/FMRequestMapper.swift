@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 /// Maps an `AIRequest` to the internal `FMRequest` representation.
 ///

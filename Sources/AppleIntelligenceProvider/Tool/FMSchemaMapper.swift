@@ -1,6 +1,6 @@
 #if canImport(FoundationModels)
-import FoundationModels
 import AIProviderKit
+import FoundationModels
 
 /// Converts an `AIProviderKit.JSONSchema` to a `FoundationModels.DynamicGenerationSchema`.
 ///
