@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 import AIProviderKit
 @testable import ClaudeProvider
+import Foundation
+import Testing
 
 @Suite("ClaudeProvider")
 struct ClaudeProviderTests {
@@ -110,7 +110,7 @@ struct ClaudeProviderTests {
                 properties: ["city": .string(description: "City name")],
                 required: ["city"]
             )
-        ) { _ async throws in .null }
+        ) { _ async in .null }
         let request = try AIRequestBuilder()
             .model(.claudeSonnet4)
             .addMessage(.user(text: "Weather in Rome?"))

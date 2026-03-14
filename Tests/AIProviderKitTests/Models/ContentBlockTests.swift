@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import AIProviderKit
+import Foundation
+import Testing
 
 @Suite("ContentBlock")
 struct ContentBlockTests {
@@ -60,31 +60,31 @@ struct ContentBlockTests {
     @Test("two identical text blocks are equal")
     func equatable_identicalTextBlocks_areEqual() {
         // Given
-        let a = ContentBlock.text("Same")
-        let b = ContentBlock.text("Same")
+        let lhs = ContentBlock.text("Same")
+        let rhs = ContentBlock.text("Same")
 
         // When / Then
-        #expect(a == b)
+        #expect(lhs == rhs)
     }
 
     @Test("two different text blocks are not equal")
     func equatable_differentTextBlocks_areNotEqual() {
         // Given
-        let a = ContentBlock.text("A")
-        let b = ContentBlock.text("B")
+        let lhs = ContentBlock.text("A")
+        let rhs = ContentBlock.text("B")
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 
     @Test("text block and toolUse block are not equal")
     func equatable_textAndToolUse_areNotEqual() {
         // Given
-        let a = ContentBlock.text("hello")
-        let b = ContentBlock.toolUse(.init(id: "t1", name: "tool", input: .null))
+        let lhs = ContentBlock.text("hello")
+        let rhs = ContentBlock.toolUse(.init(id: "t1", name: "tool", input: .null))
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 
     // MARK: - ToolUseContent Construction

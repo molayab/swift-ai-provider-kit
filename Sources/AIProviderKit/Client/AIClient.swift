@@ -44,7 +44,9 @@ public actor AIClient {
     /// If the model requests tool calls, they are executed automatically and
     /// a follow-up request is sent until the model stops requesting tools.
     public func send(_ request: AIRequest) async throws -> AIResponse {
-        logger?.info("[\(provider.identifier)] Sending request model=\(request.model.identifier) messages=\(request.messages.count)")
+        logger?.info(
+            "[\(provider.identifier)] Sending request model=\(request.model.identifier) messages=\(request.messages.count)"
+        )
 
         var response = try await provider.send(request)
 
@@ -55,7 +57,9 @@ public actor AIClient {
             response = try await provider.send(followUp)
         }
 
-        logger?.info("[\(provider.identifier)] Response received stopReason=\(response.stopReason.rawValue) tokens=\(response.usage.totalTokens)")
+        let stopReason = response.stopReason.rawValue
+        let tokens = response.usage.totalTokens
+        logger?.info("[\(provider.identifier)] Response received stopReason=\(stopReason) tokens=\(tokens)")
         return response
     }
 

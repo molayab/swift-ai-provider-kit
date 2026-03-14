@@ -1,5 +1,5 @@
-import Testing
 @testable import AIProviderKit
+import Testing
 
 @Suite("AILogStore")
 struct AILogStoreTests {

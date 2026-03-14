@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 import AIProviderKit
 @testable import ClaudeProvider
+import Foundation
+import Testing
 
 @Suite("ClaudeRequestMapper")
 struct ClaudeRequestMapperTests {
@@ -80,7 +80,7 @@ struct ClaudeRequestMapperTests {
                 properties: ["city": .string(description: "City name")],
                 required: ["city"]
             )
-        ) { _ async throws in .null }
+        ) { _ async in .null }
         let request = makeRequest(tools: [tool])
 
         // When

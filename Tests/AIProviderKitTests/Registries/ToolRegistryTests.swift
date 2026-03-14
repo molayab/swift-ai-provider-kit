@@ -1,5 +1,5 @@
-import Testing
 @testable import AIProviderKit
+import Testing
 
 @Suite("ToolRegistry")
 struct ToolRegistryTests {
@@ -9,7 +9,7 @@ struct ToolRegistryTests {
             name: name,
             description: "A test tool named \(name)",
             inputSchema: .object(properties: ["x": .string()], required: ["x"])
-        ) { input async throws in
+        ) { _ async in
             .string("result from \(name)")
         }
     }
@@ -108,7 +108,7 @@ struct ToolRegistryTests {
             name: "echo",
             description: "Echoes input",
             inputSchema: .object(properties: ["msg": .string()])
-        ) { input async throws in
+        ) { input async in
             input
         }
         await registry.register(tool)
@@ -161,12 +161,12 @@ struct ToolRegistryTests {
             name: "tool",
             description: "Original",
             inputSchema: .object()
-        ) { _ async throws in .string("original") }
+        ) { _ async in .string("original") }
         let replacement = Tool(
             name: "tool",
             description: "Replacement",
             inputSchema: .object()
-        ) { _ async throws in .string("replacement") }
+        ) { _ async in .string("replacement") }
 
         // When
         await registry.register(original)

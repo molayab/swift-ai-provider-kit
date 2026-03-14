@@ -38,7 +38,7 @@ enum MockData {
             properties: ["city": .string(description: "City name.")],
             required: ["city"]
         )
-    ) { _ async throws in
+    ) { _ async in
         .object(["temperature": 22, "condition": "sunny"])
     }
 }

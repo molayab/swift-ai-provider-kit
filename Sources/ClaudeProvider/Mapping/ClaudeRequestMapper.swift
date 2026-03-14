@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 struct ClaudeRequestMapper: Sendable {
 
@@ -29,29 +29,51 @@ struct ClaudeRequestMapper: Sendable {
         switch block {
         case .text(let text):
             return ClaudeContentBlock(
-                type: "text", text: text, source: nil,
-                id: nil, name: nil, input: nil,
-                toolUseId: nil, content: nil, isError: nil
+                type: "text",
+                text: text,
+                source: nil,
+                id: nil,
+                name: nil,
+                input: nil,
+                toolUseId: nil,
+                content: nil,
+                isError: nil
             )
 
         case .image(let image):
             return ClaudeContentBlock(
-                type: "image", text: nil, source: mapImageSource(image.source),
-                id: nil, name: nil, input: nil,
-                toolUseId: nil, content: nil, isError: nil
+                type: "image",
+                text: nil,
+                source: mapImageSource(image.source),
+                id: nil,
+                name: nil,
+                input: nil,
+                toolUseId: nil,
+                content: nil,
+                isError: nil
             )
 
         case .toolUse(let use):
             return ClaudeContentBlock(
-                type: "tool_use", text: nil, source: nil,
-                id: use.id, name: use.name, input: use.input,
-                toolUseId: nil, content: nil, isError: nil
+                type: "tool_use",
+                text: nil,
+                source: nil,
+                id: use.id,
+                name: use.name,
+                input: use.input,
+                toolUseId: nil,
+                content: nil,
+                isError: nil
             )
 
         case .toolResult(let result):
             return ClaudeContentBlock(
-                type: "tool_result", text: nil, source: nil,
-                id: nil, name: nil, input: nil,
+                type: "tool_result",
+                text: nil,
+                source: nil,
+                id: nil,
+                name: nil,
+                input: nil,
                 toolUseId: result.toolUseId,
                 content: result.content.map(mapContentBlock),
                 isError: result.isError ? true : nil

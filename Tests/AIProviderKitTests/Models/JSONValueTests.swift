@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import AIProviderKit
+import Foundation
+import Testing
 
 @Suite("JSONValue")
 struct JSONValueTests {
@@ -380,20 +380,20 @@ struct JSONValueTests {
     @Test("identical values are equal")
     func equatable_identicalValues_areEqual() {
         // Given
-        let a: JSONValue = ["key": "value"]
-        let b: JSONValue = ["key": "value"]
+        let lhs: JSONValue = ["key": "value"]
+        let rhs: JSONValue = ["key": "value"]
 
         // When / Then
-        #expect(a == b)
+        #expect(lhs == rhs)
     }
 
     @Test("different values are not equal")
     func equatable_differentValues_areNotEqual() {
         // Given
-        let a: JSONValue = "hello"
-        let b: JSONValue = "world"
+        let lhs: JSONValue = "hello"
+        let rhs: JSONValue = "world"
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 }
