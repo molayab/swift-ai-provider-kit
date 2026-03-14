@@ -1,9 +1,7 @@
 ---
 name: commit
-description: Stage and commit changes with a well-crafted message matching this project's style. Use when asked to 'commit', 'commit my changes', 'create a commit', 'write a commit message', or 'commit and push'.
-user-invocable: true
-disable-model-invocation: false
-allowed-tools: Bash, Read
+description: Stages and commits changes with a well-crafted message matching this project's style. Use when asked to 'commit', 'commit my changes', 'create a commit', 'write a commit message', or 'commit and push'.
+allowed-tools: Read, Bash(git *)
 argument-hint: "[optional hint about what changed]"
 ---
 

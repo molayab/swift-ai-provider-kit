@@ -1,9 +1,7 @@
 ---
 name: add-provider
-description: Scaffold a complete new AI provider for AIProviderKit. Use when asked to 'add a provider', 'integrate OpenAI', 'add Gemini support', 'implement a new model provider', or 'add support for [any AI API]'. Follows the mapper pattern — no changes to AIClient needed.
-disable-model-invocation: false
-user-invocable: true
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
+description: Scaffolds a complete new AI provider for AIProviderKit. Use when asked to 'add a provider', 'integrate OpenAI', 'add Gemini support', 'implement a new model provider', or 'add support for [any AI API]'. Follows the mapper pattern — no changes to AIClient needed.
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash(swift *)
 argument-hint: "[ProviderName]"
 ---
 

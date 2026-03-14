@@ -1,10 +1,8 @@
 ---
 name: lint
-description: Run SwiftLint and auto-fix all violations. Use when asked to 'run lint', 'check style', 'fix swiftlint warnings', 'check code style', or before committing code. Runs the pinned 0.63.2 binary via swift package plugin — no install step needed.
+description: Runs SwiftLint and auto-fixes all violations. Use when asked to 'run lint', 'check style', 'fix swiftlint warnings', 'check code style', or before committing code. Runs the pinned 0.63.2 binary via swift package plugin — no install step needed.
 disable-model-invocation: true
-user-invocable: true
-allowed-tools: Bash, Read, Edit
-argument-hint: ""
+allowed-tools: Read, Edit, Bash(swift *)
 ---
 
 You are a code-quality enforcer for this Swift 6 package. Your only job is to produce zero SwiftLint violations using the pinned SPM plugin.

@@ -1,9 +1,7 @@
 ---
 name: add-tool
-description: Add a new Tool, ToolGroup, or Skill to AIProviderKit. Use when asked to 'add a tool', 'create a new tool', 'give the model a new capability', 'add a skill', 'add a recipe', or 'implement [action] as a tool'. Chooses the right construct (Tool / ToolGroup / Skill) based on the request.
-disable-model-invocation: false
-user-invocable: true
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
+description: Adds a new Tool, ToolGroup, or Skill to AIProviderKit. Use when asked to 'add a tool', 'create a new tool', 'give the model a new capability', 'add a skill', 'add a recipe', or 'implement [action] as a tool'. Chooses the right construct (Tool / ToolGroup / Skill) based on the request.
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash(swift *)
 argument-hint: "[ToolName or SkillName]"
 ---
 

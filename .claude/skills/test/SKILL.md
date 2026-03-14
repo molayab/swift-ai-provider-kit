@@ -1,9 +1,8 @@
 ---
 name: test
-description: Run the Swift Testing suite and report results. Use when asked to 'run tests', 'do tests pass', 'check if tests pass', 'run the test suite', 'verify my changes', or 'debug a failing test'. All tests are mocked — no API key or network needed.
+description: Runs the Swift Testing suite and reports results. Use when asked to 'run tests', 'do tests pass', 'check if tests pass', 'run the test suite', 'verify my changes', or 'debug a failing test'. All tests are mocked — no API key or network needed.
 disable-model-invocation: true
-user-invocable: true
-allowed-tools: Bash, Read, Grep
+allowed-tools: Read, Grep, Bash(swift *)
 argument-hint: "[SuiteName or TestName]"
 ---
 
