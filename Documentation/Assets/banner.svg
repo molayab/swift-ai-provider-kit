@@ -16,6 +16,10 @@
       <stop offset="0%" stop-color="#2A2218"/>
       <stop offset="100%" stop-color="#1E1C16"/>
     </linearGradient>
+    <linearGradient id="appleFill" x1="648" y1="138" x2="788" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F2235"/>
+      <stop offset="100%" stop-color="#0A1A28"/>
+    </linearGradient>
     <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="5" result="blur"/>
       <feMerge>
@@ -95,7 +99,7 @@
   <line  x1="615" y1="112" x2="645" y2="112"          stroke="#6A6A6E" stroke-width="1.5"             stroke-dasharray="4 3" marker-end="url(#arr)"/>
   <path d="M 615 131 Q 635 131 645 152" stroke="#6A6A6E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
 
-  <!-- Provider: Claude (active) -->
+  <!-- Provider: Claude (active — amber) -->
   <rect x="648" y="54"  width="140" height="32" rx="6" fill="url(#claudeFill)" stroke="#D97706" stroke-width="1.5"/>
   <circle cx="664" cy="70" r="5" fill="#F59E0B" opacity="0.95"/>
   <text x="726" y="74" fill="#F0D090" font-size="11" font-weight="600" text-anchor="middle">Claude</text>
@@ -104,15 +108,12 @@
   <rect x="648" y="96"  width="140" height="32" rx="6" fill="#161618" stroke="#333338" stroke-width="1.5" stroke-dasharray="5 3"/>
   <circle cx="664" cy="112" r="5" fill="#444448" opacity="0.8"/>
   <text x="726" y="116" fill="#666670" font-size="11" text-anchor="middle">OpenAI</text>
-
-  <!-- Provider: Foundation Models (coming soon) -->
-  <rect x="648" y="138" width="140" height="32" rx="6" fill="#161618" stroke="#333338" stroke-width="1.5" stroke-dasharray="5 3"/>
-  <circle cx="664" cy="154" r="5" fill="#444448" opacity="0.8"/>
-  <text x="726" y="158" fill="#666670" font-size="11" text-anchor="middle">Foundation Models</text>
-
-  <!-- "soon" labels -->
   <text x="793" y="111" fill="#505058" font-size="9" text-anchor="start">soon</text>
-  <text x="793" y="153" fill="#505058" font-size="9" text-anchor="start">soon</text>
+
+  <!-- Provider: Apple Intelligence (active — blue) -->
+  <rect x="648" y="138" width="140" height="32" rx="6" fill="url(#appleFill)" stroke="#3B82F6" stroke-width="1.5"/>
+  <circle cx="664" cy="154" r="5" fill="#60A5FA" opacity="0.95"/>
+  <text x="726" y="158" fill="#93C5FD" font-size="11" font-weight="600" text-anchor="middle">Apple Intelligence</text>
 
   <!-- Caption under diagram -->
   <text x="556" y="200" fill="#606068" font-size="9.5" text-anchor="middle">swap providers without changing app code</text>
