@@ -13,6 +13,6 @@ public protocol AuthorizationProvider: Sendable {
 }
 
 public extension AuthorizationProvider {
-    // swiftlint:disable:next async_without_await unneeded_throws_rethrows
+    // swiftlint:disable:next unneeded_throws_rethrows
     func refresh() async throws {}
 }

@@ -189,7 +189,7 @@ struct ClaudeProviderTests {
 // MARK: - Test Helpers
 
 private struct MockAPIKeyAuthorization: AuthorizationProvider {
-    // swiftlint:disable:next async_without_await unneeded_throws_rethrows
+    // swiftlint:disable:next unneeded_throws_rethrows
     func authorizationHeaders() async throws -> [String: String] {
         ["x-api-key": "test-key"]
     }

@@ -8,7 +8,6 @@ final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     var stubbedStreamData: [Data] = []
     private(set) var receivedRequests: [HTTPRequest] = []
 
-    // swiftlint:disable:next async_without_await
     func send(_ request: HTTPRequest) async throws -> HTTPResponse {
         receivedRequests.append(request)
         if let error = stubbedError { throw error }
