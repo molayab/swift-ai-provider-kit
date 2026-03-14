@@ -1,6 +1,6 @@
 ---
 name: swift-concurrency
-description: 'Diagnose data races, convert callback-based code to async/await, implement actor isolation patterns, resolve Sendable conformance issues, and guide Swift 6 migration. Use when developers mention: (1) Swift Concurrency, async/await, actors, or tasks, (2) "use Swift Concurrency" or "modern concurrency patterns", (3) migrating to Swift 6, (4) data races or thread safety issues, (5) refactoring closures to async/await, (6) @MainActor, Sendable, or actor isolation, (7) concurrent code architecture or performance optimization, (8) concurrency-related linter warnings (SwiftLint or similar; e.g. async_without_await, Sendable/actor isolation/MainActor lint).'
+description: 'Diagnose data races, convert callback-based code to async/await, implement actor isolation patterns, resolve Sendable conformance issues, and guide Swift 6/6.2 migration. Use when developers mention: (1) Swift Concurrency, async/await, actors, or tasks, (2) "use Swift Concurrency" or "modern concurrency patterns", (3) migrating to Swift 6 or Swift 6.2, (4) data races or thread safety issues, (5) refactoring closures to async/await, (6) @MainActor, Sendable, or actor isolation, (7) concurrent code architecture or performance optimization, (8) concurrency-related linter warnings, (9) @concurrent, NonisolatedNonsendingByDefault, isolated conformances, or Approachable Concurrency.'
 user-invocable: true
 disable-model-invocation: false
 allowed-tools: Read, Grep, Bash
@@ -98,9 +98,10 @@ When a developer needs concurrency guidance, follow this decision tree:
    - Structured async work → `references/tasks.md` (Task, child tasks, cancellation)
    - Streaming data → `references/async-sequences.md` (AsyncSequence, AsyncStream)
 
-4. **Working with legacy frameworks?**
+4. **Working with legacy frameworks or migrating to Swift 6.2?**
    - Core Data integration → `references/core-data.md`
-   - General migration → `references/migration.md`
+   - General Swift 6 migration → `references/migration.md`
+   - Swift 6.2 Approachable Concurrency (`@concurrent`, isolated conformances, NonisolatedNonsendingByDefault) → `references/swift-6-2.md`
 
 5. **Performance or debugging issues?**
    - Slow async code → `references/performance.md` (profiling, suspension points)
@@ -169,13 +170,15 @@ await withTaskGroup(of: ProcessedItem.self) { group in
 }
 ```
 
-## Swift 6 Migration Quick Guide
+## Swift 6 / 6.2 Migration Quick Guide
 
 Key changes in Swift 6:
 - **Strict concurrency checking** enabled by default
 - **Complete data-race safety** at compile time
 - **Sendable requirements** enforced on boundaries
 - **Isolation checking** for all async boundaries
+
+Swift 6.2 adds **Approachable Concurrency** — async functions stay on the calling actor by default, `@concurrent` opts into background execution, and isolated conformances let `@MainActor` types conform to non-isolated protocols. See `references/swift-6-2.md` for patterns and before/after examples.
 
 ### Migration Validation Loop
 
@@ -189,7 +192,7 @@ Apply this cycle for each migration change:
 
 If a fix introduces new warnings, resolve them before continuing. Never batch multiple unrelated fixes — keep commits small and reviewable.
 
-For detailed migration steps, see `references/migration.md`.
+For detailed Swift 6 migration steps, see `references/migration.md`. For Swift 6.2 patterns, see `references/swift-6-2.md`.
 
 ## Reference Files
 
@@ -207,6 +210,7 @@ Load these files as needed for specific topics:
 - **`performance.md`** - Profiling with Instruments, reducing suspension points, execution strategies
 - **`testing.md`** - XCTest async patterns, Swift Testing, concurrency testing utilities
 - **`migration.md`** - Swift 6 migration strategy, closure-to-async conversion, @preconcurrency, FRP migration
+- **`swift-6-2.md`** - Swift 6.2 Approachable Concurrency: @concurrent, isolated conformances, NonisolatedNonsendingByDefault, MainActor default inference
 
 ## Verification Checklist (When You Change Concurrency Code)
 
