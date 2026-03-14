@@ -71,7 +71,7 @@ let package = Package(
 
         .executableTarget(
             name: "IntegrationTests",
-            dependencies: ["AIProviderKit", "ClaudeProvider"],
+            dependencies: ["AIProviderKit", "ClaudeProvider", "AppleIntelligenceProvider"],
             path: "Sources/IntegrationTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
@@ -83,7 +83,7 @@ let package = Package(
             capability: .command(
                 intent: .custom(
                     verb: "integration-tests",
-                    description: "Run live integration tests against AI providers. Set ANTHROPIC_API_KEY before running."
+                    description: "Run live integration tests. Usage: swift package integration-tests <claude|apple-intelligence|all>"
                 ),
                 permissions: []
             ),
