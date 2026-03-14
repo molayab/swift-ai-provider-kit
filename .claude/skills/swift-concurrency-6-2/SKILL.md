@@ -1,6 +1,9 @@
 ---
 name: swift-concurrency-6-2
 description: Swift 6.2 Approachable Concurrency — single-threaded by default, @concurrent for explicit background offloading, isolated conformances for main actor types.
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read, Grep, Bash
 ---
 
 # Swift 6.2 Approachable Concurrency
