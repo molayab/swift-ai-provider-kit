@@ -15,7 +15,6 @@ final class SequentialMockProvider: AIProvider, @unchecked Sendable {
         self.responses = responses
     }
 
-    // swiftlint:disable:next unneeded_throws_rethrows
     func send(_ request: AIRequest) async throws -> AIResponse {
         receivedRequests.append(request)
         let response = responses[min(index, responses.count - 1)]

@@ -27,7 +27,6 @@ struct MockSkill: Skill {
         self.stubbedResult = stubbedResult
     }
 
-    // swiftlint:disable:next unneeded_throws_rethrows
     func process(response: AIResponse) async throws -> SkillResult {
         stubbedResult
     }
