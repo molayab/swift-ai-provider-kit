@@ -1,7 +1,7 @@
-import Testing
-import Foundation
 import AIProviderKit
 @testable import ClaudeProvider
+import Foundation
+import Testing
 
 @Suite("ClaudeResponseMapper")
 struct ClaudeResponseMapperTests {
@@ -25,25 +25,43 @@ struct ClaudeResponseMapperTests {
 
     private func textBlock(_ text: String) -> ClaudeContentBlock {
         ClaudeContentBlock(
-            type: "text", text: text, source: nil,
-            id: nil, name: nil, input: nil,
-            toolUseId: nil, content: nil, isError: nil
+            type: "text",
+            text: text,
+            source: nil,
+            id: nil,
+            name: nil,
+            input: nil,
+            toolUseId: nil,
+            content: nil,
+            isError: nil
         )
     }
 
     private func toolUseBlock(id: String, name: String, input: JSONValue) -> ClaudeContentBlock {
         ClaudeContentBlock(
-            type: "tool_use", text: nil, source: nil,
-            id: id, name: name, input: input,
-            toolUseId: nil, content: nil, isError: nil
+            type: "tool_use",
+            text: nil,
+            source: nil,
+            id: id,
+            name: name,
+            input: input,
+            toolUseId: nil,
+            content: nil,
+            isError: nil
         )
     }
 
     private func unknownBlock() -> ClaudeContentBlock {
         ClaudeContentBlock(
-            type: "thinking", text: "internal reasoning", source: nil,
-            id: nil, name: nil, input: nil,
-            toolUseId: nil, content: nil, isError: nil
+            type: "thinking",
+            text: "internal reasoning",
+            source: nil,
+            id: nil,
+            name: nil,
+            input: nil,
+            toolUseId: nil,
+            content: nil,
+            isError: nil
         )
     }
 

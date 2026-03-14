@@ -23,6 +23,7 @@ disabled_rules:
 # ── Rules: opt-in ──────────────────────────────────────────────────────────────
 opt_in_rules:
   - array_init
+  - async_without_await
   - attributes
   - closure_end_indentation
   - closure_spacing
@@ -61,9 +62,13 @@ opt_in_rules:
   - toggle_bool
   - trailing_closure
   - unneeded_parentheses_in_closure_argument
-  - unused_import
+  - unneeded_throws_rethrows
   - vertical_parameter_alignment_on_call
   - yoda_condition
+
+# ── Rules: analyzer (require `swiftlint analyze`) ───────────────────────────────
+analyzer_rules:
+  - unused_import
 
 # ── Line length ─────────────────────────────────────────────────────────────────
 line_length:
@@ -136,11 +141,7 @@ colon:
 
 # ── Opening brace ───────────────────────────────────────────────────────────────
 opening_brace:
-  allow_multiline_func: true
-
-# ── MARK ────────────────────────────────────────────────────────────────────────
-mark:
-  # Enforce "// MARK: - Section" format (dash required, matches project style)
+  ignore_multiline_function_signatures: true
 
 # ── Attributes ──────────────────────────────────────────────────────────────────
 attributes:
@@ -155,20 +156,6 @@ attributes:
 multiline_arguments:
   first_argument_location: any_line
   only_enforce_after_first_closure_on_first_line: true
-
-# ── Modifier order ───────────────────────────────────────────────────────────────
-modifier_order:
-  preferred_modifier_order:
-    - acl
-    - setterACL
-    - dynamic
-    - mutating
-    - lazy
-    - final
-    - required
-    - convenience
-    - typeMethods
-    - owned
 
 # ── Reporter ─────────────────────────────────────────────────────────────────────
 reporter: "xcode"

@@ -1,5 +1,5 @@
-import SwiftUI
 import AIProviderKit
+import SwiftUI
 
 /// A SwiftUI view that displays live log entries from `AILogStore`.
 ///

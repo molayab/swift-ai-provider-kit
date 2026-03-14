@@ -1,5 +1,5 @@
-import Testing
 @testable import AIProviderKit
+import Testing
 
 @Suite("AILogLevel")
 struct AILogLevelTests {
@@ -49,10 +49,11 @@ struct AILogLevelTests {
     @Test("same level is not less than itself")
     func comparable_sameLevelNotLessThanItself() {
         // Given
-        let level = AILogLevel.warning
+        let lhs = AILogLevel.warning
+        let rhs = AILogLevel.warning
 
         // When / Then
-        #expect(!(level < level))
+        #expect(!(lhs < rhs))
     }
 
     // MARK: - CaseIterable

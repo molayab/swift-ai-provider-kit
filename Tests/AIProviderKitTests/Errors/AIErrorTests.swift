@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import AIProviderKit
+import Foundation
+import Testing
 
 @Suite("AIError")
 struct AIErrorTests {

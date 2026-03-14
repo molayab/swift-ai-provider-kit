@@ -1,5 +1,5 @@
-import Testing
 @testable import AIProviderKit
+import Testing
 
 @Suite("Message")
 struct MessageTests {
@@ -67,7 +67,7 @@ struct MessageTests {
         let result = message.text
 
         // Then
-        #expect(result == "")
+        #expect(result.isEmpty)
     }
 
     @Test("text skips non-text content blocks")
@@ -135,20 +135,20 @@ struct MessageTests {
     @Test("identical messages are equal")
     func equatable_identicalMessages_areEqual() {
         // Given
-        let a = Message.user(text: "Hi")
-        let b = Message.user(text: "Hi")
+        let lhs = Message.user(text: "Hi")
+        let rhs = Message.user(text: "Hi")
 
         // When / Then
-        #expect(a == b)
+        #expect(lhs == rhs)
     }
 
     @Test("different messages are not equal")
     func equatable_differentMessages_areNotEqual() {
         // Given
-        let a = Message.user(text: "Hi")
-        let b = Message.assistant(text: "Hi")
+        let lhs = Message.user(text: "Hi")
+        let rhs = Message.assistant(text: "Hi")
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 }

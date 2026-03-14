@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import AIProviderKit
+import Foundation
+import Testing
 
 @Suite("JSONSchema")
 struct JSONSchemaTests {
@@ -155,20 +155,20 @@ struct JSONSchemaTests {
     @Test("identical schemas are equal")
     func equatable_identicalSchemas_areEqual() {
         // Given
-        let a = JSONSchema.string(description: "test")
-        let b = JSONSchema.string(description: "test")
+        let lhs = JSONSchema.string(description: "test")
+        let rhs = JSONSchema.string(description: "test")
 
         // When / Then
-        #expect(a == b)
+        #expect(lhs == rhs)
     }
 
     @Test("different schemas are not equal")
     func equatable_differentSchemas_areNotEqual() {
         // Given
-        let a = JSONSchema.string()
-        let b = JSONSchema.integer()
+        let lhs = JSONSchema.string()
+        let rhs = JSONSchema.integer()
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 }

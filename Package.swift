@@ -3,9 +3,6 @@ import PackageDescription
 
 let package = Package(
     name: "AIProviderKit",
-    dependencies: [
-        .package(url: "https://github.com/realm/SwiftLint", from: "0.57.0")
-    ],
     platforms: [
         .iOS(.v26),
         .macOS(.v14),
@@ -35,17 +32,20 @@ let package = Package(
         // Integration test runner (not part of the library)
         .executable(name: "IntegrationTests", targets: ["IntegrationTests"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/realm/SwiftLint", from: "0.63.2")
+    ],
     targets: [
         // MARK: - Core
 
         .target(
             name: "AIProviderKit",
             path: "Sources/AIProviderKit",
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
         ),
 
         // MARK: - Claude
@@ -54,11 +54,11 @@ let package = Package(
             name: "ClaudeProvider",
             dependencies: ["AIProviderKit"],
             path: "Sources/ClaudeProvider",
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
         ),
 
         // Post-MVP: OpenAI
@@ -73,11 +73,11 @@ let package = Package(
             name: "AIProviderKitUI",
             dependencies: ["AIProviderKit"],
             path: "Sources/AIProviderKitUI",
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
         ),
 
         // MARK: - Integration Tests
@@ -109,21 +109,21 @@ let package = Package(
             name: "AIProviderKitTests",
             dependencies: ["AIProviderKit"],
             path: "Tests/AIProviderKitTests",
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
         ),
         .testTarget(
             name: "ClaudeProviderTests",
             dependencies: ["ClaudeProvider", "AIProviderKit"],
             path: "Tests/ClaudeProviderTests",
-            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")],
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
-            ]
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
         )
     ]
 )

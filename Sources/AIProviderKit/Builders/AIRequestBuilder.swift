@@ -28,69 +28,58 @@ public final class AIRequestBuilder {
 
     // MARK: - Setters
 
-    @discardableResult
-    public func model(_ model: AIModel) -> Self {
+    @discardableResult public func model(_ model: AIModel) -> Self {
         self.model = model
         return self
     }
 
-    @discardableResult
-    public func systemPrompt(_ prompt: String) -> Self {
+    @discardableResult public func systemPrompt(_ prompt: String) -> Self {
         self.systemPrompt = prompt
         return self
     }
 
-    @discardableResult
-    public func messages(_ messages: [Message]) -> Self {
+    @discardableResult public func messages(_ messages: [Message]) -> Self {
         self.messages = messages
         return self
     }
 
-    @discardableResult
-    public func addMessage(_ message: Message) -> Self {
+    @discardableResult public func addMessage(_ message: Message) -> Self {
         self.messages.append(message)
         return self
     }
 
     /// Append multiple messages using a result-builder closure.
-    @discardableResult
-    public func conversation(@ConversationBuilder _ build: () -> [Message]) -> Self {
+    @discardableResult public func conversation(@ConversationBuilder _ build: () -> [Message]) -> Self {
         self.messages.append(contentsOf: build())
         return self
     }
 
-    @discardableResult
-    public func tools(_ tools: [Tool]) -> Self {
+    @discardableResult public func tools(_ tools: [Tool]) -> Self {
         self.tools = tools
         return self
     }
 
-    @discardableResult
-    public func addTool(_ tool: Tool) -> Self {
+    @discardableResult public func addTool(_ tool: Tool) -> Self {
         self.tools.append(tool)
         return self
     }
 
-    @discardableResult
-    public func maxTokens(_ maxTokens: Int) -> Self {
+    @discardableResult public func maxTokens(_ maxTokens: Int) -> Self {
         self.maxTokens = maxTokens
         return self
     }
 
-    @discardableResult
-    public func temperature(_ temperature: Double) -> Self {
+    @discardableResult public func temperature(_ temperature: Double) -> Self {
         self.temperature = temperature
         return self
     }
 
-    @discardableResult
-    public func topP(_ topP: Double) -> Self {
+    @discardableResult public func topP(_ topP: Double) -> Self {
         self.topP = topP
         return self
     }
 
-    @discardableResult
-    public func stopSequences(_ sequences: [String]) -> Self {
+    @discardableResult public func stopSequences(_ sequences: [String]) -> Self {
         self.stopSequences = sequences
         return self
     }

@@ -1,5 +1,5 @@
-import Testing
 import AIProviderKit
+import Testing
 
 @Suite("Recipe")
 struct RecipeTests {
