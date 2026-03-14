@@ -19,7 +19,9 @@ public enum LocationTool: ToolGroup {
             description: "Returns the device's current GPS coordinates and optional address.",
             inputSchema: .object(
                 properties: [
-                    "includeAddress": .boolean(description: "Whether to reverse-geocode coordinates into a human-readable address. Default: false.")
+                    "includeAddress": .boolean(
+                        description: "Whether to reverse-geocode coordinates into a human-readable address. Default: false."
+                    )
                 ]
             )
         ) { input async throws in

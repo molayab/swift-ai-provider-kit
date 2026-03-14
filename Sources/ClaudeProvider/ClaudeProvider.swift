@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 /// An `AIProvider` implementation targeting the Anthropic Messages API.
 ///

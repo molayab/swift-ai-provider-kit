@@ -1,9 +1,9 @@
-import Foundation
 @testable import ClaudeProvider
+import Foundation
 
 final class MockHTTPClient: HTTPClient, @unchecked Sendable {
 
-    var stubbedResponse: HTTPResponse = HTTPResponse(statusCode: 200, body: Data())
+    var stubbedResponse = HTTPResponse(statusCode: 200, body: Data())
     var stubbedError: (any Error)?
     var stubbedStreamData: [Data] = []
     private(set) var receivedRequests: [HTTPRequest] = []

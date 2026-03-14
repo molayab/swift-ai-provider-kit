@@ -1,5 +1,5 @@
-import Testing
 @testable import AIProviderKit
+import Testing
 
 @Suite("AIResponse")
 struct AIResponseTests {
@@ -39,7 +39,7 @@ struct AIResponseTests {
         let result = response.text
 
         // Then
-        #expect(result == "")
+        #expect(result.isEmpty)
     }
 
     @Test("text skips non-text blocks")

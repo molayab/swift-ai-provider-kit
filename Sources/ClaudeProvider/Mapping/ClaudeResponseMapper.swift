@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 struct ClaudeResponseMapper: Sendable {
 

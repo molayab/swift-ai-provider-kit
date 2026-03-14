@@ -1,6 +1,6 @@
-import Testing
-import Foundation
 @testable import AIProviderKit
+import Foundation
+import Testing
 
 @Suite("TokenUsage")
 struct TokenUsageTests {
@@ -32,21 +32,21 @@ struct TokenUsageTests {
     @Test("Equatable conformance works for identical values")
     func equatable_identicalValues_areEqual() {
         // Given
-        let a = TokenUsage(inputTokens: 10, outputTokens: 5)
-        let b = TokenUsage(inputTokens: 10, outputTokens: 5)
+        let lhs = TokenUsage(inputTokens: 10, outputTokens: 5)
+        let rhs = TokenUsage(inputTokens: 10, outputTokens: 5)
 
         // When / Then
-        #expect(a == b)
+        #expect(lhs == rhs)
     }
 
     @Test("Equatable conformance works for different values")
     func equatable_differentValues_areNotEqual() {
         // Given
-        let a = TokenUsage(inputTokens: 10, outputTokens: 5)
-        let b = TokenUsage(inputTokens: 10, outputTokens: 6)
+        let lhs = TokenUsage(inputTokens: 10, outputTokens: 5)
+        let rhs = TokenUsage(inputTokens: 10, outputTokens: 6)
 
         // When / Then
-        #expect(a != b)
+        #expect(lhs != rhs)
     }
 
     @Test("Codable round-trip preserves values")

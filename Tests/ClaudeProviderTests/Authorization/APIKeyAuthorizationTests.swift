@@ -1,6 +1,6 @@
-import Testing
 import AIProviderKit
 @testable import ClaudeProvider
+import Testing
 
 @Suite("APIKeyAuthorization")
 struct APIKeyAuthorizationTests {

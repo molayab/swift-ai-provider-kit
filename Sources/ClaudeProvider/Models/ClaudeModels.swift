@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 // MARK: - Request
 
@@ -36,6 +36,7 @@ struct ClaudeContentBlock: Codable {
     let input: JSONValue?
     let toolUseId: String?
     let content: [ClaudeContentBlock]?
+    // swiftlint:disable:next discouraged_optional_boolean
     let isError: Bool?
 
     enum CodingKeys: String, CodingKey {
