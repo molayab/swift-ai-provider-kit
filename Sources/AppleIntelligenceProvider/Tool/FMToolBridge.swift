@@ -16,7 +16,7 @@ import AIProviderKit
 struct FMToolBridge: FoundationModels.Tool, Sendable {
 
     typealias Arguments = FMJSONArguments
-    typealias Output    = String
+    typealias Output = String
 
     // MARK: - FoundationModels.Tool
 
@@ -40,15 +40,13 @@ struct FMToolBridge: FoundationModels.Tool, Sendable {
         inputSchema: JSONSchema,
         handler: @escaping @Sendable (JSONValue) async throws -> JSONValue
     ) throws {
-        self.name        = name
+        self.name = name
         self.description = description
-        self.handler     = handler
+        self.handler = handler
 
         let dynamic = FMSchemaMapper().map(inputSchema)
-        self.parameters  = try GenerationSchema(root: dynamic, dependencies: [])
+        self.parameters = try GenerationSchema(root: dynamic, dependencies: [])
     }
-
-    // MARK: - FoundationModels.Tool
 
     func call(arguments: FMJSONArguments) async throws -> String {
         let result = try await handler(arguments.jsonValue)

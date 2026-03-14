@@ -246,11 +246,12 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 | Version | Focus | Status |
 |---|---|---|
 | **0.1.0** | Core architecture + Claude provider | ✅ Shipped |
-| **0.2.0** | OpenAI provider | 🔜 Next |
-| **0.3.0** | Apple Intelligence provider (on-device) | ✅ Shipped |
-| **0.4.0** | Persistence — ephemeral + file system backends | 🔜 Planned |
-| **0.5.0** | Persistence — SwiftData backend | 🔜 Planned |
-| **0.6.0** | RAG — embedding protocol + in-memory vector store | 🔜 Planned |
+| **0.2.0** | Apple Intelligence provider (on-device) | ✅ Shipped |
+| **0.3.0** | OpenAI provider | 🔜 Next |
+| **0.4.0** | Persistence — core protocol + in-memory backend | 🔜 Planned |
+| **0.5.0** | Persistence — file system backend | 🔜 Planned |
+| **0.6.0** | Persistence — SwiftData backend | 🔜 Planned |
+| **0.7.0** | RAG — embedding protocol + in-memory vector store | 🔜 Planned |
 | **1.0.0** | Stable API, DocC, example app | 🔜 Planned |
 
 ---
