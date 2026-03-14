@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 
 on:
   push:
@@ -10,7 +10,31 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ── Required status checks (enforce in Settings → Branches → main) ────────────
+#   • SwiftLint   – zero lint violations (--strict treats warnings as errors)
+#   • Build & Test – all 194 Swift Testing tests must pass
+# ─────────────────────────────────────────────────────────────────────────────
+
 jobs:
+
+  # ── Job 1: SwiftLint ─────────────────────────────────────────────────────────
+  swiftlint:
+    name: SwiftLint
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Lint
+        # --strict  → warnings become errors (blocks merge on any violation)
+        # --reporter github-actions-logging → inline PR annotations
+        run: swiftlint lint --strict --reporter github-actions-logging
+
+  # ── Job 2: Build & Test ───────────────────────────────────────────────────────
   build-and-test:
     name: Build & Test
     runs-on: macos-26
@@ -46,7 +70,7 @@ jobs:
           failed = re.findall(r'Test "(.+?)" failed', content)
           all_tests = [(name, True) for name in passed] + [(name, False) for name in failed]
 
-          tests   = len(all_tests)
+          tests    = len(all_tests)
           failures = len(failed)
 
           lines = ['<?xml version="1.0" encoding="UTF-8"?>',
