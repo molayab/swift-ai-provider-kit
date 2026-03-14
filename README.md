@@ -3,9 +3,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml"><img src="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg" alt="Tests"/></a>
+  <a href="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml"><img src="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <img src="https://img.shields.io/badge/SwiftLint-enforced-orange?logo=swift&logoColor=white" alt="SwiftLint"/>
   <img src="https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white" alt="Swift 6"/>
-  <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2026%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
+  <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2014%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
 </p>
 
 A modular Swift package for integrating AI providers in a provider-agnostic way. Swap between Claude, OpenAI, or on-device models without changing application code, with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
@@ -240,7 +241,21 @@ Implement `AIProvider` (and optionally `StreamableProvider`) — `AIClient` work
 
 ### CI / GitHub Actions
 
-See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the CI workflow, badge setup, and guidance on adding new workflows.
+Every push and pull request to `main` runs two required checks — both must pass before a branch can be merged:
+
+| Check | What it does |
+|---|---|
+| **SwiftLint** | `swiftlint lint --strict` — zero violations required |
+| **Build & Test** | `swift test` — all 194 tests must pass |
+
+SwiftLint is enforced via CI only (not as an SPM build plugin) so downstream consumers are not affected. Run it locally with:
+
+```bash
+# Requires SwiftLint installed (brew install swiftlint)
+swiftlint lint
+```
+
+See [`Documentation/GitHubActions.md`](Documentation/GitHubActions.md) for the full workflow details and guidance on adding new workflows.
 
 ### Roadmap
 
@@ -315,7 +330,7 @@ See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for
 | Platform | Minimum | Notes |
 |---|---|---|
 | iOS | 26.0 | Full feature support |
-| macOS | 26.0 | Full feature support |
+| macOS | 14.0 (Sonoma) | Full feature support |
 | watchOS | 11.0 | Core + streaming; no `AILogView` |
 | tvOS | 26.0 | Core + streaming; no `AILogView` |
 | visionOS | 2.0 | Full feature support |
