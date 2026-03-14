@@ -34,6 +34,8 @@ public enum AIError: Error, Sendable {
     case invalidModel(String)
     /// The model runtime failed during inference (session error, guardrail rejection, etc.).
     case inferenceFailed(underlying: any Error)
+    /// The operation was cancelled before it could complete.
+    case cancelled
 }
 
 // MARK: - LocalizedError
@@ -74,6 +76,8 @@ extension AIError: LocalizedError {
             return "Invalid model: '\(id)'"
         case .inferenceFailed(let err):
             return "Inference failed: \(err.localizedDescription)"
+        case .cancelled:
+            return "The operation was cancelled."
         }
     }
 }

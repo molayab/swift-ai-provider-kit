@@ -96,7 +96,13 @@ public actor AIClient {
             .addMessage(.user(text: rendered.userPrompt))
             .tools(await toolRegistry.allTools + additionalTools)
             .build()
-        return try await send(request)
+        do {
+            return try await send(request)
+        } catch let error as AIError {
+            throw error
+        } catch {
+            throw AIError.requestBuildingFailed(error.localizedDescription)
+        }
     }
 
     // MARK: - Skills
@@ -136,6 +142,8 @@ public actor AIClient {
                             return (use, result)
                         } catch let error as AIError {
                             throw error
+                        } catch is CancellationError {
+                            throw AIError.cancelled
                         } catch {
                             // Preserves the tool name for any unexpected non-AIError.
                             throw AIError.toolExecutionFailed(toolName: use.name, underlying: error)
@@ -146,8 +154,11 @@ public actor AIClient {
             }
         } catch let error as AIError {
             throw error
+        } catch is CancellationError {
+            // Parent task was cancelled while waiting for the group.
+            throw AIError.cancelled
         } catch {
-            // Unreachable: every task wraps errors as AIError with the tool name above.
+            // Unreachable in practice; every task wraps errors as AIError above.
             // Required only for the compiler's typed-throw conversion at this boundary.
             throw AIError.toolExecutionFailed(toolName: "unknown", underlying: error)
         }

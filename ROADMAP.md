@@ -3,7 +3,7 @@
 This document tracks planned milestones toward the **1.0.0 MVP** release.
 Each version is a git tag consumable via Swift Package Manager.
 
-## 0.1.0 — Foundational Work (current)
+## 0.1.0 — Foundational Work
 
 Foundation and Claude provider. Public API is considered stable enough for
 early adopters; minor breaking changes may still occur before 1.0.0.
@@ -24,15 +24,15 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 
 ---
 
-## 0.2.0 — Apple Intelligence Provider
+## 0.2.0 — Apple Intelligence Provider ✓
 
-- [ ] `AppleIntelligenceProvider` — on-device inference via `FoundationModels` framework (iOS 26+ / macOS 26+)
-- [ ] Platform guard — graceful capability check at runtime
-- [ ] Streaming via `AsyncThrowingStream` wrapping the on-device stream
-- [ ] Tool use mapping to Foundation Models function-calling API
-- [ ] Unit + integration tests (simulator + device)
+- [x] `AppleIntelligenceProvider` — on-device inference via `FoundationModels` framework (iOS 26+ / macOS 26+)
+- [x] Platform guard — graceful capability check at runtime (`AppleIntelligenceAvailability`)
+- [x] Streaming via `AsyncThrowingStream` wrapping the on-device stream
+- [x] Tool use mapping to Foundation Models function-calling API
+- [x] Unit + integration tests (simulator + device)
 
-## 0.3.0 — OpenAI Provider
+## 0.3.0 — OpenAI Provider (current)
 
 - [ ] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
 - [ ] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`

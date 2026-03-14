@@ -53,7 +53,11 @@ public enum LocationTool: ToolGroup {
             let manager = CLLocationManager()
             manager.delegate = delegate
             manager.desiredAccuracy = kCLLocationAccuracyBest
+            #if os(tvOS)
+            manager.requestAlwaysAuthorization()
+            #else
             manager.requestWhenInUseAuthorization()
+            #endif
             manager.requestLocation()
             // Keep delegate alive during the async operation.
             _ = delegate
