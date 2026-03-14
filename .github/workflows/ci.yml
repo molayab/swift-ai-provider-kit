@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # ── Required status checks (enforce in Settings → Branches → main) ────────────
 #   • SwiftLint   – zero lint violations (--strict treats warnings as errors)
 #   • Build & Test – all 194 Swift Testing tests must pass
