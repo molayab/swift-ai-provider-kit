@@ -62,7 +62,7 @@ Tests use Swift Testing (`@Suite`, `@Test`, `#expect`). Each test follows **give
 ### Platform & language requirements
 
 - Swift 6, full `Sendable` compliance, `StrictConcurrency` and `ExistentialAny` upcoming features enabled on all targets
-- iOS 26+ / macOS 13+ / watchOS 11+ / tvOS 26+ / visionOS 2+
+- iOS 26+ / macOS 26+ / watchOS 11+ / tvOS 26+ / visionOS 2+
 - Use `async/await` and actors throughout; avoid callback-based or GCD patterns
 
 ## Documentation conventions

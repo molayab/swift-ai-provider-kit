@@ -2,31 +2,40 @@ import Foundation
 
 /// Errors thrown by AIProviderKit operations.
 public enum AIError: Error, Sendable {
-
+    /// The provider rejected the request due to missing or invalid credentials.
     case authorizationFailed(String)
-
+    /// A transport-level failure occurred while communicating with the provider.
     case networkError(URLError)
+    /// The provider returned an unexpected HTTP status code.
     case invalidResponse(statusCode: Int, body: String?)
-
+    /// The provider response could not be parsed (JSON or wire-format error).
     case decodingFailed(underlying: any Error)
+    /// The request body could not be serialised before sending.
     case encodingFailed(underlying: any Error)
-
+    /// The provider does not support the requested capability.
     case providerUnsupported(capability: AICapability)
-
+    /// A registered tool's handler threw an error during execution.
     case toolExecutionFailed(toolName: String, underlying: any Error)
+    /// No tool with the given name is registered in the `ToolRegistry`.
     case toolNotFound(String)
-
+    /// A recipe could not be rendered because required placeholder keys are missing.
     case recipeRenderingFailed(recipeId: String, missingKeys: [String])
+    /// No recipe with the given identifier is registered in the `RecipeRegistry`.
     case recipeNotFound(String)
-
+    /// No skill with the given identifier is registered in the `SkillRegistry`.
     case skillNotFound(String)
-
+    /// The `AIRequestBuilder` produced an invalid request.
     case requestBuildingFailed(String)
-
-    /// Rate limit hit. `retryAfter` is in seconds when provided by the server.
+    /// The provider is temporarily rate-limited; retry after the given interval if provided.
     case rateLimitExceeded(retryAfter: TimeInterval?)
+    /// The request exceeds the model's maximum context window.
     case contextLengthExceeded
+    /// The specified model identifier is not recognised by the provider.
     case invalidModel(String)
+    /// The model runtime failed during inference (session error, guardrail rejection, etc.).
+    case inferenceFailed(underlying: any Error)
+    /// The operation was cancelled before it could complete.
+    case cancelled
 }
 
 // MARK: - LocalizedError
@@ -65,6 +74,10 @@ extension AIError: LocalizedError {
             return "Request exceeded the model's context window."
         case .invalidModel(let id):
             return "Invalid model: '\(id)'"
+        case .inferenceFailed(let err):
+            return "Inference failed: \(err.localizedDescription)"
+        case .cancelled:
+            return "The operation was cancelled."
         }
     }
 }

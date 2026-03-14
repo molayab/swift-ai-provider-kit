@@ -22,7 +22,7 @@ public actor ToolRegistry {
         tools.removeValue(forKey: name)
     }
 
-    public func tool(named name: String) throws -> Tool {
+    public func tool(named name: String) throws(AIError) -> Tool {
         guard let tool = tools[name] else {
             throw AIError.toolNotFound(name)
         }
@@ -34,8 +34,12 @@ public actor ToolRegistry {
     }
 
     /// Executes the named tool with the given input.
-    public func execute(toolName: String, input: JSONValue) async throws -> JSONValue {
+    public func execute(toolName: String, input: JSONValue) async throws(AIError) -> JSONValue {
         let tool = try tool(named: toolName)
-        return try await tool.execute(with: input)
+        do {
+            return try await tool.execute(with: input)
+        } catch {
+            throw AIError.toolExecutionFailed(toolName: toolName, underlying: error)
+        }
     }
 }

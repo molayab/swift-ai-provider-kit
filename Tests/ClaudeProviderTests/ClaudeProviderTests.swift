@@ -189,7 +189,7 @@ struct ClaudeProviderTests {
 // MARK: - Test Helpers
 
 private struct MockAPIKeyAuthorization: AuthorizationProvider {
-    func authorizationHeaders() async throws -> [String: String] {
+    func authorizationHeaders() async throws(AIError) -> [String: String] {
         ["x-api-key": "test-key"]
     }
 }

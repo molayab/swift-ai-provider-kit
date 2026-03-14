@@ -15,7 +15,7 @@ final class SequentialMockProvider: AIProvider, @unchecked Sendable {
         self.responses = responses
     }
 
-    func send(_ request: AIRequest) async throws -> AIResponse {
+    func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         receivedRequests.append(request)
         let response = responses[min(index, responses.count - 1)]
         index += 1

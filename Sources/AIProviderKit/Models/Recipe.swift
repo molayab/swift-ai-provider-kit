@@ -41,7 +41,7 @@ public struct Recipe: Sendable, Identifiable {
     /// Renders the template by substituting all `{{key}}` placeholders.
     ///
     /// - Throws: `AIError.recipeRenderingFailed` if any placeholder is unresolved.
-    public func render(with values: [String: String] = [:]) throws -> RenderedRecipe {
+    public func render(with values: [String: String] = [:]) throws(AIError) -> RenderedRecipe {
         var prompt = userPromptTemplate
         for (key, value) in values {
             prompt = prompt.replacingOccurrences(of: "{{\(key)}}", with: value)

@@ -246,4 +246,21 @@ struct AIErrorTests {
         #expect(desc?.contains("Invalid model") == true)
         #expect(desc?.contains("fake-model-999") == true)
     }
+
+    @Test("inferenceFailed has a non-nil errorDescription")
+    func inferenceFailed_hasDescription() {
+        // Given
+        struct SessionError: Error, LocalizedError {
+            var errorDescription: String? { "model unavailable" }
+        }
+        let error = AIError.inferenceFailed(underlying: SessionError())
+
+        // When
+        let desc = error.errorDescription
+
+        // Then
+        #expect(desc != nil)
+        #expect(desc?.contains("Inference failed") == true)
+        #expect(desc?.contains("model unavailable") == true)
+    }
 }
