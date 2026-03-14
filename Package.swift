@@ -5,7 +5,7 @@ let package = Package(
     name: "AIProviderKit",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v26),
         .watchOS(.v11),
         .tvOS(.v26),
         .visionOS(.v2)
@@ -19,15 +19,11 @@ let package = Package(
             name: "ClaudeProvider",
             targets: ["ClaudeProvider"]
         ),
-        .library(
-            name: "AIProviderKitUI",
-            targets: ["AIProviderKitUI"]
-        ),
         // Post-MVP: OpenAI support
         // .library(name: "OpenAIProvider", targets: ["OpenAIProvider"]),
         //
-        // Post-MVP: Apple Foundation Models (on-device inference, iOS 26+)
-        // .library(name: "FoundationModelProvider", targets: ["FoundationModelProvider"]),
+        // Apple Intelligence (on-device inference, iOS 26+ / macOS 26+)
+        .library(name: "AppleIntelligenceProvider", targets: ["AppleIntelligenceProvider"]),
 
         // Integration test runner (not part of the library)
         .executable(name: "IntegrationTests", targets: ["IntegrationTests"]),
@@ -59,15 +55,12 @@ let package = Package(
         // Post-MVP: OpenAI
         // .target(name: "OpenAIProvider", dependencies: ["AIProviderKit"], path: "Sources/OpenAIProvider"),
 
-        // Post-MVP: Apple Foundation Models
-        // .target(name: "FoundationModelProvider", dependencies: ["AIProviderKit"], path: "Sources/FoundationModelProvider"),
-
-        // MARK: - UI
+        // MARK: - Apple Intelligence (Foundation Models)
 
         .target(
-            name: "AIProviderKitUI",
+            name: "AppleIntelligenceProvider",
             dependencies: ["AIProviderKit"],
-            path: "Sources/AIProviderKitUI",
+            path: "Sources/AppleIntelligenceProvider",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -112,6 +105,15 @@ let package = Package(
             name: "ClaudeProviderTests",
             dependencies: ["ClaudeProvider", "AIProviderKit"],
             path: "Tests/ClaudeProviderTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
+        ),
+        .testTarget(
+            name: "AppleIntelligenceProviderTests",
+            dependencies: ["AppleIntelligenceProvider", "AIProviderKit"],
+            path: "Tests/AppleIntelligenceProviderTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")

@@ -16,8 +16,13 @@ struct ClaudeResponseMapper: Sendable {
         )
     }
 
-    func mapStreamEvent(_ data: Data) throws -> AIStreamEvent? {
-        let event = try JSONDecoder().decode(ClaudeStreamEvent.self, from: data)
+    func mapStreamEvent(_ data: Data) throws(AIError) -> AIStreamEvent? {
+        let event: ClaudeStreamEvent
+        do {
+            event = try JSONDecoder().decode(ClaudeStreamEvent.self, from: data)
+        } catch {
+            throw AIError.decodingFailed(underlying: error)
+        }
         guard event.type == "content_block_delta",
               let delta = event.delta,
               delta.type == "text_delta",

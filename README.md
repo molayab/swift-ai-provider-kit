@@ -25,7 +25,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | **Recipes** | Reusable `{{placeholder}}` prompt templates |
 | **Skills** | Composable capabilities (tools + recipe + post-processing) |
 | **Registries** | Thread-safe `actor`-based stores for tools, skills, and recipes |
-| **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app `AILogView` |
+| **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app log capture via `AILogStore` |
 | **Predefined tools** | Location, Calendar, and Reminders tools ready to use |
 
 ---
@@ -43,9 +43,9 @@ dependencies: [
 Add the products you need:
 
 ```swift
-.product(name: "AIProviderKit",   package: "AIProviderKit"),   // Core
-.product(name: "ClaudeProvider",  package: "AIProviderKit"),   // Claude (Anthropic)
-.product(name: "AIProviderKitUI", package: "AIProviderKit"),   // SwiftUI log viewer (optional)
+.product(name: "AIProviderKit", package: "AIProviderKit"), // Core
+.product(name: "ClaudeProvider", package: "AIProviderKit"), // Claude (Anthropic)
+.product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device (iOS 26+ / macOS 26+)
 ```
 
 ---
@@ -85,7 +85,7 @@ Full, copy-paste ready examples are in the [`Examples/`](Examples/) folder.
 | [`02_StreamingChat.swift`](Examples/02_StreamingChat.swift) | SSE streaming integrated into a SwiftUI `@Observable` view model |
 | [`03_ToolUse.swift`](Examples/03_ToolUse.swift) | Custom tools + predefined `CalendarTool` / `LocationTool`, auto-execution loop |
 | [`04_RecipesAndSkills.swift`](Examples/04_RecipesAndSkills.swift) | Reusable prompt templates and composable Skills |
-| [`05_LoggingSetup.swift`](Examples/05_LoggingSetup.swift) | `AILogStore` + `AILogView` debug sheet in a SwiftUI app |
+| [`05_LoggingSetup.swift`](Examples/05_LoggingSetup.swift) | `AILogStore` log capture and display in a SwiftUI app |
 
 ### Streaming
 
@@ -120,9 +120,9 @@ print(response.text)
 ## Architecture
 
 ```
-AIProviderKit          Core protocols, models, builders, registries, client
-ClaudeProvider         Anthropic Messages API implementation
-AIProviderKitUI        SwiftUI log viewer (optional dependency)
+AIProviderKit — Core protocols, models, builders, registries, client
+ClaudeProvider — Anthropic Messages API implementation
+AppleIntelligenceProvider — On-device inference via Apple Intelligence (iOS 26+ / macOS 26+)
 ```
 
 See [`Documentation/Architecture.md`](Documentation/Architecture.md) for full class diagrams and sequence diagrams.
@@ -139,7 +139,6 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for full cl
 | `Recipe` | A `{{placeholder}}` prompt template. |
 | `Skill` | A bundle of tools + recipe + post-processing logic. |
 | `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
-| `AILogView` | SwiftUI view showing live log entries from `AILogStore`. |
 
 ---
 
@@ -201,10 +200,8 @@ AILogStore.shared = AILogStore()
 let logger = AILogger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "ai")
 let provider = ClaudeProvider(authorization: auth, logger: logger)
 
-// Show the log viewer in a debug sheet (import AIProviderKitUI)
-.sheet(isPresented: $showLogs) {
-    AILogView(store: AILogStore.shared ?? AILogStore())
-}
+// Display captured entries however suits your app
+let entries = AILogStore.shared?.entries ?? []
 ```
 
 All log entries are also written to the system log and visible in **Console.app**.
@@ -265,7 +262,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan. Highlights:
 |---|---|
 | **0.1.0** | Claude provider, core architecture ✅ |
 | **0.2.0** | OpenAI provider |
-| **0.3.0** | Apple Foundation Models (on-device, iOS 26+) |
+| **0.3.0** | Apple Intelligence provider (on-device, iOS 26+) ✅ |
 | **0.4.0** | Persistence — `SupportedConversationStore` enum + protocol + ephemeral backend |
 | **0.5.0** | Persistence — file system backend (`AIProviderKitPersistenceFS`) |
 | **0.6.0** | Persistence — SwiftData backend (`AIProviderKitPersistenceDB`) |
@@ -330,15 +327,14 @@ See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for
 | Platform | Minimum | Notes |
 |---|---|---|
 | iOS | 26.0 | Full feature support |
-| macOS | 14.0 (Sonoma) | Full feature support |
-| watchOS | 11.0 | Core + streaming; no `AILogView` |
-| tvOS | 26.0 | Core + streaming; no `AILogView` |
+| macOS | 26.0 | Full feature support |
+| watchOS | 11.0 | Core + streaming |
+| tvOS | 26.0 | Core + streaming |
 | visionOS | 2.0 | Full feature support |
 | **Swift** | **6.0** | Strict concurrency, `ExistentialAny` |
 | **Xcode** | **26.0+** | Required to build iOS 26 / macOS 26 targets |
 
-> **External dependencies:** none. `AIProviderKit` and `ClaudeProvider` use only
-> the Swift standard library and `Foundation`. `AIProviderKitUI` requires SwiftUI.
+> **External dependencies:** none. All library products use only the Swift standard library and `Foundation`. `AppleIntelligenceProvider` additionally requires the `FoundationModels` framework (available on iOS 26+ / macOS 26+).
 
 ---
 

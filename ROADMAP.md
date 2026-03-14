@@ -22,9 +22,11 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 - [x] Integration tests — `swift package integration-tests` against real Claude API
 - [x] Swift 6 — full `Sendable` compliance, `StrictConcurrency`, `ExistentialAny`
 
-## 0.2.0 — Apple Foundation Models Provider
+---
 
-- [ ] `FoundationModelProvider` — on-device inference via `FoundationModels` framework (iOS 26+ / macOS 26+)
+## 0.2.0 — Apple Intelligence Provider
+
+- [ ] `AppleIntelligenceProvider` — on-device inference via `FoundationModels` framework (iOS 26+ / macOS 26+)
 - [ ] Platform guard — graceful capability check at runtime
 - [ ] Streaming via `AsyncThrowingStream` wrapping the on-device stream
 - [ ] Tool use mapping to Foundation Models function-calling API

@@ -46,7 +46,7 @@ This issue proposes adding **folder-as-context** to `AIProviderKitContext`: a hi
 ## Goals
 
 - Point an `AIClient` at a local folder; the kit handles the rest.
-- Provider-agnostic: works with `ClaudeProvider`, `OpenAIProvider`, and `FoundationModelProvider`.
+- Provider-agnostic: works with `ClaudeProvider`, `OpenAIProvider`, and `AppleIntelligenceProvider`.
 - Strictly layered: each concern lives in its own protocol / type; nothing is coupled to a specific embedding backend or storage engine.
 - Zero mandatory external dependencies in `AIProviderKit` core; all types live in the optional `AIProviderKitContext` library product.
 - Full `Sendable` compliance and actor-based concurrency throughout (Swift 6).
@@ -254,7 +254,7 @@ public struct NLEmbeddingProvider: EmbeddingProvider {
 
 **Design notes:**
 - `VoyageEmbeddingProvider` and `OpenAIEmbeddingProvider` reuse the same zero-dependency `URLSessionHTTPClient` already present in `ClaudeProvider`; no new networking code.
-- `NLEmbeddingProvider` is recommended for `FoundationModelProvider` (fully on-device, fits the 3K token budget).
+- `NLEmbeddingProvider` is recommended for `AppleIntelligenceProvider` (fully on-device, fits the 3K token budget).
 
 ---
 

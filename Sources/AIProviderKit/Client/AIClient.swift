@@ -88,7 +88,7 @@ public actor AIClient {
         values: [String: String] = [:],
         model: AIModel,
         additionalTools: [Tool] = []
-    ) async throws -> AIResponse {
+    ) async throws(AIError) -> AIResponse {
         let rendered = try recipe.render(with: values)
         let request = try AIRequestBuilder()
             .model(model)
@@ -126,15 +126,30 @@ public actor AIClient {
     private func executeTools(
         _ uses: [ContentBlock.ToolUseContent],
         registry: ToolRegistry
-    ) async throws -> [(use: ContentBlock.ToolUseContent, result: JSONValue)] {
-        try await withThrowingTaskGroup(of: (ContentBlock.ToolUseContent, JSONValue).self) { group in
-            for use in uses {
-                group.addTask {
-                    let result = try await registry.execute(toolName: use.name, input: use.input)
-                    return (use, result)
+    ) async throws(AIError) -> [(use: ContentBlock.ToolUseContent, result: JSONValue)] {
+        do {
+            return try await withThrowingTaskGroup(of: (ContentBlock.ToolUseContent, JSONValue).self) { group in
+                for use in uses {
+                    group.addTask {
+                        do {
+                            let result = try await registry.execute(toolName: use.name, input: use.input)
+                            return (use, result)
+                        } catch let error as AIError {
+                            throw error
+                        } catch {
+                            // Preserves the tool name for any unexpected non-AIError.
+                            throw AIError.toolExecutionFailed(toolName: use.name, underlying: error)
+                        }
+                    }
                 }
+                return try await group.reduce(into: []) { $0.append($1) }
             }
-            return try await group.reduce(into: []) { $0.append($1) }
+        } catch let error as AIError {
+            throw error
+        } catch {
+            // Unreachable: every task wraps errors as AIError with the tool name above.
+            // Required only for the compiler's typed-throw conversion at this boundary.
+            throw AIError.toolExecutionFailed(toolName: "unknown", underlying: error)
         }
     }
 

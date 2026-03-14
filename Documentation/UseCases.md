@@ -250,7 +250,7 @@ print(response.text)
 
 ## UC-10 · Provider Swap
 
-> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `FoundationModelProvider` planned for 0.2.0; `OpenAIProvider` planned post-1.0.
+> **Status:** Partially available — 0.1.0 (`ClaudeProvider` only). `AppleIntelligenceProvider` planned for 0.2.0; `OpenAIProvider` planned for 0.3.0.
 
 **Actor:** iOS/macOS app
 **Goal:** Switch AI providers without changing any application logic.
@@ -277,7 +277,7 @@ func makeClient(for provider: AppSettings.Provider) -> AIClient {
         )
     case .onDevice:
         // Planned — 0.2.0
-        return AIClient(provider: FoundationModelProvider())
+        return AIClient(provider: AppleIntelligenceProvider())
     case .openAI:
         // Planned — post-1.0
         return AIClient(
@@ -435,7 +435,7 @@ import AIProviderKitContext
 let docsContext = try await FolderContext(
     url: localDocsURL,
     embeddingProvider: NLEmbeddingProvider(),
-    options: FolderContextOptions(topK: 1)   // FoundationModelProvider has ~3K token budget
+    options: FolderContextOptions(topK: 1)   // AppleIntelligenceProvider has ~3K token budget
 )
 ```
 
