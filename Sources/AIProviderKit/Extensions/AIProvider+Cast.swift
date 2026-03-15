@@ -12,10 +12,14 @@ public extension AIProvider {
     /// let models = try await openAI.listModels()
     /// ```
     ///
-    /// - Throws: `AIError.providerUnsupported(capability:)` if the underlying provider is not `T`.
+    /// - Throws: `AIError.providerTypeMismatch(expected:actual:)` if the underlying provider
+    ///   is not an instance of `T`.
     func castAs<T: AIProvider>(_ type: T.Type) throws(AIError) -> T {
         guard let concrete = self as? T else {
-            throw AIError.providerUnsupported(capability: .modelDiscovery)
+            throw AIError.providerTypeMismatch(
+                expected: String(describing: T.self),
+                actual: String(describing: Swift.type(of: self))
+            )
         }
         return concrete
     }

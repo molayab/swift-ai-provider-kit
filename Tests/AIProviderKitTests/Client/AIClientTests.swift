@@ -180,4 +180,37 @@ struct AIClientTests {
         let sentRequest = provider.receivedRequests[0]
         #expect(sentRequest.systemPrompt == "You are an expert analyzer.")
     }
+
+    // MARK: - castAs
+
+    @Test("castAs succeeds when provider matches expected type")
+    func castAs_succeedsOnMatchingType() throws {
+        // Given
+        let provider = MockAIProvider()
+        let client = AIClient(provider: provider)
+
+        // When
+        let concrete = try client.provider.castAs(MockAIProvider.self)
+
+        // Then
+        #expect(concrete === provider)
+    }
+
+    @Test("castAs throws providerTypeMismatch when provider is a different type")
+    func castAs_throwsTypeMismatchOnWrongType() {
+        // Given
+        let provider = MockAIProvider()
+        let client = AIClient(provider: provider)
+
+        // When / Then — SequentialMockProvider is a distinct concrete type in this target
+        do {
+            _ = try client.provider.castAs(SequentialMockProvider.self)
+            Issue.record("Expected castAs to throw")
+        } catch AIError.providerTypeMismatch(let expected, let actual) {
+            #expect(expected == "SequentialMockProvider")
+            #expect(actual == "MockAIProvider")
+        } catch {
+            Issue.record("Expected providerTypeMismatch, got \(error)")
+        }
+    }
 }
