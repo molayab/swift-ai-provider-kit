@@ -24,10 +24,6 @@
       <stop offset="0%" stop-color="#0F2235"/>
       <stop offset="100%" stop-color="#0A1A28"/>
     </linearGradient>
-    <linearGradient id="llamaFill" x1="648" y1="152" x2="788" y2="180" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0D1F12"/>
-      <stop offset="100%" stop-color="#081510"/>
-    </linearGradient>
     <radialGradient id="cornerGlow" cx="900" cy="0" r="380" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#F05138" stop-opacity="0.09"/>
       <stop offset="100%" stop-color="#F05138" stop-opacity="0"/>
@@ -122,10 +118,10 @@
   <circle cx="664" cy="132" r="4.5" fill="#60A5FA" opacity="0.95"/>
   <text x="726" y="136" fill="#93C5FD" font-size="11" font-weight="600" text-anchor="middle">Apple Intelligence</text>
 
-  <!-- Provider: Llama / Local (post-1.0.0 — green) -->
-  <rect x="648" y="152" width="140" height="28" rx="6" fill="url(#llamaFill)" stroke="#16A34A" stroke-width="1.5" stroke-dasharray="5 3"/>
-  <circle cx="664" cy="166" r="4.5" fill="#4ADE80" opacity="0.95"/>
-  <text x="718" y="170" fill="#86EFAC" font-size="11" text-anchor="middle">Llama / Local</text>
+  <!-- Provider: Llama / Local (post-1.0.0 — coming soon) -->
+  <rect x="648" y="152" width="140" height="28" rx="6" fill="#161618" stroke="#333338" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <circle cx="664" cy="166" r="4.5" fill="#444448" opacity="0.8"/>
+  <text x="718" y="170" fill="#666670" font-size="11" text-anchor="middle">Llama / Local</text>
   <text x="780" y="167" fill="#666670" font-size="9" text-anchor="end">soon</text>
 
   <!-- Caption -->
