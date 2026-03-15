@@ -147,7 +147,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
                     continuation.yield(.message(response))
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    self.handleStreamError(error, continuation: continuation)
                 }
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -268,6 +268,23 @@ private struct OpenAIToolAccumulator {
 // MARK: - Stream helpers
 
 private extension OpenAIProvider {
+
+    func handleStreamError(
+        _ error: any Error,
+        continuation: AsyncThrowingStream<AIStreamEvent, any Error>.Continuation
+    ) {
+        guard let streamError = error as? HTTPStreamError else {
+            continuation.finish(throwing: error)
+            return
+        }
+        let response = HTTPResponse(statusCode: streamError.statusCode, body: streamError.body)
+        do {
+            try validateStatus(response)
+            continuation.finish()
+        } catch {
+            continuation.finish(throwing: error)
+        }
+    }
 
     func applyToolCallDeltas(
         _ deltas: [OpenAIChatChunk.OpenAIToolCallDelta],

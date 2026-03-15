@@ -254,6 +254,37 @@ struct OpenAIProviderTests {
         #expect(deltas == ["Hello", " world"])
     }
 
+    @Test("stream throws rateLimitExceeded when HTTP 429 is received before SSE data")
+    func stream_throws_rateLimitExceeded_on429() async throws {
+        // Given
+        let httpClient = MockHTTPClient()
+        httpClient.stubbedStreamError = HTTPStreamError(statusCode: 429, body: Data())
+        let provider = makeProvider(httpClient: httpClient)
+        let request = try makeRequest()
+
+        // When / Then
+        await #expect(throws: AIError.self) {
+            for try await _ in provider.stream(request) {}
+        }
+    }
+
+    @Test("stream throws invalidResponse when HTTP 500 is received before SSE data")
+    func stream_throws_invalidResponse_on500() async throws {
+        // Given
+        let httpClient = MockHTTPClient()
+        httpClient.stubbedStreamError = HTTPStreamError(
+            statusCode: 500,
+            body: Data("Internal Server Error".utf8)
+        )
+        let provider = makeProvider(httpClient: httpClient)
+        let request = try makeRequest()
+
+        // When / Then
+        await #expect(throws: AIError.self) {
+            for try await _ in provider.stream(request) {}
+        }
+    }
+
     // MARK: - listModels — Success
 
     @Test("listModels returns only chat-capable models filtered from API response")

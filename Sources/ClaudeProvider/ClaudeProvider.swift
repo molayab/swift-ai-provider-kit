@@ -145,7 +145,7 @@ public final class ClaudeProvider: StreamableProvider {
                     continuation.yield(.message(response))
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    self.handleStreamError(error, continuation: continuation)
                 }
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -203,6 +203,23 @@ private struct ClaudeToolAccumulator {
 // MARK: - Stream helpers
 
 private extension ClaudeProvider {
+
+    func handleStreamError(
+        _ error: any Error,
+        continuation: AsyncThrowingStream<AIStreamEvent, any Error>.Continuation
+    ) {
+        guard let streamError = error as? HTTPStreamError else {
+            continuation.finish(throwing: error)
+            return
+        }
+        let response = HTTPResponse(statusCode: streamError.statusCode, body: streamError.body)
+        do {
+            try validateStatus(response)
+            continuation.finish()
+        } catch {
+            continuation.finish(throwing: error)
+        }
+    }
 
     func applyContentBlockDelta(
         event: ClaudeStreamEvent,

@@ -26,7 +26,18 @@ final class URLSessionHTTPClient: HTTPClient, @unchecked Sendable {
             let task = Task {
                 do {
                     let urlRequest = self.makeURLRequest(from: request)
-                    let (bytes, _) = try await self.session.bytes(for: urlRequest)
+                    let (bytes, urlResponse) = try await self.session.bytes(for: urlRequest)
+                    guard let http = urlResponse as? HTTPURLResponse else {
+                        throw URLError(.badServerResponse)
+                    }
+                    guard (200...299).contains(http.statusCode) else {
+                        var bodyData = Data()
+                        for try await byte in bytes {
+                            bodyData.append(byte)
+                            if bodyData.count >= 8192 { break }
+                        }
+                        throw HTTPStreamError(statusCode: http.statusCode, body: bodyData)
+                    }
                     for try await line in bytes.lines {
                         guard line.hasPrefix("data: ") else { continue }
                         let payload = String(line.dropFirst(6))
