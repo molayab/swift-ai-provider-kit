@@ -1,3 +1,4 @@
+// swiftlint:disable file_length type_body_length
 import AIProviderKit
 import Foundation
 @testable import OpenAIProvider
@@ -325,4 +326,88 @@ struct OpenAIResponseMapperTests {
             try sut.mapStreamEvent(data)
         }
     }
+
+    // MARK: - processStreamChunk / finalizeStream
+
+    @Test("processStreamChunk accumulates text across multiple chunks")
+    func processStreamChunk_accumulatesText() throws {
+        // Given
+        let chunks = [
+            #"{"id":"chatcmpl-1","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}"#,
+            #"{"id":"chatcmpl-1","choices":[{"index":0,"delta":{"content":" world"},"finish_reason":"stop"}]}"#
+        ].map { Data($0.utf8) }
+        var state = sut.makeStreamState(fallbackModel: "gpt-4o")
+
+        // When
+        var allEvents: [AIStreamEvent] = []
+        for data in chunks {
+            let chunk = try sut.decodeStreamChunk(data)
+            allEvents += sut.processStreamChunk(chunk, state: &state)
+        }
+
+        // Then
+        let textDeltas = allEvents.compactMap { if case .textDelta(let text) = $0 { text } else { nil } }
+        #expect(textDeltas == ["Hello", " world"])
+        #expect(state.textBuffer == "Hello world")
+        #expect(state.stopReason == .endTurn)
+    }
+
+    @Test("processStreamChunk accumulates tool call arguments across chunks")
+    func processStreamChunk_accumulatesToolArguments() throws {
+        // Given — first chunk carries id/name, subsequent carry argument fragments
+        let chunks = [
+            // swiftlint:disable:next line_length
+            #"{"id":"c1","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_001","type":"function","function":{"name":"get_weather","arguments":""}}]},"finish_reason":null}]}"#,
+            // swiftlint:disable:next line_length
+            #"{"id":"c1","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"city\":"}}]},"finish_reason":null}]}"#,
+            // swiftlint:disable:next line_length
+            #"{"id":"c1","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\"Rome\"}"}}]},"finish_reason":"tool_calls"}]}"#
+        ].map { Data($0.utf8) }
+        var state = sut.makeStreamState(fallbackModel: "gpt-4o")
+
+        // When
+        for data in chunks {
+            let chunk = try sut.decodeStreamChunk(data)
+            _ = sut.processStreamChunk(chunk, state: &state)
+        }
+        let response = sut.finalizeStream(state)
+
+        // Then
+        #expect(response.stopReason == .toolUse)
+        #expect(response.toolUses.count == 1)
+        #expect(response.toolUses[0].id == "call_001")
+        #expect(response.toolUses[0].name == "get_weather")
+        #expect(response.toolUses[0].input == .object(["city": .string("Rome")]))
+    }
+
+    @Test("finalizeStream uses fallback model when chunks omit model field")
+    func finalizeStream_usesFallbackModel() throws {
+        // Given — chunk has no model field
+        let json = #"{"id":"c1","choices":[{"index":0,"delta":{"content":"Hi"},"finish_reason":"stop"}]}"#
+        let chunk = try sut.decodeStreamChunk(Data(json.utf8))
+        var state = sut.makeStreamState(fallbackModel: "gpt-4o-fallback")
+
+        // When
+        _ = sut.processStreamChunk(chunk, state: &state)
+        let response = sut.finalizeStream(state)
+
+        // Then
+        #expect(response.model == "gpt-4o-fallback")
+    }
+
+    @Test("finalizeStream reflects model from chunk when present")
+    func finalizeStream_usesChunkModel() throws {
+        // Given
+        let json = #"{"id":"c1","model":"gpt-4.1","choices":[{"index":0,"delta":{"content":"Hi"},"finish_reason":"stop"}]}"#
+        let chunk = try sut.decodeStreamChunk(Data(json.utf8))
+        var state = sut.makeStreamState(fallbackModel: "gpt-4o-fallback")
+
+        // When
+        _ = sut.processStreamChunk(chunk, state: &state)
+        let response = sut.finalizeStream(state)
+
+        // Then
+        #expect(response.model == "gpt-4.1")
+    }
 }
+// swiftlint:enable file_length type_body_length

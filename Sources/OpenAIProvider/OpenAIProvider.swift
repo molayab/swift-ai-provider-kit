@@ -92,59 +92,17 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
                     let openAIRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: openAIRequest)
 
-                    var messageId = ""
-                    var messageModel = request.model.identifier
-                    var stopReason = StopReason.unknown
-                    var textBuffer = ""
-                    var inputTokens = 0
-                    var outputTokens = 0
-                    var toolAccumulators: [Int: OpenAIToolAccumulator] = [:]
-
+                    var state = self.responseMapper.makeStreamState(
+                        fallbackModel: request.model.identifier
+                    )
                     for try await data in self.httpClient.stream(httpRequest) {
                         let chunk = try self.responseMapper.decodeStreamChunk(data)
-
-                        if let id = chunk.id, !id.isEmpty { messageId = id }
-                        if let model = chunk.model, !model.isEmpty { messageModel = model }
-
-                        // Final usage-only chunk sent when stream_options.include_usage is true
-                        if let usage = chunk.usage {
-                            inputTokens = usage.promptTokens
-                            outputTokens = usage.completionTokens
-                        }
-
-                        guard let choice = chunk.choices.first else { continue }
-
-                        if let reason = choice.finishReason {
-                            stopReason = self.responseMapper.mapFinishReason(reason)
-                        }
-
-                        let delta = choice.delta
-                        if let text = delta.content, !text.isEmpty {
-                            textBuffer += text
-                            continuation.yield(.textDelta(text))
-                        }
-
-                        if let toolCallDeltas = delta.toolCalls {
-                            self.applyToolCallDeltas(
-                                toolCallDeltas,
-                                into: &toolAccumulators,
-                                continuation: continuation
-                            )
+                        for event in self.responseMapper.processStreamChunk(chunk, state: &state) {
+                            continuation.yield(event)
                         }
                     }
 
-                    let content = self.buildStreamContent(
-                        textBuffer: textBuffer,
-                        toolAccumulators: toolAccumulators
-                    )
-                    let response = AIResponse(
-                        id: messageId,
-                        model: messageModel,
-                        content: content,
-                        usage: TokenUsage(inputTokens: inputTokens, outputTokens: outputTokens),
-                        stopReason: stopReason
-                    )
-                    continuation.yield(.message(response))
+                    continuation.yield(.message(self.responseMapper.finalizeStream(state)))
                     continuation.finish()
                 } catch {
                     self.handleStreamError(error, continuation: continuation)
@@ -257,14 +215,6 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     }
 }
 
-// MARK: - Internal types
-
-private struct OpenAIToolAccumulator {
-    var id: String
-    var name: String
-    var arguments: String
-}
-
 // MARK: - Stream helpers
 
 private extension OpenAIProvider {
@@ -284,42 +234,6 @@ private extension OpenAIProvider {
         } catch {
             continuation.finish(throwing: error)
         }
-    }
-
-    func applyToolCallDeltas(
-        _ deltas: [OpenAIChatChunk.OpenAIToolCallDelta],
-        into toolAccumulators: inout [Int: OpenAIToolAccumulator],
-        continuation: AsyncThrowingStream<AIStreamEvent, any Error>.Continuation
-    ) {
-        for tc in deltas {
-            let idx = tc.index
-            var acc = toolAccumulators[idx] ?? OpenAIToolAccumulator(id: "", name: "", arguments: "")
-            if let newId = tc.id, !newId.isEmpty { acc.id = newId }
-            if let newName = tc.function?.name, !newName.isEmpty { acc.name = newName }
-            let argsDelta = tc.function?.arguments ?? ""
-            acc.arguments += argsDelta
-            toolAccumulators[idx] = acc
-            if !argsDelta.isEmpty {
-                continuation.yield(.toolUseDelta(id: acc.id, name: acc.name, inputDelta: argsDelta))
-            }
-        }
-    }
-
-    func buildStreamContent(
-        textBuffer: String,
-        toolAccumulators: [Int: OpenAIToolAccumulator]
-    ) -> [ContentBlock] {
-        var content: [ContentBlock] = []
-        if !textBuffer.isEmpty {
-            content.append(.text(textBuffer))
-        }
-        for index in toolAccumulators.keys.sorted() {
-            let acc = toolAccumulators[index]!
-            let inputData = acc.arguments.data(using: .utf8) ?? Data()
-            let input = (try? JSONDecoder().decode(JSONValue.self, from: inputData)) ?? .object([:])
-            content.append(.toolUse(.init(id: acc.id, name: acc.name, input: input)))
-        }
-        return content
     }
 }
 
