@@ -2,7 +2,6 @@
 
 ## Contents
 
-- [Status](#status)
 - [Problem Statement](#problem-statement)
 - [Goals](#goals)
 - [Current State of the Package](#current-state-of-the-package)
