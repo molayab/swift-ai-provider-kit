@@ -103,9 +103,8 @@ print(response.text)
 import AIProviderKit
 import OpenAIProvider
 
-let client = AIClient(
-    provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: "<OPENAI_API_KEY>"))
-)
+let provider = OpenAIProvider(authorization: BearerAuthorization(apiKey: "<OPENAI_API_KEY>"))
+let client = AIClient(provider: provider)
 
 let response = try await client.send(
     AIRequestBuilder()
@@ -117,7 +116,7 @@ let response = try await client.send(
 print(response.text)
 
 // Discover available models at runtime
-let models = try await client.provider.castAs(OpenAIProvider.self).listModels()
+let models = try await provider.listModels()
 ```
 
 ### Apple Intelligence (on-device)

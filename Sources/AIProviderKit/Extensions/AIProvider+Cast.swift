@@ -7,11 +7,9 @@ public extension AIProvider {
     /// `AIClient` layer.
     ///
     /// ```swift
-    /// // Cast and immediately call a provider-specific method
-    /// let models = try await client.provider.castAs(OpenAIProvider.self).listModels()
-    ///
-    /// // Or hold a reference for repeated use
+    /// // Hold a typed reference for repeated use
     /// let openAI = try client.provider.castAs(OpenAIProvider.self)
+    /// let models = try await openAI.listModels()
     /// ```
     ///
     /// - Throws: `AIError.providerUnsupported(capability:)` if the underlying provider is not `T`.
