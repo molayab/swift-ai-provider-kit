@@ -88,21 +88,28 @@ public final class ClaudeProvider: StreamableProvider {
 
     public func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
         AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let claudeRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: claudeRequest)
 
+                    var state = self.responseMapper.makeStreamState(
+                        fallbackModel: request.model.identifier
+                    )
                     for try await data in self.httpClient.stream(httpRequest) {
-                        if let event = try self.responseMapper.mapStreamEvent(data) {
-                            continuation.yield(event)
+                        let event = try self.responseMapper.decodeStreamEvent(data)
+                        for streamEvent in try self.responseMapper.processStreamEvent(event, state: &state) {
+                            continuation.yield(streamEvent)
                         }
                     }
+
+                    continuation.yield(.message(self.responseMapper.finalizeStream(state)))
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    self.handleStreamError(error, continuation: continuation)
                 }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
@@ -146,10 +153,35 @@ public final class ClaudeProvider: StreamableProvider {
     }
 }
 
+// MARK: - Stream helpers
+
+private extension ClaudeProvider {
+
+    func handleStreamError(
+        _ error: any Error,
+        continuation: AsyncThrowingStream<AIStreamEvent, any Error>.Continuation
+    ) {
+        guard let streamError = error as? HTTPStreamError else {
+            continuation.finish(throwing: error)
+            return
+        }
+        let response = HTTPResponse(statusCode: streamError.statusCode, body: streamError.body)
+        do {
+            try validateStatus(response)
+            continuation.finish()
+        } catch {
+            continuation.finish(throwing: error)
+        }
+    }
+}
+
 // MARK: - Model Constants
 
 public extension AIModel {
-    static let claudeOpus4     = AIModel("claude-opus-4-6")
-    static let claudeSonnet4   = AIModel("claude-sonnet-4-6")
-    static let claudeHaiku4    = AIModel("claude-haiku-4-5-20251001")
+    /// Claude Opus 4.6 — Anthropic's most intelligent model, built for complex tasks and agentic use.
+    static let claudeOpus46 = AIModel("claude-opus-4-6")
+    /// Claude Sonnet 4.6 — best balance of speed and intelligence with a 1M-token context window.
+    static let claudeSonnet46 = AIModel("claude-sonnet-4-6")
+    /// Claude Haiku 4.5 — fastest model with near-frontier intelligence and a 200k-token context window.
+    static let claudeHaiku45 = AIModel("claude-haiku-4-5-20251001")
 }

@@ -26,7 +26,7 @@ func useRecipe(client: AIClient) async throws {
             "style": "three bullet points",
             "text": "Swift is a general-purpose programming language built using a modern approach..."
         ],
-        model: .claudeSonnet4
+        model: .claudeSonnet46
     )
     print(response.text)
 }
@@ -59,7 +59,7 @@ func useSkill(client: AIClient) async throws {
     let result = try await client.execute(
         skillId: "com.example.skill.summarize",
         input: "Swift is a safe, fast, and expressive language...",
-        model: .claudeSonnet4
+        model: .claudeSonnet46
     )
 
     print(result.output)

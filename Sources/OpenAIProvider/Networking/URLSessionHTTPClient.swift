@@ -1,5 +1,9 @@
 import Foundation
 
+/// Production `HTTPClient` backed by `URLSession`.
+///
+/// Marked `@unchecked Sendable` because `URLSession` predates Swift concurrency
+/// but is safe to use from multiple concurrency domains.
 final class URLSessionHTTPClient: HTTPClient, @unchecked Sendable {
 
     private let session: URLSession

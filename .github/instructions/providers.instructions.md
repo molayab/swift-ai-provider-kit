@@ -38,7 +38,7 @@ applyTo: "Sources/*Provider/**/*.swift"
 
 ## AIModel Constants
 
-- Extend `AIModel` with `static let` constants for provider-specific models (e.g., `.claudeOpus4`).
+- Extend `AIModel` with `static let` constants for provider-specific models (e.g., `.claudeOpus46`).
 - Constants live in the provider module, not in `AIProviderKit`.
 
 ## Correct Pattern

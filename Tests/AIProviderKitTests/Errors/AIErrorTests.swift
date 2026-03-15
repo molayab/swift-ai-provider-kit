@@ -106,6 +106,20 @@ struct AIErrorTests {
         #expect(desc?.contains("does not support") == true)
     }
 
+    @Test("providerTypeMismatch has a non-nil errorDescription containing both types")
+    func providerTypeMismatch_hasDescription() {
+        // Given
+        let error = AIError.providerTypeMismatch(expected: "FooProvider", actual: "BarProvider")
+
+        // When
+        let desc = error.errorDescription
+
+        // Then
+        #expect(desc != nil)
+        #expect(desc?.contains("FooProvider") == true)
+        #expect(desc?.contains("BarProvider") == true)
+    }
+
     @Test("toolExecutionFailed has a non-nil errorDescription")
     func toolExecutionFailed_hasDescription() {
         // Given

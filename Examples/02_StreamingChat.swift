@@ -32,7 +32,7 @@ final class ChatViewModel {
 
         do {
             let request = try AIRequestBuilder()
-                .model(.claudeSonnet4)
+                .model(.claudeSonnet46)
                 .addMessage(.user(text: prompt))
                 .build()
 

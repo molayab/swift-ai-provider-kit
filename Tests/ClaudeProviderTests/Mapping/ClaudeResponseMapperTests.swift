@@ -1,3 +1,4 @@
+// swiftlint:disable type_body_length
 import AIProviderKit
 @testable import ClaudeProvider
 import Foundation
@@ -211,40 +212,41 @@ struct ClaudeResponseMapperTests {
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        if case .textDelta(let text) = event {
+        #expect(events.count == 1)
+        if case .textDelta(let text) = events.first {
             #expect(text == "Hello")
         } else {
             Issue.record("Expected .textDelta event")
         }
     }
 
-    @Test("mapStreamEvent with non-text event returns nil")
-    func mapStreamEvent_nonTextEvent_returnsNil() throws {
+    @Test("mapStreamEvent with non-text event returns empty")
+    func mapStreamEvent_nonTextEvent_returnsEmpty() throws {
         // Given
         let json = #"{"type":"message_start","message":{}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
-    @Test("mapStreamEvent with content_block_start returns nil")
-    func mapStreamEvent_contentBlockStart_returnsNil() throws {
+    @Test("mapStreamEvent with content_block_start returns empty")
+    func mapStreamEvent_contentBlockStart_returnsEmpty() throws {
         // Given
         let json = #"{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
     @Test("mapStreamEvent with malformed JSON throws")
@@ -258,16 +260,110 @@ struct ClaudeResponseMapperTests {
         }
     }
 
-    @Test("mapStreamEvent with content_block_delta but non-text delta type returns nil")
-    func mapStreamEvent_nonTextDeltaType_returnsNil() throws {
+    @Test("mapStreamEvent with content_block_delta but non-text delta type returns empty")
+    func mapStreamEvent_nonTextDeltaType_returnsEmpty() throws {
         // Given
         let json = #"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{"}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
+    }
+
+    // MARK: - processStreamEvent / finalizeStream
+
+    @Test("processStreamEvent accumulates text across message_start, delta, and message_delta events")
+    func processStreamEvent_accumulatesText() throws {
+        // Given
+        let jsons = [
+            // swiftlint:disable:next line_length
+            #"{"type":"message_start","message":{"id":"msg-1","model":"claude-sonnet-4-6","usage":{"input_tokens":10,"output_tokens":0}}}"#,
+            #"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}"#,
+            #"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" world"}}"#,
+            #"{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":5}}"#
+        ]
+        var state = sut.makeStreamState(fallbackModel: "fallback")
+
+        // When
+        var allEvents: [AIStreamEvent] = []
+        for json in jsons {
+            let event = try sut.decodeStreamEvent(Data(json.utf8))
+            allEvents += try sut.processStreamEvent(event, state: &state)
+        }
+
+        // Then
+        let textDeltas = allEvents.compactMap { if case .textDelta(let text) = $0 { text } else { nil } }
+        #expect(textDeltas == ["Hello", " world"])
+        #expect(state.textBuffer == "Hello world")
+        #expect(state.messageId == "msg-1")
+        #expect(state.messageModel == "claude-sonnet-4-6")
+        #expect(state.inputTokens == 10)
+        #expect(state.outputTokens == 5)
+        #expect(state.stopReason == .endTurn)
+    }
+
+    @Test("processStreamEvent accumulates tool call input across content_block_start and input_json_delta events")
+    func processStreamEvent_accumulatesToolInput() throws {
+        // Given
+        let jsons = [
+            #"{"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"tool_1","name":"get_weather"}}"#,
+            #"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"city\":"}}"#,
+            #"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"\"Rome\"}"}}"#,
+            #"{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":8}}"#
+        ]
+        var state = sut.makeStreamState(fallbackModel: "claude-sonnet-4-6")
+
+        // When
+        for json in jsons {
+            let event = try sut.decodeStreamEvent(Data(json.utf8))
+            _ = try sut.processStreamEvent(event, state: &state)
+        }
+        let response = sut.finalizeStream(state)
+
+        // Then
+        #expect(response.stopReason == .toolUse)
+        #expect(response.toolUses.count == 1)
+        #expect(response.toolUses[0].id == "tool_1")
+        #expect(response.toolUses[0].name == "get_weather")
+        #expect(response.toolUses[0].input == .object(["city": .string("Rome")]))
+    }
+
+    @Test("processStreamEvent throws invalidResponse(statusCode:0) with provider message on error event")
+    func processStreamEvent_errorEvent_throwsInvalidResponseWithMessage() throws {
+        // Given
+        let json = #"{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}"#
+        let event = try sut.decodeStreamEvent(Data(json.utf8))
+        var state = sut.makeStreamState(fallbackModel: "claude-sonnet-4-6")
+
+        // When / Then — statusCode 0 signals a provider-level error, not an HTTP status
+        do {
+            _ = try sut.processStreamEvent(event, state: &state)
+            Issue.record("Expected processStreamEvent to throw")
+        } catch AIError.invalidResponse(let statusCode, let body) {
+            #expect(statusCode == 0)
+            #expect(body?.contains("overloaded_error") == true)
+            #expect(body?.contains("Overloaded") == true)
+        } catch {
+            Issue.record("Expected AIError.invalidResponse, got \(error)")
+        }
+    }
+
+    @Test("finalizeStream uses fallback model when message_start is absent")
+    func finalizeStream_usesFallbackModel() throws {
+        // Given — only a text delta, no message_start
+        let json = #"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi"}}"#
+        let event = try sut.decodeStreamEvent(Data(json.utf8))
+        var state = sut.makeStreamState(fallbackModel: "my-fallback-model")
+
+        // When
+        _ = try sut.processStreamEvent(event, state: &state)
+        let response = sut.finalizeStream(state)
+
+        // Then
+        #expect(response.model == "my-fallback-model")
     }
 }
+// swiftlint:enable type_body_length

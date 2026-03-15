@@ -1,6 +1,8 @@
 # Adding a New Provider
 
-This guide walks through implementing a new `AIProvider` (e.g. OpenAI) without touching any existing code — the Open/Closed Principle in practice.
+This guide walks through implementing a new `AIProvider` without touching any existing code — the Open/Closed Principle in practice.
+
+> **Reference implementation:** `OpenAIProvider` (shipped in 0.3.0) is a complete example of every step below. Read its source alongside this guide.
 
 ## Steps
 
@@ -77,14 +79,30 @@ Both Claude and OpenAI use similar message structures. The key differences are:
 
 ### 6. Test with the shared test helpers
 
-Your test target can import `AIProviderKit` and use `MockData` for baseline fixtures.
+Your test target can import `AIProviderKit` and use `MockData` for baseline fixtures. Inject `MockHTTPClient` via the internal `init` to avoid any network calls.
 
 ```mermaid
 flowchart LR
-    Request["AIRequest"] --> Mapper["OpenAIRequestMapper"]
+    Request["AIRequest"] --> Mapper["XRequestMapper"]
     Mapper --> HTTP["URLSessionHTTPClient"]
-    HTTP --> API["api.openai.com"]
+    HTTP --> API["api.provider.com"]
     API --> HTTP2["URLSessionHTTPClient"]
-    HTTP2 --> RMapper["OpenAIResponseMapper"]
+    HTTP2 --> RMapper["XResponseMapper"]
     RMapper --> Response["AIResponse"]
 ```
+
+### 7. Centralise constants (recommended)
+
+Create an internal `XProviderConstants` enum to hold endpoint URLs, model-family prefixes, and any other string literals. This makes it trivial to add support for new model families without touching the provider or mapper code. See `OpenAIConstants` for the established pattern.
+
+### 8. Optionally conform to `ModelDiscoveryProvider`
+
+If the backend exposes a model-listing endpoint, conform to `ModelDiscoveryProvider` from `AIProviderKit`:
+
+```swift
+public func listModels() async throws(AIError) -> [AIModelInfo] {
+    // GET <modelsEndpoint>, decode, filter, map to [AIModelInfo]
+}
+```
+
+`OpenAIProvider` ships a complete implementation. `ClaudeProvider` will add this in milestone 0.3.1.

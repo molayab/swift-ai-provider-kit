@@ -35,7 +35,7 @@ let client = AIClient(
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .addMessage(.user(text: "What is the capital of France?"))
         .build()
 )
@@ -58,7 +58,7 @@ func chat(_ userInput: String) async throws -> String {
     history.append(.user(text: userInput))
     let response = try await client.send(
         AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .messages(history)
             .build()
     )
@@ -81,7 +81,7 @@ func chat(_ userInput: String) async throws -> String {
 
 func startStream() async throws {
     let request = try AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .addMessage(.user(text: "Write a short poem."))
         .build()
 
@@ -108,7 +108,7 @@ await client.toolRegistry.registerAll(CalendarTool.self)
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .tools(await client.toolRegistry.allTools)
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
@@ -138,7 +138,7 @@ await client.recipeRegistry.register(recipe)
 let response = try await client.send(
     recipe: recipe,
     values: ["style": "bullet points", "text": articleBody],
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 ```
 
@@ -158,7 +158,7 @@ await client.skillRegistry.register(skill)
 let result = try await client.execute(
     skillId: "summarize",
     input: longText,
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 print(result.output)
 print("Tokens used: \(result.usage.totalTokens)")
@@ -196,7 +196,7 @@ AILogStore.shared = AILogStore()
 let imageData: Data = ... // UIImage -> PNG/JPEG data
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .addMessage(.user {
             ContentBlock.text("What is in this image?")
             ContentBlock.image(.init(source: .base64(mediaType: "image/jpeg", data: imageData)))
@@ -238,7 +238,7 @@ await client.toolRegistry.register(searchTool)
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .tools(await client.toolRegistry.allTools)
         .addMessage(.user(text: "Find me some running shoes."))
         .build()
@@ -315,7 +315,7 @@ let conversationId = UUID()
 let response = try await client.send(
     conversationId: conversationId,
     message: "What did we discuss earlier?",
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 // AIClient loads the existing turns, appends the new message,
 // sends the full history, and saves the response — automatically.
@@ -346,7 +346,7 @@ let client = AIClient(
 let response = try await client.send(
     conversationId: savedConversationId,
     message: "Continue from where we left off.",
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 
 // Export a conversation as a portable JSON bundle
@@ -374,7 +374,7 @@ let client = AIClient(
 
 // Query conversations by model or date (predicate-based search)
 let recent = try await client.conversations(
-    where: \.model == .claudeSonnet4,
+    where: \.model == .claudeSonnet46,
     sortedBy: \.updatedAt,
     order: .reverse,
     limit: 20
@@ -418,7 +418,7 @@ let retrieved = try await docsContext.retrieve(for: query)
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .context(retrieved)              // injects retrieved chunks as ContentBlocks
         .addMessage(.user(text: query))
         .build()
