@@ -53,9 +53,12 @@ struct OpenAIProviderTests {
     @Test("AIModel constants have correct identifiers")
     func aiModelConstants_haveCorrectIdentifiers() {
         // Given / When / Then
+        #expect(AIModel.gpt41.identifier == "gpt-4.1")
+        #expect(AIModel.gpt41Mini.identifier == "gpt-4.1-mini")
+        #expect(AIModel.gpt41Nano.identifier == "gpt-4.1-nano")
         #expect(AIModel.gpt4o.identifier == "gpt-4o")
         #expect(AIModel.gpt4oMini.identifier == "gpt-4o-mini")
-        #expect(AIModel.o1.identifier == "o1")
+        #expect(AIModel.o3.identifier == "o3")
         #expect(AIModel.o3Mini.identifier == "o3-mini")
         #expect(AIModel.o4Mini.identifier == "o4-mini")
     }

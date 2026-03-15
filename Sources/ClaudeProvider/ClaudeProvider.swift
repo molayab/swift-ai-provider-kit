@@ -213,7 +213,10 @@ public final class ClaudeProvider: StreamableProvider {
 // MARK: - Model Constants
 
 public extension AIModel {
-    static let claudeOpus4     = AIModel("claude-opus-4-6")
-    static let claudeSonnet4   = AIModel("claude-sonnet-4-6")
-    static let claudeHaiku4    = AIModel("claude-haiku-4-5-20251001")
+    /// Claude Opus 4.6 — Anthropic's most intelligent model, built for complex tasks and agentic use.
+    static let claudeOpus46 = AIModel("claude-opus-4-6")
+    /// Claude Sonnet 4.6 — best balance of speed and intelligence with a 1M-token context window.
+    static let claudeSonnet46 = AIModel("claude-sonnet-4-6")
+    /// Claude Haiku 4.5 — fastest model with near-frontier intelligence and a 200k-token context window.
+    static let claudeHaiku45 = AIModel("claude-haiku-4-5-20251001")
 }

@@ -56,7 +56,7 @@ actor ClaudeIntegrationSuite {
     /// Sends a simple user message and verifies a non-empty text response.
     private func testBasicCompletion() async throws {
         let request = try AIRequestBuilder()
-            .model(.claudeHaiku4)
+            .model(.claudeHaiku45)
             .addMessage(.user(text: "Reply with exactly one word: hello"))
             .maxTokens(16)
             .build()
@@ -70,7 +70,7 @@ actor ClaudeIntegrationSuite {
     /// Streams a response and verifies that text deltas are received.
     private func testStreaming() async throws {
         let request = try AIRequestBuilder()
-            .model(.claudeHaiku4)
+            .model(.claudeHaiku45)
             .addMessage(.user(text: "Count from 1 to 3, one number per line."))
             .maxTokens(32)
             .build()
@@ -96,7 +96,7 @@ actor ClaudeIntegrationSuite {
         await client.toolRegistry.register(timeTool)
 
         let request = try AIRequestBuilder()
-            .model(.claudeHaiku4)
+            .model(.claudeHaiku45)
             .addMessage(.user(text: "What is the current time? Use the get_current_time tool."))
             .tools([timeTool])
             .maxTokens(256)
@@ -121,7 +121,7 @@ actor ClaudeIntegrationSuite {
         let response = try await client.send(
             recipe: recipe,
             values: ["text": "hello", "language": "Spanish"],
-            model: .claudeHaiku4
+            model: .claudeHaiku45
         )
 
         guard !response.text.isEmpty else { throw IntegrationError.emptyResponse }
@@ -136,7 +136,7 @@ actor ClaudeIntegrationSuite {
         let result = try await client.execute(
             skillId: skill.identifier,
             input: "The quick brown fox jumps over the lazy dog. This classic pangram uses every letter of the alphabet.",
-            model: .claudeHaiku4
+            model: .claudeHaiku45
         )
 
         guard !result.output.isEmpty else { throw IntegrationError.emptyResponse }

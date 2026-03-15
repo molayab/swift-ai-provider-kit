@@ -10,7 +10,7 @@
 /// )
 /// let response = try await client.send(
 ///     AIRequestBuilder()
-///         .model(.claudeSonnet4)
+///         .model(.claudeSonnet46)
 ///         .addMessage(.user(text: "Hello!"))
 ///         .build()
 /// )

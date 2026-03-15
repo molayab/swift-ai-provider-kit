@@ -252,7 +252,7 @@ classDiagram
 - **`HTTPClient`** is an internal protocol with `send` and `stream` methods. The production implementation (`URLSessionHTTPClient`) uses `URLSession`; tests inject `MockHTTPClient`.
 - **`APIKeyAuthorization`** implements `AuthorizationProvider` by returning `["x-api-key": apiKey]`.
 
-Model constants are defined as static extensions on `AIModel`: `.claudeOpus4`, `.claudeSonnet4`, `.claudeHaiku4`.
+Model constants are defined as static extensions on `AIModel`: `.claudeOpus46`, `.claudeSonnet46`, `.claudeHaiku45`.
 
 ---
 

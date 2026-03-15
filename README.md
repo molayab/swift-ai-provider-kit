@@ -89,7 +89,7 @@ let client = AIClient(
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .systemPrompt("You are a helpful assistant.")
         .addMessage(.user(text: "What is the capital of France?"))
         .build()
@@ -175,7 +175,7 @@ await client.toolRegistry.registerAll(CalendarTool.self)
 // Tool calls are executed and followed up automatically
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .tools(await client.toolRegistry.allTools)
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
@@ -217,7 +217,7 @@ let recipe = Recipe(
 let response = try await client.send(
     recipe: recipe,
     values: ["style": "bullet points", "text": articleBody],
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 ```
 
