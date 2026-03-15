@@ -64,6 +64,7 @@ actor ChatSession {
         await client.toolRegistry.register(CurrentTimeTool.currentTime)
         #if os(macOS)
         await client.toolRegistry.register(ShellCommandTool.shellCommand)
+        await client.skillRegistry.register(ShellExplainerSkill())
         #endif
         await client.skillRegistry.register(TitleGeneratorSkill())
     }
@@ -210,6 +211,9 @@ actor ChatSession {
         help += "\n          run_shell_command            Ask the model to run any shell command"
         #endif
         help += "\n\n        Built-in skills:\n          title-generator              /skill title-generator <your text here>"
+        #if os(macOS)
+        help += "\n          shell-explainer              /skill shell-explainer <command or pipeline>"
+        #endif
         print(help)
     }
 }
