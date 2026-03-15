@@ -43,8 +43,8 @@ public enum FileSystemTool: ToolGroup {
         """,
         inputSchema: .object(
             properties: [
-                "path":     .string(description: "Absolute or home-relative (~) path to the file to read."),
-                "offset":   .integer(description: "Character offset to start reading from. Default: 0."),
+                "path": .string(description: "Absolute or home-relative (~) path to the file to read."),
+                "offset": .integer(description: "Character offset to start reading from. Default: 0."),
                 "maxChars": .integer(description: "Maximum number of characters to return. Omit for the entire file.")
             ],
             required: ["path"]
@@ -55,30 +55,30 @@ public enum FileSystemTool: ToolGroup {
         }
         let path = (rawPath as NSString).expandingTildeInPath
         do {
-            let full    = try String(contentsOfFile: path, encoding: .utf8)
-            let total   = full.count
-            let offset  = max(0, input["offset"]?.intValue ?? 0)
+            let full = try String(contentsOfFile: path, encoding: .utf8)
+            let total = full.count
+            let offset = max(0, input["offset"]?.intValue ?? 0)
             let startIdx = full.index(full.startIndex, offsetBy: min(offset, total))
-            let slice   = String(full[startIdx...])
+            let slice = String(full[startIdx...])
 
             if let maxChars = input["maxChars"]?.intValue, maxChars > 0, slice.count > maxChars {
-                let endIdx  = slice.index(slice.startIndex, offsetBy: maxChars)
-                let chunk   = String(slice[..<endIdx])
+                let endIdx = slice.index(slice.startIndex, offsetBy: maxChars)
+                let chunk = String(slice[..<endIdx])
                 return .object([
-                    "content":    .string(chunk),
-                    "bytes":      .integer(chunk.utf8.count),
-                    "offset":     .integer(offset),
+                    "content": .string(chunk),
+                    "bytes": .integer(chunk.utf8.count),
+                    "offset": .integer(offset),
                     "totalChars": .integer(total),
-                    "truncated":  true
+                    "truncated": true
                 ])
             }
 
             return .object([
-                "content":    .string(slice),
-                "bytes":      .integer(slice.utf8.count),
-                "offset":     .integer(offset),
+                "content": .string(slice),
+                "bytes": .integer(slice.utf8.count),
+                "offset": .integer(offset),
                 "totalChars": .integer(total),
-                "truncated":  false
+                "truncated": false
             ])
         } catch {
             return .object(["error": .string(error.localizedDescription)])
@@ -95,8 +95,8 @@ public enum FileSystemTool: ToolGroup {
         """,
         inputSchema: .object(
             properties: [
-                "path":              .string(description: "Absolute or home-relative (~) path to write."),
-                "content":           .string(description: "UTF-8 text content to write."),
+                "path": .string(description: "Absolute or home-relative (~) path to write."),
+                "content": .string(description: "UTF-8 text content to write."),
                 "createDirectories": .boolean(description: "Create missing parent directories. Default: false.")
             ],
             required: ["path", "content"]
@@ -123,7 +123,7 @@ public enum FileSystemTool: ToolGroup {
             try content.write(toFile: path, atomically: true, encoding: .utf8)
             return .object([
                 "success": true,
-                "bytes":   .integer(content.utf8.count)
+                "bytes": .integer(content.utf8.count)
             ])
         } catch {
             return .object(["error": .string(error.localizedDescription)])
@@ -140,7 +140,9 @@ public enum FileSystemTool: ToolGroup {
         """,
         inputSchema: .object(
             properties: [
-                "path":          .string(description: "Absolute or home-relative (~) path. Defaults to the current working directory."),
+                "path": .string(
+                    description: "Absolute or home-relative (~) path. Defaults to the current working directory."
+                ),
                 "includeHidden": .boolean(description: "Include dot-files and dot-directories. Default: false.")
             ]
         )
@@ -150,7 +152,7 @@ public enum FileSystemTool: ToolGroup {
         let includeHidden = input["includeHidden"]?.boolValue ?? false
 
         do {
-            let names    = try FileManager.default.contentsOfDirectory(atPath: path)
+            let names = try FileManager.default.contentsOfDirectory(atPath: path)
             let filtered = includeHidden ? names : names.filter { !$0.hasPrefix(".") }
             let items: [JSONValue] = filtered.sorted().map { name in
                 let full = (path as NSString).appendingPathComponent(name)
@@ -162,7 +164,7 @@ public enum FileSystemTool: ToolGroup {
                 ])
             }
             return .object([
-                "path":    .string(path),
+                "path": .string(path),
                 "entries": .array(items)
             ])
         } catch {

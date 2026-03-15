@@ -21,10 +21,7 @@ actor ChatSession {
     private let tools: [Tool] = {
         var all: [Tool] = [CurrentTimeTool.currentTime]
         #if os(macOS)
-        all.append(ShellCommandTool.shellCommand)
-        all.append(AppleScriptTool.runScript)
-        all.append(contentsOf: FileSystemTool.all)
-        all.append(contentsOf: ClipboardTool.all)
+        all += [ShellCommandTool.shellCommand, AppleScriptTool.runScript] + FileSystemTool.all + ClipboardTool.all
         #endif
         return all
     }()
@@ -95,14 +92,7 @@ actor ChatSession {
                 print("Usage: /model <model-id>")
             }
         case "/history":
-            if history.isEmpty {
-                print("No conversation history.")
-            } else {
-                for message in history {
-                    let role = message.role.rawValue.capitalized
-                    print("\(role): \(message.text)")
-                }
-            }
+            printHistory()
         case "/skill":
             await handleSkill(parts.count > 1 ? parts[1] : "")
         case "/benchmark":
@@ -139,20 +129,11 @@ actor ChatSession {
 
     private func handleBenchmark(_ args: String) async {
         let parts = args.split(separator: " ").map(String.init)
-        let runs: Int
-        if let idx = parts.firstIndex(of: "--runs"),
-           parts.indices.contains(idx + 1),
-           let count = Int(parts[idx + 1]), count > 0 {
-            runs = count
-        } else {
-            runs = 10
-        }
-        await BenchmarkSuite(
-            client: client,
-            model: currentModel,
-            providerName: providerName,
-            runs: runs
-        ).run()
+        let runs = parts.firstIndex(of: "--runs")
+            .flatMap { parts.indices.contains($0 + 1) ? Int(parts[$0 + 1]) : nil }
+            .flatMap { $0 > 0 ? $0 : nil }
+            ?? 10
+        await BenchmarkSuite(client: client, model: currentModel, providerName: providerName, runs: runs).run()
     }
 
     // MARK: - Messaging
@@ -223,6 +204,16 @@ actor ChatSession {
     }
 
     // MARK: - Help
+
+    private func printHistory() {
+        if history.isEmpty {
+            print("No conversation history.")
+        } else {
+            for message in history {
+                print("\(message.role.rawValue.capitalized): \(message.text)")
+            }
+        }
+    }
 
     private func printWelcome() {
         print("─────────────────────────────────────────────")

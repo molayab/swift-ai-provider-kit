@@ -93,7 +93,7 @@ public enum AppleScriptTool: ToolGroup {
 
         if exitCode == 0 {
             return .object([
-                "result":    .string(output),
+                "result": .string(output),
                 "exit_code": .integer(exitCode)
             ])
         } else {
@@ -101,7 +101,7 @@ public enum AppleScriptTool: ToolGroup {
                 ? "Script failed with exit code \(exitCode)"
                 : errOutput
             return .object([
-                "error":     .string(message),
+                "error": .string(message),
                 "exit_code": .integer(exitCode)
             ])
         }
