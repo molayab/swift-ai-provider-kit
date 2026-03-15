@@ -1,7 +1,7 @@
-import Foundation
 import AIProviderKit
 import AIProviderTools
 import AppleIntelligenceProvider
+import Foundation
 
 // MARK: - Suite
 

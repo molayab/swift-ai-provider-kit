@@ -1,7 +1,7 @@
-import Foundation
 import AIProviderKit
 import AIProviderTools
 import ClaudeProvider
+import Foundation
 
 // MARK: - Suite
 
@@ -23,10 +23,10 @@ actor ClaudeIntegrationSuite {
         print("═══════════════════════════════════════════\n")
 
         await run("Basic text completion") { try await self.testBasicCompletion() }
-        await run("Streaming")             { try await self.testStreaming() }
+        await run("Streaming") { try await self.testStreaming() }
         await run("Automatic tool execution") { try await self.testToolExecution() }
-        await run("Recipe rendering")      { try await self.testRecipe() }
-        await run("Skill execution")       { try await self.testSkill() }
+        await run("Recipe rendering") { try await self.testRecipe() }
+        await run("Skill execution") { try await self.testSkill() }
 
         printSummary()
     }
@@ -138,4 +138,3 @@ actor ClaudeIntegrationSuite {
         guard !result.output.isEmpty else { throw IntegrationError.emptyResponse }
     }
 }
-

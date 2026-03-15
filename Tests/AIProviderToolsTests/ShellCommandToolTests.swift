@@ -1,6 +1,6 @@
-import Testing
 import AIProviderKit
 import AIProviderTools
+import Testing
 
 // `ShellCommandTool` is macOS-only — guard the entire suite.
 #if os(macOS)

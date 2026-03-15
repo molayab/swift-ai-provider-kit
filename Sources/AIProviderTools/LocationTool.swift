@@ -1,6 +1,6 @@
+import AIProviderKit
 import CoreLocation
 import MapKit
-import AIProviderKit
 
 /// A ready-to-use `Tool` that provides the device's current location to the model.
 ///

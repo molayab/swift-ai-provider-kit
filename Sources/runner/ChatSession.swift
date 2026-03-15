@@ -1,6 +1,6 @@
-import Foundation
 import AIProviderKit
 import AIProviderTools
+import Foundation
 
 /// Runs an interactive, multi-turn streaming chat session in the terminal.
 ///

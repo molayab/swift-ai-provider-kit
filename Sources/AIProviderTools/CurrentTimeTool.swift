@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 /// A `ToolGroup` that provides the current date, time, and timezone.
 ///
@@ -30,7 +30,7 @@ public enum CurrentTimeTool: ToolGroup {
 
     public static let currentTime = Tool(
         name: "get_current_time",
-        description: "Returns the current date, time, and timezone. Call this whenever the user asks about the current time or date.",
+        description: "Returns the current date, time, and timezone. Call this whenever the user asks about time or date.",
         inputSchema: .object(
             properties: [
                 "format": .string(description: #"Output format: "iso8601" (default) or "human""#)
@@ -50,7 +50,7 @@ public enum CurrentTimeTool: ToolGroup {
             let iso = ISO8601DateFormatter().string(from: now)
             let tz  = TimeZone.current.identifier
             return .object([
-                "iso8601":  .string(iso),
+                "iso8601": .string(iso),
                 "timezone": .string(tz)
             ])
         }

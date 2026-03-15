@@ -1,5 +1,5 @@
-import EventKit
 import AIProviderKit
+import EventKit
 
 /// Ready-to-use `Tool`s for reading and writing calendar events via EventKit.
 ///

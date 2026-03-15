@@ -14,7 +14,10 @@ struct TitleGeneratorSkill: Skill {
             id: "title-generator-recipe",
             name: "Title Generator",
             description: "Generates a short title for the provided text.",
-            systemPrompt: "You are a professional copywriter. Reply with a single short title (5 words or fewer). No punctuation at the end.",
+            systemPrompt: """
+            You are a professional copywriter. Reply with a single short title \
+            (5 words or fewer). No punctuation at the end.
+            """,
             userPromptTemplate: "Generate a concise title for the text the user provided."
         )
     }

@@ -34,18 +34,18 @@ struct BenchmarkStats {
 
     // MARK: Duration stats
 
-    var meanDuration:   TimeInterval { durations.mean }
+    var meanDuration: TimeInterval { durations.mean }
     var medianDuration: TimeInterval { durations.median }
-    var p95Duration:    TimeInterval { durations.percentile(0.95) }
-    var minDuration:    TimeInterval { durations.min() ?? 0 }
-    var maxDuration:    TimeInterval { durations.max() ?? 0 }
+    var p95Duration: TimeInterval { durations.percentile(0.95) }
+    var minDuration: TimeInterval { durations.min() ?? 0 }
+    var maxDuration: TimeInterval { durations.max() ?? 0 }
     var stdDevDuration: TimeInterval { durations.stdDev }
 
     // MARK: TTFT stats (streaming scenarios)
 
-    var meanTTFT:   TimeInterval { ttfts.mean }
+    var meanTTFT: TimeInterval { ttfts.mean }
     var medianTTFT: TimeInterval { ttfts.median }
-    var p95TTFT:    TimeInterval { ttfts.percentile(0.95) }
+    var p95TTFT: TimeInterval { ttfts.percentile(0.95) }
 
     // MARK: Throughput
 
@@ -57,16 +57,16 @@ struct BenchmarkStats {
 
     /// Time Per Output Token (decode phase): (E2E - TTFT) / outputTokens.
     var tpot: TimeInterval {
-        let validSamples = samples.compactMap { s -> TimeInterval? in
-            guard let ttft = s.ttft, s.outputTokens > 1 else { return nil }
-            return (s.duration - ttft) / Double(s.outputTokens - 1)
+        let validSamples = samples.compactMap { sample -> TimeInterval? in
+            guard let ttft = sample.ttft, sample.outputTokens > 1 else { return nil }
+            return (sample.duration - ttft) / Double(sample.outputTokens - 1)
         }
         return validSamples.mean
     }
 
     // MARK: Token usage
 
-    var meanInputTokens:  Double { samples.map { Double($0.inputTokens)  }.mean }
+    var meanInputTokens: Double { samples.map { Double($0.inputTokens) }.mean }
     var meanOutputTokens: Double { samples.map { Double($0.outputTokens) }.mean }
     /// True when any sample used the char/4 heuristic instead of a provider-reported count.
     var tokensEstimated: Bool { samples.contains { $0.tokensEstimated } }
@@ -74,7 +74,7 @@ struct BenchmarkStats {
     // MARK: - Private helpers
 
     private var durations: [Double] { samples.map(\.duration) }
-    private var ttfts:     [Double] { samples.compactMap(\.ttft) }
+    private var ttfts: [Double] { samples.compactMap(\.ttft) }
 }
 
 // MARK: - Array statistical helpers
@@ -93,10 +93,10 @@ private extension Array where Element == Double {
             : sorted[mid]
     }
 
-    func percentile(_ p: Double) -> Double {
+    func percentile(_ fraction: Double) -> Double {
         guard !isEmpty else { return 0 }
         let sorted = self.sorted()
-        let idx = Int((p * Double(sorted.count - 1)).rounded())
+        let idx = Int((fraction * Double(sorted.count - 1)).rounded())
         return sorted[Swift.max(0, Swift.min(idx, sorted.count - 1))]
     }
 

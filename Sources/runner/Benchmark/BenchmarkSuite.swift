@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 /// Runs a set of latency and throughput benchmarks against any `AIClient`.
 ///
@@ -53,8 +53,8 @@ actor BenchmarkSuite {
     // MARK: - Warm-up
 
     private func warmup() async {
-        for i in 1...Self.warmupRuns {
-            print("  [warm-up \(i)/\(Self.warmupRuns)] …", terminator: "\r")
+        for idx in 1...Self.warmupRuns {
+            print("  [warm-up \(idx)/\(Self.warmupRuns)] …", terminator: "\r")
             fflush(stdout)
             let request = try? AIRequestBuilder()
                 .model(model)
@@ -74,8 +74,8 @@ actor BenchmarkSuite {
     private func measureNonStreamingLatency() async -> BenchmarkStats {
         var samples: [BenchmarkSample] = []
 
-        for i in 1...runs {
-            print("  [latency    \(i)/\(runs)] …", terminator: "\r")
+        for idx in 1...runs {
+            print("  [latency    \(idx)/\(runs)] …", terminator: "\r")
             fflush(stdout)
 
             do {
@@ -91,13 +91,13 @@ actor BenchmarkSuite {
 
                 let (outTokens, outEstimated) = outputTokens(response)
                 samples.append(BenchmarkSample(
-                    duration:        elapsed,
-                    inputTokens:     response.usage.inputTokens,
-                    outputTokens:    outTokens,
+                    duration: elapsed,
+                    inputTokens: response.usage.inputTokens,
+                    outputTokens: outTokens,
                     tokensEstimated: outEstimated
                 ))
             } catch {
-                print("  [latency \(i)/\(runs)] error: \(error)")
+                print("  [latency \(idx)/\(runs)] error: \(error)")
             }
         }
 
@@ -110,8 +110,8 @@ actor BenchmarkSuite {
     private func measureStreamingTTFT() async -> BenchmarkStats {
         var samples: [BenchmarkSample] = []
 
-        for i in 1...runs {
-            print("  [ttft       \(i)/\(runs)] …", terminator: "\r")
+        for idx in 1...runs {
+            print("  [ttft       \(idx)/\(runs)] …", terminator: "\r")
             fflush(stdout)
 
             do {
@@ -121,7 +121,7 @@ actor BenchmarkSuite {
                     .maxTokens(64)
                     .build()
 
-                let start              = Date()
+                let start = Date()
                 var ttft: TimeInterval?
                 var finalResponse: AIResponse?
 
@@ -141,15 +141,15 @@ actor BenchmarkSuite {
                 if let ttftValue = ttft, let resp = finalResponse {
                     let (outTokens, outEstimated) = outputTokens(resp)
                     samples.append(BenchmarkSample(
-                        duration:        elapsed,
-                        ttft:            ttftValue,
-                        inputTokens:     resp.usage.inputTokens,
-                        outputTokens:    outTokens,
+                        duration: elapsed,
+                        ttft: ttftValue,
+                        inputTokens: resp.usage.inputTokens,
+                        outputTokens: outTokens,
                         tokensEstimated: outEstimated
                     ))
                 }
             } catch {
-                print("  [ttft \(i)/\(runs)] error: \(error)")
+                print("  [ttft \(idx)/\(runs)] error: \(error)")
             }
         }
 
@@ -162,8 +162,8 @@ actor BenchmarkSuite {
     private func measureStreamingThroughput() async -> BenchmarkStats {
         var samples: [BenchmarkSample] = []
 
-        for i in 1...runs {
-            print("  [throughput \(i)/\(runs)] …", terminator: "\r")
+        for idx in 1...runs {
+            print("  [throughput \(idx)/\(runs)] …", terminator: "\r")
             fflush(stdout)
 
             do {
@@ -173,7 +173,7 @@ actor BenchmarkSuite {
                     .maxTokens(512)
                     .build()
 
-                let requestStart       = Date()
+                let requestStart = Date()
                 var decodeStart: Date?
                 var finalResponse: AIResponse?
 
@@ -197,15 +197,15 @@ actor BenchmarkSuite {
                 if let resp = finalResponse {
                     let (outTokens, outEstimated) = outputTokens(resp)
                     samples.append(BenchmarkSample(
-                        duration:        decodeElapsed,
-                        ttft:            ttft,
-                        inputTokens:     resp.usage.inputTokens,
-                        outputTokens:    outTokens,
+                        duration: decodeElapsed,
+                        ttft: ttft,
+                        inputTokens: resp.usage.inputTokens,
+                        outputTokens: outTokens,
                         tokensEstimated: outEstimated
                     ))
                 }
             } catch {
-                print("  [throughput \(i)/\(runs)] error: \(error)")
+                print("  [throughput \(idx)/\(runs)] error: \(error)")
             }
         }
 
@@ -226,7 +226,17 @@ actor BenchmarkSuite {
 
     // MARK: - Output
 
-    private func printHeader() {
+    private func clearLine() {
+        print(String(repeating: " ", count: 50), terminator: "\r")
+        fflush(stdout)
+    }
+}
+
+// MARK: - Print helpers
+
+extension BenchmarkSuite {
+
+    func printHeader() {
         print("═══════════════════════════════════════════════════════════════")
         print("  AIProviderKit — Benchmark")
         print("  Provider : \(providerName)")
@@ -235,30 +245,32 @@ actor BenchmarkSuite {
         print("═══════════════════════════════════════════════════════════════\n")
     }
 
-    private func printResults(
+    func printResults(
         latency: BenchmarkStats,
         ttft: BenchmarkStats,
         throughput: BenchmarkStats
     ) {
-        let c1 = 26, c2 = 9
+        let colName = 26, colStat = 9
 
-        func pad(_ s: String, _ len: Int) -> String {
-            s.padding(toLength: len, withPad: " ", startingAt: 0)
+        func pad(_ string: String, _ length: Int) -> String {
+            string.padding(toLength: length, withPad: " ", startingAt: 0)
         }
-        func fmt(_ v: Double, _ unit: String) -> String {
-            String(format: "%.3f\(unit)", v)
+        func fmt(_ value: Double, _ unit: String) -> String {
+            String(format: "%.3f\(unit)", value)
         }
 
-        print("  \(pad("Scenario", c1))  \(pad("Median", c2))  \(pad("Mean", c2))  \(pad("p95", c2))  \(pad("Min", c2))  Max")
+        let cols = [pad("Scenario", colName), pad("Median", colStat),
+                    pad("Mean", colStat), pad("p95", colStat), pad("Min", colStat), "Max"]
+        print("  " + cols.joined(separator: "  "))
         print("  " + String(repeating: "─", count: 76))
 
         func durationRow(_ stats: BenchmarkStats) {
             let row = [
-                pad(stats.name, c1),
-                pad(fmt(stats.medianDuration, " s"), c2),
-                pad(fmt(stats.meanDuration, " s"), c2),
-                pad(fmt(stats.p95Duration, " s"), c2),
-                pad(fmt(stats.minDuration, " s"), c2),
+                pad(stats.name, colName),
+                pad(fmt(stats.medianDuration, " s"), colStat),
+                pad(fmt(stats.meanDuration, " s"), colStat),
+                pad(fmt(stats.p95Duration, " s"), colStat),
+                pad(fmt(stats.minDuration, " s"), colStat),
                 fmt(stats.maxDuration, " s")
             ].joined(separator: "  ")
             print("  \(row)")
@@ -268,11 +280,11 @@ actor BenchmarkSuite {
 
         // TTFT row — show TTFT median, not E2E duration
         let ttftRow = [
-            pad(ttft.name, c1),
-            pad(fmt(ttft.medianTTFT, " s"), c2),
-            pad(fmt(ttft.meanTTFT, " s"), c2),
-            pad(fmt(ttft.p95TTFT, " s"), c2),
-            pad(fmt(ttft.minDuration, " s"), c2),
+            pad(ttft.name, colName),
+            pad(fmt(ttft.medianTTFT, " s"), colStat),
+            pad(fmt(ttft.meanTTFT, " s"), colStat),
+            pad(fmt(ttft.p95TTFT, " s"), colStat),
+            pad(fmt(ttft.minDuration, " s"), colStat),
             fmt(ttft.maxDuration, " s")
         ].joined(separator: "  ")
         print("  \(ttftRow)")
@@ -280,16 +292,16 @@ actor BenchmarkSuite {
         // TPOT row (derived from TTFT suite)
         if ttft.tpot > 0 {
             let tpotMs = ttft.tpot * 1_000
-            print("  \(pad("TPOT (decode phase)", c1))  \(String(format: "%.1f ms/tok", tpotMs))")
+            print("  \(pad("TPOT (decode phase)", colName))  \(String(format: "%.1f ms/tok", tpotMs))")
         }
 
         // Throughput row
         let tps = String(format: "%.1f tok/s  (decode phase, median)", throughput.tokensPerSecond)
-        print("  \(pad(throughput.name, c1))  \(tps)")
+        print("  \(pad(throughput.name, colName))  \(tps)")
 
         print("\n  " + String(repeating: "─", count: 76))
         print("  Token usage — mean over latency scenario")
-        let inputLabel  = latency.meanInputTokens == 0
+        let inputLabel = latency.meanInputTokens == 0
             ? "not reported"
             : String(format: "%.0f", latency.meanInputTokens)
         let estimatedSuffix = latency.tokensEstimated ? " (estimated via char/4 heuristic)" : ""
@@ -298,10 +310,5 @@ actor BenchmarkSuite {
         print("    Output: \(outputLabel)")
         print(String(format: "    Std dev (latency):  %.3f s", latency.stdDevDuration))
         print()
-    }
-
-    private func clearLine() {
-        print(String(repeating: " ", count: 50), terminator: "\r")
-        fflush(stdout)
     }
 }

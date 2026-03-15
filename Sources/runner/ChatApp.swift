@@ -1,8 +1,8 @@
-import Foundation
 import AIProviderKit
-import ClaudeProvider
-import OpenAIProvider
 import AppleIntelligenceProvider
+import ClaudeProvider
+import Foundation
+import OpenAIProvider
 
 /// `runner` — AIProviderKit interactive chat CLI.
 ///
@@ -175,8 +175,8 @@ struct ChatApp {
     /// Parses `--runs <n>` from the argument list, defaulting to 3.
     private static func parseRuns(from args: [String]) -> Int {
         guard let idx = args.firstIndex(of: "--runs"), args.indices.contains(idx + 1),
-              let n = Int(args[idx + 1]), n > 0 else { return 3 }
-        return n
+              let count = Int(args[idx + 1]), count > 0 else { return 3 }
+        return count
     }
 
     // MARK: - Help

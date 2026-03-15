@@ -1,6 +1,6 @@
-import Testing
 import AIProviderKit
 import AIProviderTools
+import Testing
 
 @Suite("RemindersTool")
 struct RemindersToolTests {

@@ -1,6 +1,6 @@
-import Foundation
 import AIProviderKit
 import AIProviderTools
+import Foundation
 import OpenAIProvider
 
 // MARK: - Suite
@@ -23,11 +23,11 @@ actor OpenAIIntegrationSuite {
         print("═══════════════════════════════════════════\n")
 
         await run("Basic text completion") { try await self.testBasicCompletion() }
-        await run("Streaming")             { try await self.testStreaming() }
+        await run("Streaming") { try await self.testStreaming() }
         await run("Automatic tool execution") { try await self.testToolExecution() }
-        await run("Recipe rendering")      { try await self.testRecipe() }
-        await run("Skill execution")       { try await self.testSkill() }
-        await run("Model discovery")       { try await self.testModelDiscovery() }
+        await run("Recipe rendering") { try await self.testRecipe() }
+        await run("Skill execution") { try await self.testSkill() }
+        await run("Model discovery") { try await self.testModelDiscovery() }
 
         printSummary()
     }

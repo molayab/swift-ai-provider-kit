@@ -1,7 +1,7 @@
-import Foundation
-import Testing
 import AIProviderKit
 import AIProviderTools
+import Foundation
+import Testing
 
 @Suite("CurrentTimeTool")
 struct CurrentTimeToolTests {

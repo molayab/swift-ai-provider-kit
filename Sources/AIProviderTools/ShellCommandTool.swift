@@ -1,5 +1,5 @@
-import Foundation
 import AIProviderKit
+import Foundation
 
 // `Process` is macOS-only. It is not available on iOS, watchOS, tvOS, or
 // visionOS — those platforms prohibit subprocess launching for security reasons.
@@ -81,8 +81,8 @@ public enum ShellCommandTool: ToolGroup {
         let stderr = String(data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
 
         return .object([
-            "stdout":    .string(stdout),
-            "stderr":    .string(stderr),
+            "stdout": .string(stdout),
+            "stderr": .string(stderr),
             "exit_code": .integer(Int(process.terminationStatus))
         ])
     }
