@@ -36,7 +36,7 @@ struct OpenAIProviderTests {
         #expect(identifier == "openai")
     }
 
-    @Test("capabilities include text vision tools streaming systemPrompt")
+    @Test("capabilities include text vision tools streaming systemPrompt modelDiscovery")
     func capabilities_includeExpectedSet() {
         // Given
         let provider = makeProvider(httpClient: MockHTTPClient())
@@ -45,7 +45,7 @@ struct OpenAIProviderTests {
         let capabilities = provider.capabilities
 
         // Then
-        #expect(capabilities == [.text, .vision, .tools, .streaming, .systemPrompt])
+        #expect(capabilities == [.text, .vision, .tools, .streaming, .systemPrompt, .modelDiscovery])
     }
 
     // MARK: - AIModel Constants

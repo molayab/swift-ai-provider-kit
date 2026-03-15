@@ -117,7 +117,7 @@ let response = try await client.send(
 print(response.text)
 
 // Discover available models at runtime
-let models = try await (client.provider as? OpenAIProvider)?.listModels() ?? []
+let models = try await client.provider.castAs(OpenAIProvider.self).listModels()
 ```
 
 ### Apple Intelligence (on-device)

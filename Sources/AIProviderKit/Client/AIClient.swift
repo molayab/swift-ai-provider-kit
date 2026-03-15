@@ -16,7 +16,7 @@
 /// )
 /// ```
 public actor AIClient {
-    private let provider: any AIProvider
+    public nonisolated let provider: any AIProvider
     private let logger: AILogger?
 
     public let toolRegistry: ToolRegistry

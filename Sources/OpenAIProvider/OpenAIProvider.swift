@@ -21,7 +21,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     // MARK: - AIProvider
 
     public let identifier = "openai"
-    public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt]
+    public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt, .modelDiscovery]
 
     // MARK: - Dependencies
 

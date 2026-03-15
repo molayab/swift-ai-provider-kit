@@ -8,4 +8,6 @@ public enum AICapability: String, Sendable, Hashable, CaseIterable {
     case tools
     case streaming
     case systemPrompt
+    /// The provider can enumerate its available models via ``ModelDiscoveryProvider``.
+    case modelDiscovery
 }
