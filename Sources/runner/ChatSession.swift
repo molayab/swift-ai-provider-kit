@@ -98,6 +98,8 @@ actor ChatSession {
             }
         case "/skill":
             await handleSkill(parts.count > 1 ? parts[1] : "")
+        case "/benchmark":
+            await handleBenchmark(parts.count > 1 ? parts[1] : "")
         case "/help":
             printHelp()
         default:
@@ -124,6 +126,26 @@ actor ChatSession {
         } catch {
             print("\nerror running skill '\(skillId)': \(error)")
         }
+    }
+
+    // MARK: - Benchmark command
+
+    private func handleBenchmark(_ args: String) async {
+        let parts = args.split(separator: " ").map(String.init)
+        let runs: Int
+        if let idx = parts.firstIndex(of: "--runs"),
+           parts.indices.contains(idx + 1),
+           let count = Int(parts[idx + 1]), count > 0 {
+            runs = count
+        } else {
+            runs = 10
+        }
+        await BenchmarkSuite(
+            client: client,
+            model: currentModel,
+            providerName: providerName,
+            runs: runs
+        ).run()
     }
 
     // MARK: - Messaging
@@ -175,6 +197,7 @@ actor ChatSession {
           /model                       Show current model
           /model <id>                  Switch model (e.g. /model claude-opus-4-6)
           /skill <skill-id> <text>     Run a skill on the given text
+          /benchmark [--runs <n>]      Run latency/throughput benchmark (default: 10 runs)
           /clear                       Clear conversation history
           /history                     Print conversation history
           /help                        Show this help
