@@ -36,7 +36,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 |---|---|---|---|
 | **Claude** (Anthropic) | `ClaudeProvider` | ✅ Shipped | Full streaming, tools, vision |
 | **Apple Intelligence** | `AppleIntelligenceProvider` | ✅ Shipped | On-device, iOS 26+ / macOS 26+, requires Apple Intelligence enabled |
-| **OpenAI** | `OpenAIProvider` | 🔜 0.2.0 | Planned |
+| **OpenAI** | `OpenAIProvider` | ✅ Shipped | Chat Completions API — streaming, tools, vision, dynamic model listing |
 
 ---
 
@@ -69,6 +69,7 @@ Add the products you need:
 ```swift
 .product(name: "AIProviderKit", package: "AIProviderKit"),            // Core (always required)
 .product(name: "ClaudeProvider", package: "AIProviderKit"),            // Claude — Anthropic API
+.product(name: "OpenAIProvider", package: "AIProviderKit"),            // OpenAI Chat Completions API
 .product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device Apple Intelligence
 ```
 
@@ -88,12 +89,34 @@ let client = AIClient(
 
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .systemPrompt("You are a helpful assistant.")
         .addMessage(.user(text: "What is the capital of France?"))
         .build()
 )
 print(response.text)
+```
+
+### OpenAI
+
+```swift
+import AIProviderKit
+import OpenAIProvider
+
+let provider = OpenAIProvider(authorization: BearerAuthorization(apiKey: "<OPENAI_API_KEY>"))
+let client = AIClient(provider: provider)
+
+let response = try await client.send(
+    AIRequestBuilder()
+        .model(.gpt4o)
+        .systemPrompt("You are a helpful assistant.")
+        .addMessage(.user(text: "What is the capital of France?"))
+        .build()
+)
+print(response.text)
+
+// Discover available models at runtime
+let models = try await provider.listModels()
 ```
 
 ### Apple Intelligence (on-device)
@@ -152,7 +175,7 @@ await client.toolRegistry.registerAll(CalendarTool.self)
 // Tool calls are executed and followed up automatically
 let response = try await client.send(
     AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .tools(await client.toolRegistry.allTools)
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
@@ -194,7 +217,7 @@ let recipe = Recipe(
 let response = try await client.send(
     recipe: recipe,
     values: ["style": "bullet points", "text": articleBody],
-    model: .claudeSonnet4
+    model: .claudeSonnet46
 )
 ```
 
@@ -219,6 +242,7 @@ All entries are also written to the system log and visible in **Console.app**.
 ```
 AIProviderKit              Core protocols, models, builders, registries, client
 ClaudeProvider             Anthropic Messages API implementation
+OpenAIProvider             OpenAI Chat Completions API implementation
 AppleIntelligenceProvider  On-device inference via Apple Intelligence (iOS 26+ / macOS 26+)
 ```
 
@@ -231,6 +255,8 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class d
 | `AIClient` | Main entry point (actor). Orchestrates the provider, registries, and auto tool-execution loop. |
 | `AIProvider` | Protocol every provider implements. |
 | `StreamableProvider` | Extends `AIProvider` with SSE streaming. |
+| `ModelDiscoveryProvider` | Extends `AIProvider` with runtime model listing (`listModels()`). |
+| `AIModelInfo` | Model metadata returned by `listModels()` — id, display name, creation date. |
 | `AIRequestBuilder` | Fluent, validated request construction. |
 | `Tool` / `ToolGroup` | A callable function (or group) the model can invoke. |
 | `Recipe` | A `{{placeholder}}` prompt template. |
@@ -247,7 +273,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 |---|---|---|
 | **0.1.0** | Core architecture + Claude provider | ✅ Shipped |
 | **0.2.0** | Apple Intelligence provider (on-device) | ✅ Shipped |
-| **0.3.0** | OpenAI provider | 🔜 Next |
+| **0.3.0** | OpenAI provider + `ModelDiscoveryProvider` | ✅ Shipped |
 | **0.4.0** | Persistence — core protocol + in-memory backend | 🔜 Planned |
 | **0.5.0** | Persistence — file system backend | 🔜 Planned |
 | **0.6.0** | Persistence — SwiftData backend | 🔜 Planned |

@@ -120,7 +120,7 @@ Plugins/RunIntegrationTests/
 private func testMyFeature() async throws {
     // given
     let request = try AIRequestBuilder()
-        .model(.claudeHaiku4)
+        .model(.claudeHaiku45)
         .addMessage(.user(text: "..."))
         .maxTokens(64)
         .build()

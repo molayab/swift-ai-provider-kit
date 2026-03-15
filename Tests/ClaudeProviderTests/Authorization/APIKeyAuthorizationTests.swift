@@ -8,13 +8,13 @@ struct APIKeyAuthorizationTests {
     @Test("valid key returns headers with x-api-key")
     func validKey_returnsCorrectHeaders() async throws {
         // Given
-        let auth = APIKeyAuthorization(apiKey: "sk-ant-test-12345")
+        let auth = APIKeyAuthorization(apiKey: "test-api-key")
 
         // When
         let headers = try await auth.authorizationHeaders()
 
         // Then
-        #expect(headers == ["x-api-key": "sk-ant-test-12345"])
+        #expect(headers == ["x-api-key": "test-api-key"])
     }
 
     @Test("empty key throws authorizationFailed")

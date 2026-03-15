@@ -49,7 +49,7 @@ func runWithTools() async throws {
     await client.toolRegistry.registerAll(RemindersTool.self)
 
     let request = try AIRequestBuilder()
-        .model(.claudeSonnet4)
+        .model(.claudeSonnet46)
         .tools(await client.toolRegistry.allTools)  // pass all registered tools
         .addMessage(.user(text: "Find me up to 3 'Swift book' products."))
         .build()

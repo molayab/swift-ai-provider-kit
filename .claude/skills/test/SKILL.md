@@ -62,7 +62,7 @@ Re-run the same command as Step 1. Confirm `Test run with N test(s) passed` befo
 
 1. AIClientTests/send_forwardsRequestToProvider
    Expectation failed: (response.model) → "claude-opus-4" == "claude-opus-4-5"
-   Root cause: ClaudeModels.swift — `.claudeOpus4` model ID was renamed.
+   Root cause: ClaudeModels.swift — `.claudeOpus46` model ID was renamed.
    Fix: Update the model constant string in ClaudeModels.swift line 12.
 
 2. ...

@@ -5,18 +5,18 @@
 ///
 /// ```swift
 /// let client = AIClient(
-///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "sk-...")),
+///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "<ANTHROPIC_API_KEY>")),
 ///     logger: AILogger(subsystem: "com.myapp", category: "ai")
 /// )
 /// let response = try await client.send(
 ///     AIRequestBuilder()
-///         .model(.claudeSonnet4)
+///         .model(.claudeSonnet46)
 ///         .addMessage(.user(text: "Hello!"))
 ///         .build()
 /// )
 /// ```
 public actor AIClient {
-    private let provider: any AIProvider
+    nonisolated public let provider: any AIProvider
     private let logger: AILogger?
 
     public let toolRegistry: ToolRegistry

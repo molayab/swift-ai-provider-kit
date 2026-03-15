@@ -22,7 +22,7 @@ let client = AIClient(provider: provider)
 func singleTurn() async throws {
     let response = try await client.send(
         AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .systemPrompt("You are a helpful assistant.")
             .addMessage(.user(text: "What is the capital of France?"))
             .maxTokens(256)
@@ -45,7 +45,7 @@ func multiTurnChat() async throws {
 
         let response = try await client.send(
             AIRequestBuilder()
-                .model(.claudeSonnet4)
+                .model(.claudeSonnet46)
                 .messages(history)
                 .build()
         )

@@ -5,7 +5,7 @@
 ///
 /// ```swift
 /// let request = try AIRequestBuilder()
-///     .model(.claudeSonnet4)
+///     .model(.claudeSonnet46)
 ///     .systemPrompt("You are a helpful assistant.")
 ///     .conversation {
 ///         Message.user(text: "What is 2 + 2?")

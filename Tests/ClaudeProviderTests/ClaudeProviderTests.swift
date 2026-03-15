@@ -13,6 +13,16 @@ struct ClaudeProviderTests {
         )
     }
 
+    // MARK: - AIModel Constants
+
+    @Test("AIModel constants have correct identifiers")
+    func aiModelConstants_haveCorrectIdentifiers() {
+        // Given / When / Then
+        #expect(AIModel.claudeOpus46.identifier == "claude-opus-4-6")
+        #expect(AIModel.claudeSonnet46.identifier == "claude-sonnet-4-6")
+        #expect(AIModel.claudeHaiku45.identifier == "claude-haiku-4-5-20251001")
+    }
+
     @Test("send encodes request and decodes successful response")
     func sendDecodesResponse() async throws {
         // GIVEN
@@ -23,7 +33,7 @@ struct ClaudeProviderTests {
         )
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Hello"))
             .build()
 
@@ -44,7 +54,7 @@ struct ClaudeProviderTests {
         httpClient.stubbedResponse = HTTPResponse(statusCode: 429, body: Data())
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Hello"))
             .build()
 
@@ -61,7 +71,7 @@ struct ClaudeProviderTests {
         httpClient.stubbedResponse = HTTPResponse(statusCode: 500, body: Data("error".utf8))
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Hello"))
             .build()
 
@@ -78,7 +88,7 @@ struct ClaudeProviderTests {
         httpClient.stubbedStreamData = ClaudeResponseFixture.streamChunks
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Hello"))
             .build()
 
@@ -90,6 +100,43 @@ struct ClaudeProviderTests {
 
         // THEN
         #expect(deltas == ["Hello", " world"])
+    }
+
+    @Test("stream throws rateLimitExceeded when HTTP 429 is received before SSE data")
+    func stream_throws_rateLimitExceeded_on429() async throws {
+        // Given
+        let httpClient = MockHTTPClient()
+        httpClient.stubbedStreamError = HTTPStreamError(statusCode: 429, body: Data())
+        let provider = makeProvider(httpClient: httpClient)
+        let request = try AIRequestBuilder()
+            .model(.claudeSonnet46)
+            .addMessage(.user(text: "Hello"))
+            .build()
+
+        // When / Then
+        await #expect(throws: AIError.self) {
+            for try await _ in provider.stream(request) {}
+        }
+    }
+
+    @Test("stream throws invalidResponse when HTTP 500 is received before SSE data")
+    func stream_throws_invalidResponse_on500() async throws {
+        // Given
+        let httpClient = MockHTTPClient()
+        httpClient.stubbedStreamError = HTTPStreamError(
+            statusCode: 500,
+            body: Data("Internal Server Error".utf8)
+        )
+        let provider = makeProvider(httpClient: httpClient)
+        let request = try AIRequestBuilder()
+            .model(.claudeSonnet46)
+            .addMessage(.user(text: "Hello"))
+            .build()
+
+        // When / Then
+        await #expect(throws: AIError.self) {
+            for try await _ in provider.stream(request) {}
+        }
     }
 
     // MARK: - Tool Use in Request
@@ -112,7 +159,7 @@ struct ClaudeProviderTests {
             )
         ) { _ async in .null }
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Weather in Rome?"))
             .addTool(tool)
             .build()
@@ -140,7 +187,7 @@ struct ClaudeProviderTests {
         )
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .systemPrompt("You are an expert.")
             .addMessage(.user(text: "Hello"))
             .build()
@@ -175,7 +222,7 @@ struct ClaudeProviderTests {
         )
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.claudeSonnet4)
+            .model(.claudeSonnet46)
             .addMessage(.user(text: "Hello"))
             .build()
 

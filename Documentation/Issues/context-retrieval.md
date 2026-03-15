@@ -428,7 +428,7 @@ let userQuery = "How do I add a new provider?"
 let retrieved = try await docsContext.retrieve(for: userQuery)
 
 let request = try AIRequestBuilder()
-    .model(.claudeSonnet4)
+    .model(.claudeSonnet46)
     .systemPrompt("You are a helpful documentation assistant.")
     .context(retrieved)                       // ← injects retrieved chunks
     .addMessage(.user(text: userQuery))

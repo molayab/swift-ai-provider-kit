@@ -14,6 +14,8 @@ public enum AIError: Error, Sendable {
     case encodingFailed(underlying: any Error)
     /// The provider does not support the requested capability.
     case providerUnsupported(capability: AICapability)
+    /// The provider is of a different concrete type than expected by `castAs(_:)`.
+    case providerTypeMismatch(expected: String, actual: String)
     /// A registered tool's handler threw an error during execution.
     case toolExecutionFailed(toolName: String, underlying: any Error)
     /// No tool with the given name is registered in the `ToolRegistry`.
@@ -55,6 +57,8 @@ extension AIError: LocalizedError {
             return "Encoding failed: \(err.localizedDescription)"
         case .providerUnsupported(let cap):
             return "Provider does not support: \(cap)"
+        case .providerTypeMismatch(let expected, let actual):
+            return "Provider type mismatch: expected \(expected), got \(actual)"
         case .toolExecutionFailed(let name, let err):
             return "Tool '\(name)' failed: \(err.localizedDescription)"
         case .toolNotFound(let name):
