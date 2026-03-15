@@ -431,11 +431,14 @@ Tasks are ordered by dependency and grouped by path.
 
 ### Prerequisite (Path D / shared foundation)
 
+> **Package manifest note:** The package-level `platforms: [.iOS(.v26), .macOS(.v26), ...]` declaration stays unchanged — it only governs Apple deployment targets and has no effect on Linux. Linux compatibility is achieved entirely through source-level `#if canImport(...)` / `#if os(Linux)` guards and conditionally-compiled target dependencies (via `.when(platforms: [.linux])` in `Package.swift`). There is no per-target `platforms` field in SwiftPM.
+
+- [ ] Wrap all source in `AIProviderKitUI/` (i.e. `AILogView`) in `#if canImport(SwiftUI)` so the target compiles (as an empty module) on Linux where SwiftUI is unavailable
 - [ ] Add `#if canImport(EventKit)` guards around `CalendarTool` and `RemindersTool`
 - [ ] Add `#if canImport(CoreLocation)` guard around `LocationTool`
 - [ ] Audit `AILogger.swift` for `os.Logger` usage; implement a `#if canImport(os)` conditional with a `print`-based fallback for Linux
 - [ ] Add a `LinuxHTTPClient.swift` implementing the `HTTPClient` protocol using `AsyncHTTPClient` (guarded by `#if os(Linux)`; Windows excluded pending SwiftNIO maturity)
-- [ ] Update `Package.swift` to conditionally depend on `swift-server/async-http-client` on Linux only
+- [ ] In `Package.swift`, add `swift-server/async-http-client` as a conditional target dependency using `.product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(platforms: [.linux]))` — this is the supported SwiftPM mechanism for platform-conditional dependencies
 - [ ] Update `ClaudeProvider` initialiser to select the appropriate `HTTPClient` implementation at runtime based on platform
 - [ ] Add Ubuntu 24.04 runner to GitHub Actions CI matrix
 - [ ] Verify `swift build` and `swift test` pass on Linux for `AIProviderKitTests` and `ClaudeProviderTests`
@@ -456,7 +459,7 @@ Tasks are ordered by dependency and grouped by path.
 - [ ] Evaluate C++ interop cost on all existing consumers before proceeding
 - [ ] Add `LlamaProviderNative` target with `binaryTarget` dependency on StanfordBDHG XCFramework
 - [ ] Add `LlamaNativeRequestHandler` (replaces HTTP with direct C++ API calls)
-- [ ] Gate target with explicit `platforms: [.iOS(.v17), .macOS(.v14)]` (enabling older Apple OS support vs `AppleIntelligenceProvider`'s iOS 26 requirement)
+- [ ] Decide on minimum OS version strategy: since `platforms` is package-level in SwiftPM (not per-target), supporting older Apple OSes (e.g. macOS 14) from `LlamaProviderNative` while the rest of the package requires macOS 26 is not expressible within a single package. Options: (a) accept macOS 26 minimum inherited from the package, or (b) split `LlamaProviderNative` into a separate Swift package with its own `platforms` declaration
 
 ---
 
