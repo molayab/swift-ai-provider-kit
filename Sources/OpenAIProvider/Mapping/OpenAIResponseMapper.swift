@@ -69,11 +69,13 @@ struct OpenAIResponseMapper: Sendable {
             let name = first.function?.name ?? ""
             let argsDelta = first.function?.arguments ?? ""
 
-            // Yield a toolUseDelta for identification (first chunk has id/name)
-            // or for subsequent argument chunks
-            if !id.isEmpty || !name.isEmpty || !argsDelta.isEmpty {
-                return .toolUseDelta(id: id, name: name, inputDelta: argsDelta)
-            }
+            // Only yield when id or name is present — this is the first (identification)
+            // chunk for this tool call. Subsequent argument-only chunks have neither id
+            // nor name; a stateless per-chunk mapper cannot correlate them, so they are
+            // dropped here. Use OpenAIProvider.stream(_:) for correct multi-chunk
+            // accumulation keyed by tool-call index.
+            guard !id.isEmpty || !name.isEmpty else { return nil }
+            return .toolUseDelta(id: id, name: name, inputDelta: argsDelta)
         }
 
         return nil

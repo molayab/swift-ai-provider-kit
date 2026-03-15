@@ -255,6 +255,21 @@ struct OpenAIResponseMapperTests {
         }
     }
 
+    @Test("mapStreamEvent returns nil for argument-only tool_calls chunk (no id or name)")
+    func mapStreamEvent_toolCallsArgOnlyChunk_returnsNil() throws {
+        // Given — subsequent OpenAI streaming chunks carry only `arguments`, no id or name.
+        // mapStreamEvent is stateless and cannot correlate these to a prior tool call,
+        // so it must return nil rather than yielding a toolUseDelta with empty id/name.
+        let json = #"{"id":"chatcmpl-s2","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"loc"}}]},"finish_reason":null}]}"#
+        let data = Data(json.utf8)
+
+        // When
+        let event = try sut.mapStreamEvent(data)
+
+        // Then
+        #expect(event == nil)
+    }
+
     // MARK: - mapStreamEvent — Empty Delta
 
     @Test("mapStreamEvent returns nil for empty delta")
