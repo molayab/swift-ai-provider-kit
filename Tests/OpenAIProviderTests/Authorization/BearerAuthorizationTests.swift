@@ -8,13 +8,13 @@ struct BearerAuthorizationTests {
     @Test("authorizationHeaders returns Bearer token header")
     func authorizationHeaders_returnsBearerToken() async throws {
         // Given
-        let sut = BearerAuthorization(apiKey: "sk-test-123")
+        let sut = BearerAuthorization(apiKey: "test-api-key")
 
         // When
         let headers = try await sut.authorizationHeaders()
 
         // Then
-        #expect(headers["Authorization"] == "Bearer sk-test-123")
+        #expect(headers["Authorization"] == "Bearer test-api-key")
     }
 
     @Test("authorizationHeaders throws authorizationFailed for empty key")
@@ -31,7 +31,7 @@ struct BearerAuthorizationTests {
     @Test("header key is Authorization with capital A")
     func headerKey_isAuthorizationWithCapitalA() async throws {
         // Given
-        let sut = BearerAuthorization(apiKey: "sk-any-key")
+        let sut = BearerAuthorization(apiKey: "test-api-key")
 
         // When
         let headers = try await sut.authorizationHeaders()
