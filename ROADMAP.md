@@ -35,7 +35,7 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 ## 0.3.0 — OpenAI Provider ✓
 
 - [x] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
-- [x] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`, `o4-mini`
+- [x] `AIModel` constants — `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o`, `gpt-4o-mini`, `o3`, `o3-mini`, `o4-mini`
 - [x] `BearerAuthorization` — Bearer token auth for OpenAI API
 - [x] Map OpenAI function-calling (`tool_calls`) to `ContentBlock.toolUse` / `toolResult`
 - [x] System prompt injected as `role: "system"` message (not top-level field)
