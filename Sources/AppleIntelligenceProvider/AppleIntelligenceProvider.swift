@@ -100,11 +100,17 @@ public final class AppleIntelligenceProvider: StreamableProvider {
                     let fmRequest = self.requestMapper.map(request)
                     let session = try self.sessionFactory.makeSession(for: fmRequest)
 
+                    var accumulated = ""
                     for try await delta in session.stream(fmRequest) {
                         if Task.isCancelled { break }
-                        let event = self.responseMapper.mapStreamDelta(delta)
-                        continuation.yield(event)
+                        accumulated += delta.text
+                        continuation.yield(self.responseMapper.mapStreamDelta(delta))
                     }
+
+                    // Emit a final .message event so consumers (BenchmarkSuite,
+                    // AIClient tool-use loop) receive the complete response + token estimates.
+                    let finalResponse = self.responseMapper.mapStreamFinal(accumulated, model: modelId)
+                    continuation.yield(.message(finalResponse))
                     continuation.finish()
                 } catch {
                     self.logger?.error("AppleIntelligenceProvider: stream error — \(error)")

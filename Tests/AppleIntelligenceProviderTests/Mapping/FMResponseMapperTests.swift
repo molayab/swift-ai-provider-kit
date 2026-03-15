@@ -165,17 +165,28 @@ struct FMResponseMapperTests {
 
     // MARK: - Token Usage
 
-    @Test("token usage is zero")
-    func map_tokenUsage_isZero() {
+    @Test("input token count is zero (not reported by FoundationModels)")
+    func map_inputTokenUsage_isZero() {
         // Given
         let fmResponse = FMResponse(content: "ok", toolCalls: [], stopReason: .endTurn)
 
         // When
         let response = sut.map(fmResponse, model: "m")
 
-        // Then
+        // Then — input tokens are never reported by FoundationModels
         #expect(response.usage.inputTokens == 0)
-        #expect(response.usage.outputTokens == 0)
+    }
+
+    @Test("output token count is estimated from character count")
+    func map_outputTokenUsage_isEstimated() {
+        // Given — "ok" is 2 UTF-16 code units → max(1, 2/4) = 1
+        let fmResponse = FMResponse(content: "ok", toolCalls: [], stopReason: .endTurn)
+
+        // When
+        let response = sut.map(fmResponse, model: "m")
+
+        // Then — heuristic: 1 token per 4 UTF-16 code units, minimum 1
+        #expect(response.usage.outputTokens >= 1)
     }
 
     // MARK: - Stream Delta
