@@ -34,6 +34,7 @@
 > **Status:** Investigation — no code changes proposed yet
 > **Relates to:** [`ROADMAP.md`](../../ROADMAP.md) — "Beyond 1.0.0: Android / Linux support"
 > **Created:** 2026-03-15
+> **Windows verdict:** Not viable — blocked on SwiftNIO maturity. Documented for future reference; revisit when SwiftNIO for Windows reaches production status.
 
 ---
 
@@ -262,6 +263,8 @@ SwiftUI is unavailable on Linux. `AIProviderKitUI` (`AILogView`) must remain App
 
 ## Swift on Windows
 
+> **Verdict: Not viable at this time.** Windows support is documented here for future reference. The primary blocker is SwiftNIO — which `AsyncHTTPClient` (the required URLSession replacement) depends on — not yet reaching production status on Windows as of mid-2025. This section should be revisited once the Swift Server Work Group closes the SwiftNIO-on-Windows gap.
+
 Swift on Windows is production-ready for CLI and server-side workloads (as of Swift 6.1+). Prebuilt toolchains are available for ARM64 Windows (added in Swift 6). VS Code with the official Swift extension provides full IDE support.
 
 **Key limitations for this project:**
@@ -271,13 +274,14 @@ Swift on Windows is production-ready for CLI and server-side workloads (as of Sw
 | Swift compiler / SPM | Full support |
 | SwiftUI | Not available |
 | URLSession async/await | Partial (same issues as Linux) |
-| SwiftNIO for Windows | Still maturing as of mid-2025 ([Swift Forums](https://forums.swift.org/t/mid-year-2025-swiftnio-for-windows-status/81143)) |
+| SwiftNIO for Windows | **Not production-ready** — still maturing as of mid-2025 ([Swift Forums](https://forums.swift.org/t/mid-year-2025-swiftnio-for-windows-status/81143)) |
+| `AsyncHTTPClient` | Blocked by SwiftNIO — not usable on Windows |
 | Concurrency inspection (`swift-inspect`) | Not available |
 | EventKit / CoreLocation | Not available |
 | `os.Logger` | Not available |
 | 64k DLL symbol limit | Engineering constraint for large targets |
 
-The SwiftNIO maturity gap is notable because AsyncHTTPClient (the recommended URLSession replacement for Linux) depends on SwiftNIO. If Windows support is a goal, this dependency would need to be monitored or worked around.
+**Why this is the hard blocker:** `AsyncHTTPClient` is the only viable production HTTP client for cross-platform Swift (URLSession async/await is incomplete on non-Apple platforms). `AsyncHTTPClient` is built on SwiftNIO. Until SwiftNIO for Windows is production-ready, there is no reliable HTTP foundation for `ClaudeProvider` or `LlamaProvider` on Windows. All other Windows limitations are manageable; this one is not.
 
 ---
 
@@ -384,16 +388,18 @@ MLC LLM is particularly relevant for Windows on Qualcomm Snapdragon (ARM64 + Hex
 
 ---
 
-### Path D — Linux / Windows ClaudeProvider port
+### Path D — Linux ClaudeProvider port
 
-**Description:** Make `ClaudeProvider` compile on Linux (and potentially Windows) by replacing `URLSessionHTTPClient` with a platform-conditional implementation.
+> **Scope: Linux only.** Windows is excluded from this path until SwiftNIO for Windows reaches production status. See [Swift on Windows](#swift-on-windows).
+
+**Description:** Make `ClaudeProvider` compile on Linux by replacing `URLSessionHTTPClient` with an `AsyncHTTPClient`-backed implementation, conditionally compiled for Linux.
 
 **Required changes:**
 1. **`Package.swift`** — Remove `platforms` constraint from `AIProviderKit` and `ClaudeProvider` targets (keep it on `AppleIntelligenceProvider`, `AIProviderKitUI`, and built-in tools)
-2. **`ClaudeProvider/Networking/`** — Add `AsyncHTTPClientAdapter` conforming to the existing `HTTPClient` protocol, conditionally compiled on Linux
+2. **`ClaudeProvider/Networking/`** — Add `AsyncHTTPClientAdapter` conforming to the existing `HTTPClient` protocol, conditionally compiled on Linux (`#if os(Linux)`)
 3. **`AIProviderKit/Tools/`** — Wrap `CalendarTool`, `RemindersTool`, `LocationTool` in `#if canImport(EventKit)` / `#if canImport(CoreLocation)` guards
 4. **`AIProviderKit/Logging/AILogger.swift`** — Conditionally use `os.Logger` on Apple; fall back to `swift-log` or `print` on Linux (adds a dependency or reduces logging capability)
-5. **`Package.swift`** — Add `AsyncHTTPClient` as a conditional dependency (Linux/Windows only) or as a separate optional target
+5. **`Package.swift`** — Add `AsyncHTTPClient` as a Linux-only conditional dependency
 
 **`LlamaProvider` from Path A** would automatically benefit from Path D's networking fix on Linux.
 
@@ -411,9 +417,9 @@ MLC LLM is particularly relevant for Windows on Qualcomm Snapdragon (ARM64 + Hex
 
 5. **Minimum hardware for on-device Linux**: What is the expected deployment context? (Raspberry Pi 5 with 8 GB RAM can run a 7B Q4 model; cloud VMs with NVIDIA GPUs can run 70B models via CUDA). The answer affects which quantizations and backends to document.
 
-6. **Windows priority**: Given that SwiftNIO on Windows is still maturing, should Windows support be deferred until SwiftNIO stabilises, or should it be parallelised?
+6. **CI/CD**: Linux support requires adding Ubuntu runners to the GitHub Actions workflow. Should a matrix strategy be introduced (macOS + Ubuntu) or should Linux be a separate optional workflow?
 
-7. **CI/CD**: Linux support requires adding Ubuntu runners to the GitHub Actions workflow. Should a matrix strategy be introduced (macOS + Ubuntu) or should Linux be a separate optional workflow?
+> **Windows is not an open question.** It is deferred — not viable until SwiftNIO for Windows is production-ready. No decision required at this time; revisit when the Swift Server Work Group signals completion.
 
 ---
 
@@ -427,8 +433,8 @@ Tasks are ordered by dependency and grouped by path.
 - [ ] Add `#if canImport(EventKit)` guards around `CalendarTool` and `RemindersTool`
 - [ ] Add `#if canImport(CoreLocation)` guard around `LocationTool`
 - [ ] Audit `AILogger.swift` for `os.Logger` usage; implement a `#if canImport(os)` conditional with a `print`-based fallback for Linux
-- [ ] Add a `LinuxHTTPClient.swift` implementing the `HTTPClient` protocol using `AsyncHTTPClient` (guarded by `#if os(Linux)`)
-- [ ] Update `Package.swift` to conditionally depend on `swift-server/async-http-client` on Linux
+- [ ] Add a `LinuxHTTPClient.swift` implementing the `HTTPClient` protocol using `AsyncHTTPClient` (guarded by `#if os(Linux)`; Windows excluded pending SwiftNIO maturity)
+- [ ] Update `Package.swift` to conditionally depend on `swift-server/async-http-client` on Linux only
 - [ ] Update `ClaudeProvider` initialiser to select the appropriate `HTTPClient` implementation at runtime based on platform
 - [ ] Add Ubuntu 24.04 runner to GitHub Actions CI matrix
 - [ ] Verify `swift build` and `swift test` pass on Linux for `AIProviderKitTests` and `ClaudeProviderTests`
