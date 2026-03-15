@@ -32,13 +32,28 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 - [x] Tool use mapping to Foundation Models function-calling API
 - [x] Unit + integration tests (simulator + device)
 
-## 0.3.0 — OpenAI Provider (current)
+## 0.3.0 — OpenAI Provider ✓
 
-- [ ] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
-- [ ] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`
-- [ ] Map OpenAI function-calling to `ContentBlock.toolUse` / `toolResult`
-- [ ] Unit tests — `MockHTTPClient` pattern mirroring `ClaudeProviderTests`
+- [x] `OpenAIProvider` — Chat Completions API (text, vision, tools, streaming)
+- [x] `AIModel` constants — `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`, `o4-mini`
+- [x] `BearerAuthorization` — Bearer token auth for OpenAI API
+- [x] Map OpenAI function-calling (`tool_calls`) to `ContentBlock.toolUse` / `toolResult`
+- [x] System prompt injected as `role: "system"` message (not top-level field)
+- [x] Tool results mapped to individual `role: "tool"` messages per OpenAI convention
+- [x] Vision support — URL and base64 images via `image_url` content parts
+- [x] SSE streaming — text deltas and tool-call deltas via `AsyncThrowingStream`
+- [x] Unit tests — 46 tests, fully mocked via `MockHTTPClient` (no API key required)
 - [ ] Integration tests — `swift package integration-tests` extended for OpenAI
+
+## 0.3.1 — Dynamic Model Discovery: Claude
+
+`OpenAIProvider` already conforms to `ModelDiscoveryProvider` (ships in 0.3.0).
+This milestone adds the same capability to `ClaudeProvider`.
+
+- [ ] `ClaudeProvider: ModelDiscoveryProvider` — implement `listModels()` via `GET /v1/models`
+- [ ] Cursor-based pagination support — follow `has_more` / `after_id` until all pages are fetched
+- [ ] Map Anthropic response fields: `id` → `AIModel`, `display_name` → `AIModelInfo.displayName`, `created_at` → `AIModelInfo.createdAt`
+- [ ] Unit tests — `MockHTTPClient` stubs for single-page and multi-page responses, error cases
 
 ## 0.4.0 — Persistence: Core Protocol & In-Memory
 
@@ -137,7 +152,6 @@ All of 0.2–0.6.7, plus:
 
 ## Beyond 1.0.0 (ideas, not committed)
 
-- OpenAI Provider — Chat Completions API (text, vision, tools, streaming)
 - Anthropic extended thinking / reasoning steps
 - OpenAI Assistants API (thread + file management) — being deprecated mid-2026 in favour of Responses API
 - Prompt caching support (Anthropic / OpenAI)

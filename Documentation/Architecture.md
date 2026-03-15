@@ -19,13 +19,14 @@
 
 AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 26+, watchOS 11+, tvOS 26+, and visionOS 2+, built with Swift 6 and full strict concurrency compliance.
 
-The package ships three library products today:
+The package ships four library products today:
 
 - **AIProviderKit** -- the core module containing protocols, models, builders, registries, and the `AIClient` actor. Zero external dependencies.
 - **ClaudeProvider** -- the Anthropic Messages API implementation. Depends only on `AIProviderKit`.
+- **OpenAIProvider** -- the OpenAI Chat Completions API implementation. Depends only on `AIProviderKit`.
 - **AppleIntelligenceProvider** -- on-device inference via Apple Intelligence (iOS 26+ / macOS 26+). Depends only on `AIProviderKit`; requires the `FoundationModels` framework at runtime.
 
-Additional provider modules (`OpenAIProvider`) and persistence/context modules are planned for future milestones but do not exist in the codebase today.
+Persistence and context retrieval modules are planned for future milestones.
 
 ---
 
@@ -38,23 +39,19 @@ graph LR
     subgraph shipped["Shipped modules"]
         Core["AIProviderKit"]
         Claude["ClaudeProvider"]
+        OpenAI["OpenAIProvider"]
         FM["AppleIntelligenceProvider"]
     end
 
-    subgraph planned["Planned modules"]
-        OpenAI["OpenAIProvider"]
-    end
-
     App --> Claude
+    App --> OpenAI
     App --> FM
     App --> Core
 
     Claude --> Core
+    OpenAI --> Core
     FM --> Core
-    OpenAI -.-> Core
 ```
-
-Dashed arrows indicate planned dependencies not yet present in the codebase.
 
 ---
 
@@ -73,6 +70,11 @@ classDiagram
     class StreamableProvider {
         <<protocol>>
         +stream(AIRequest) AsyncThrowingStream
+    }
+
+    class ModelDiscoveryProvider {
+        <<protocol>>
+        +listModels() [AIModelInfo]
     }
 
     class AuthorizationProvider {
@@ -107,6 +109,7 @@ classDiagram
     }
 
     AIProvider <|-- StreamableProvider
+    AIProvider <|-- ModelDiscoveryProvider
     AIClient --> AIProvider
     AIClient --> ToolRegistry
     AIClient --> SkillRegistry
@@ -120,7 +123,9 @@ classDiagram
 | `AIClient` (actor) | Main entry point. Coordinates the provider, registries, and the automatic tool-execution loop. |
 | `AIProvider` (protocol) | The single integration point for new AI backends. Requires `identifier`, `capabilities`, and `send(_:)`. |
 | `StreamableProvider` (protocol) | Extends `AIProvider` with `stream(_:)` for server-sent event streaming. |
-| `AuthorizationProvider` (protocol) | Supplies HTTP authorization headers. Implementations include `APIKeyAuthorization`. |
+| `ModelDiscoveryProvider` (protocol) | Extends `AIProvider` with `listModels()` for runtime model enumeration. `OpenAIProvider` conforms; `ClaudeProvider` planned in 0.3.1. |
+| `AIModelInfo` (struct) | Model metadata from `listModels()`: `model: AIModel`, `displayName: String?`, `createdAt: Date?`. |
+| `AuthorizationProvider` (protocol) | Supplies HTTP authorization headers. Implementations include `APIKeyAuthorization` (x-api-key) and `BearerAuthorization` (Authorization: Bearer). |
 | `ContentBlock` (enum) | Universal currency for message content: `.text`, `.image`, `.toolUse`, `.toolResult`. All providers map to/from this type. |
 | `JSONValue` (enum) | Type-safe, `Sendable`, `Codable` representation of arbitrary JSON. Used for tool inputs and outputs, avoiding `Any`. |
 | `Tool` (struct) | A callable tool with a name, description, `JSONSchema` input schema, and an async handler. |
@@ -248,6 +253,64 @@ classDiagram
 - **`APIKeyAuthorization`** implements `AuthorizationProvider` by returning `["x-api-key": apiKey]`.
 
 Model constants are defined as static extensions on `AIModel`: `.claudeOpus4`, `.claudeSonnet4`, `.claudeHaiku4`.
+
+---
+
+## OpenAIProvider Internals
+
+`OpenAIProvider` conforms to `StreamableProvider` and `ModelDiscoveryProvider`, using the same mapper pattern as `ClaudeProvider`.
+
+```mermaid
+classDiagram
+    class OpenAIProvider {
+        +identifier: "openai"
+        +capabilities: text, vision, tools, streaming, systemPrompt
+        +send(AIRequest) AIResponse
+        +stream(AIRequest) AsyncThrowingStream
+        +listModels() [AIModelInfo]
+    }
+
+    class OpenAIRequestMapper {
+        +map(AIRequest, stream: Bool) OpenAIChatRequest
+    }
+
+    class OpenAIResponseMapper {
+        +map(OpenAIChatResponse) AIResponse
+        +mapStreamEvent(Data) AIStreamEvent?
+    }
+
+    class OpenAIConstants {
+        +chatCompletionsURL: URL$
+        +modelsURL: URL$
+        +chatModelPrefixes: [String]$
+        +excludedModelPrefixes: [String]$
+    }
+
+    class BearerAuthorization {
+        +authorizationHeaders() [String:String]
+    }
+
+    OpenAIProvider --> HTTPClient
+    OpenAIProvider --> OpenAIRequestMapper
+    OpenAIProvider --> OpenAIResponseMapper
+    OpenAIProvider --> AuthorizationProvider
+    OpenAIProvider --> OpenAIConstants
+    BearerAuthorization ..|> AuthorizationProvider
+```
+
+Key differences from `ClaudeProvider`:
+
+| Concept | Claude | OpenAI |
+|---------|--------|--------|
+| Auth header | `x-api-key` | `Authorization: Bearer` |
+| System prompt | Top-level `system` field | First `{"role":"system"}` message |
+| Tool calls | `tool_use` content block | `tool_calls` array on assistant message |
+| Tool results | `tool_result` content block | Individual `role: "tool"` messages |
+| Images | `image` content block | `image_url` content part (URL or data URI) |
+| Finish reason | `end_turn` / `tool_use` | `stop` / `tool_calls` |
+| Usage fields | `input_tokens` / `output_tokens` | `prompt_tokens` / `completion_tokens` |
+
+`OpenAIConstants` centralises all endpoint URLs, chat-model prefixes, and exclusion lists. Adding a new model family (e.g., `gpt-5`) requires only updating `chatModelPrefixes` in that file.
 
 ---
 
