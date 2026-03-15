@@ -20,15 +20,13 @@ struct FMResponseMapper: Sendable {
             content = [.text(response.content)]
         }
 
-        // FoundationModels does not expose token counts. Estimate output tokens
-        // using the standard BPE heuristic: 1 token ≈ 4 characters.
-        let estimatedOutput = max(1, response.content.utf16.count / 4)
-
+        // FoundationModels does not expose token counts — report 0 so callers
+        // can detect the absence and apply their own estimation strategy.
         return AIResponse(
             id: UUID().uuidString,
             model: model,
             content: content,
-            usage: TokenUsage(inputTokens: 0, outputTokens: estimatedOutput),
+            usage: TokenUsage(inputTokens: 0, outputTokens: 0),
             stopReason: mapStopReason(response.stopReason)
         )
     }

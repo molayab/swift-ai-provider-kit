@@ -7,12 +7,20 @@ struct BenchmarkSample {
     let ttft: TimeInterval?        // time-to-first-token (streaming scenarios only)
     let inputTokens: Int
     let outputTokens: Int          // may be estimated (char/4) when provider omits counts
+    let tokensEstimated: Bool      // true when char/4 heuristic was used
 
-    init(duration: TimeInterval, ttft: TimeInterval? = nil, inputTokens: Int, outputTokens: Int) {
-        self.duration     = duration
-        self.ttft         = ttft
-        self.inputTokens  = inputTokens
-        self.outputTokens = outputTokens
+    init(
+        duration: TimeInterval,
+        ttft: TimeInterval? = nil,
+        inputTokens: Int,
+        outputTokens: Int,
+        tokensEstimated: Bool = false
+    ) {
+        self.duration        = duration
+        self.ttft            = ttft
+        self.inputTokens     = inputTokens
+        self.outputTokens    = outputTokens
+        self.tokensEstimated = tokensEstimated
     }
 }
 
@@ -60,6 +68,8 @@ struct BenchmarkStats {
 
     var meanInputTokens:  Double { samples.map { Double($0.inputTokens)  }.mean }
     var meanOutputTokens: Double { samples.map { Double($0.outputTokens) }.mean }
+    /// True when any sample used the char/4 heuristic instead of a provider-reported count.
+    var tokensEstimated: Bool { samples.contains { $0.tokensEstimated } }
 
     // MARK: - Private helpers
 

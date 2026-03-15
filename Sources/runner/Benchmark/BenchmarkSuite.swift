@@ -89,10 +89,12 @@ actor BenchmarkSuite {
                 let response = try await client.send(request)
                 let elapsed  = Date().timeIntervalSince(start)
 
+                let (outTokens, outEstimated) = outputTokens(response)
                 samples.append(BenchmarkSample(
-                    duration:     elapsed,
-                    inputTokens:  response.usage.inputTokens,
-                    outputTokens: estimatedOutputTokens(response)
+                    duration:        elapsed,
+                    inputTokens:     response.usage.inputTokens,
+                    outputTokens:    outTokens,
+                    tokensEstimated: outEstimated
                 ))
             } catch {
                 print("  [latency \(i)/\(runs)] error: \(error)")
@@ -137,11 +139,13 @@ actor BenchmarkSuite {
                 let elapsed = Date().timeIntervalSince(start)
 
                 if let ttftValue = ttft, let resp = finalResponse {
+                    let (outTokens, outEstimated) = outputTokens(resp)
                     samples.append(BenchmarkSample(
-                        duration:     elapsed,
-                        ttft:         ttftValue,
-                        inputTokens:  resp.usage.inputTokens,
-                        outputTokens: estimatedOutputTokens(resp)
+                        duration:        elapsed,
+                        ttft:            ttftValue,
+                        inputTokens:     resp.usage.inputTokens,
+                        outputTokens:    outTokens,
+                        tokensEstimated: outEstimated
                     ))
                 }
             } catch {
@@ -191,11 +195,13 @@ actor BenchmarkSuite {
                 let ttft = decodeStart.map { $0.timeIntervalSince(requestStart) }
 
                 if let resp = finalResponse {
+                    let (outTokens, outEstimated) = outputTokens(resp)
                     samples.append(BenchmarkSample(
-                        duration:     decodeElapsed,
-                        ttft:         ttft,
-                        inputTokens:  resp.usage.inputTokens,
-                        outputTokens: estimatedOutputTokens(resp)
+                        duration:        decodeElapsed,
+                        ttft:            ttft,
+                        inputTokens:     resp.usage.inputTokens,
+                        outputTokens:    outTokens,
+                        tokensEstimated: outEstimated
                     ))
                 }
             } catch {
@@ -209,14 +215,13 @@ actor BenchmarkSuite {
 
     // MARK: - Token estimation
 
-    /// Returns the provider's reported output token count, or falls back to the
-    /// standard BPE heuristic (1 token ≈ 4 UTF-16 code units) when the count is 0.
-    private func estimatedOutputTokens(_ response: AIResponse) -> Int {
+    /// Returns `(count, estimated)` — the output token count and whether it was
+    /// derived from the char/4 heuristic rather than reported by the provider.
+    private func outputTokens(_ response: AIResponse) -> (count: Int, estimated: Bool) {
         guard response.usage.outputTokens == 0 else {
-            return response.usage.outputTokens
+            return (response.usage.outputTokens, false)
         }
-        let chars = response.text.utf16.count
-        return max(1, chars / 4)
+        return (max(1, response.text.utf16.count / 4), true)
     }
 
     // MARK: - Output
@@ -284,8 +289,11 @@ actor BenchmarkSuite {
 
         print("\n  " + String(repeating: "─", count: 76))
         print("  Token usage — mean over latency scenario")
-        let inputLabel  = latency.meanInputTokens  == 0 ? "not reported" : String(format: "%.0f", latency.meanInputTokens)
-        let outputLabel = String(format: "%.0f%@", latency.meanOutputTokens, latency.meanOutputTokens > 0 ? "" : " (estimated)")
+        let inputLabel  = latency.meanInputTokens == 0
+            ? "not reported"
+            : String(format: "%.0f", latency.meanInputTokens)
+        let estimatedSuffix = latency.tokensEstimated ? " (estimated via char/4 heuristic)" : ""
+        let outputLabel = String(format: "%.0f", latency.meanOutputTokens) + estimatedSuffix
         print("    Input:  \(inputLabel)")
         print("    Output: \(outputLabel)")
         print(String(format: "    Std dev (latency):  %.3f s", latency.stdDevDuration))
