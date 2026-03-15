@@ -1,9 +1,10 @@
 import EventKit
+import AIProviderKit
 
 /// Ready-to-use `Tool`s for reading and creating reminders via EventKit.
 ///
 /// ```swift
-/// RemindersTool.all.forEach { await client.toolRegistry.register($0) }
+/// await client.toolRegistry.registerAll(RemindersTool.self)
 /// ```
 public enum RemindersTool: ToolGroup {
 

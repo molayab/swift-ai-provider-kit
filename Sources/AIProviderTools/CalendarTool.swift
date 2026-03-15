@@ -1,9 +1,10 @@
 import EventKit
+import AIProviderKit
 
-/// Ready-to-use `Tool`s for reading and writing calendar events.
+/// Ready-to-use `Tool`s for reading and writing calendar events via EventKit.
 ///
 /// ```swift
-/// CalendarTool.all.forEach { await client.toolRegistry.register($0) }
+/// await client.toolRegistry.registerAll(CalendarTool.self)
 /// ```
 public enum CalendarTool: ToolGroup {
 

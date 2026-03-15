@@ -8,6 +8,9 @@
 - [Request Lifecycle](#request-lifecycle)
 - [Streaming Flow](#streaming-flow)
 - [ClaudeProvider Internals](#claudeprovider-internals)
+- [OpenAIProvider Internals](#openaiprovider-internals)
+- [AIProviderTools Module](#aiprovidertools-module)
+- [Runner Executable](#runner-executable)
 - [Adding a New Provider](#adding-a-new-provider)
 - [Concurrency Model](#concurrency-model)
 - [Logging Architecture](#logging-architecture)
@@ -19,12 +22,14 @@
 
 AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 26+, watchOS 11+, tvOS 26+, and visionOS 2+, built with Swift 6 and full strict concurrency compliance.
 
-The package ships four library products today:
+The package ships five library products and one executable:
 
 - **AIProviderKit** -- the core module containing protocols, models, builders, registries, and the `AIClient` actor. Zero external dependencies.
 - **ClaudeProvider** -- the Anthropic Messages API implementation. Depends only on `AIProviderKit`.
 - **OpenAIProvider** -- the OpenAI Chat Completions API implementation. Depends only on `AIProviderKit`.
 - **AppleIntelligenceProvider** -- on-device inference via Apple Intelligence (iOS 26+ / macOS 26+). Depends only on `AIProviderKit`; requires the `FoundationModels` framework at runtime.
+- **AIProviderTools** -- ready-to-use `Tool` and `ToolGroup` implementations (time, shell, calendar, reminders, location). Depends only on `AIProviderKit`.
+- **runner** -- a CLI executable for interactive chat, live integration tests, and provider benchmarks. Depends on all library modules.
 
 Persistence and context retrieval modules are planned for future milestones.
 
@@ -36,21 +41,34 @@ Persistence and context retrieval modules are planned for future milestones.
 graph LR
     App["Your App"]
 
-    subgraph shipped["Shipped modules"]
+    subgraph libraries["Library modules"]
         Core["AIProviderKit"]
         Claude["ClaudeProvider"]
         OpenAI["OpenAIProvider"]
         FM["AppleIntelligenceProvider"]
+        Tools["AIProviderTools"]
+    end
+
+    subgraph executables["Executable"]
+        Runner["runner"]
     end
 
     App --> Claude
     App --> OpenAI
     App --> FM
+    App --> Tools
     App --> Core
 
     Claude --> Core
     OpenAI --> Core
     FM --> Core
+    Tools --> Core
+
+    Runner --> Claude
+    Runner --> OpenAI
+    Runner --> FM
+    Runner --> Tools
+    Runner --> Core
 ```
 
 ---
@@ -63,7 +81,6 @@ classDiagram
         <<protocol>>
         +identifier: String
         +capabilities: Set~AICapability~
-        +contextWindowSize: Int
         +send(AIRequest) AIResponse
     }
 
@@ -131,6 +148,7 @@ classDiagram
 | `Tool` (struct) | A callable tool with a name, description, `JSONSchema` input schema, and an async handler. |
 | `Recipe` (struct) | A reusable prompt template with `{{placeholder}}` substitution. |
 | `Skill` (protocol) | Bundles tools, an optional recipe, and post-processing logic into a reusable capability. |
+| `ToolGroup` (protocol) | Vends a collection of related `Tool`s for bulk registration via `ToolRegistry.registerAll(_:)`. |
 | `ToolRegistry` (actor) | Thread-safe storage and lookup for `Tool` instances. Supports bulk registration via `ToolGroup`. |
 | `SkillRegistry` (actor) | Thread-safe storage and lookup for `Skill` instances. |
 | `RecipeRegistry` (actor) | Thread-safe storage and lookup for `Recipe` instances. |
@@ -138,14 +156,6 @@ classDiagram
 | `AIRequestBuilder` (class) | Fluent builder for `AIRequest` with validation on `build()`. |
 | `ContentBlockBuilder` | Result builder for constructing `[ContentBlock]` arrays declaratively. |
 | `ConversationBuilder` | Result builder for constructing `[Message]` arrays declaratively. |
-
-### Built-in tool groups
-
-Three `ToolGroup`-conforming enums ship in `AIProviderKit`:
-
-- `CalendarTool` -- `list_calendar_events`, `create_calendar_event` (EventKit)
-- `RemindersTool` -- `list_reminders`, `create_reminder` (EventKit)
-- `LocationTool` -- `get_current_location` (CoreLocation, with optional reverse geocoding)
 
 ---
 
@@ -314,18 +324,95 @@ Key differences from `ClaudeProvider`:
 
 ---
 
+## AIProviderTools Module
+
+`AIProviderTools` (`Sources/AIProviderTools/`) is a standalone library that ships ready-to-use `Tool` and `ToolGroup` implementations. It depends only on `AIProviderKit` and has no provider-specific coupling, so any `AIClient` can use these tools regardless of the backend.
+
+### Standalone tools
+
+| Symbol | Tool name | Description |
+|--------|-----------|-------------|
+| `currentTime` | `get_current_time` | Returns the current date, time, and timezone in ISO 8601 or human-readable format. |
+| `shellCommand` | `run_shell_command` | Executes a shell command via `/bin/zsh` and returns stdout, stderr, and exit code. **macOS only** (`#if os(macOS)`). |
+
+Register standalone tools individually:
+
+```swift
+import AIProviderTools
+
+await client.toolRegistry.register(AIProviderTools.currentTime)
+#if os(macOS)
+await client.toolRegistry.register(AIProviderTools.shellCommand)
+#endif
+```
+
+### ToolGroup implementations
+
+| Type | Tools | Framework |
+|------|-------|-----------|
+| `CalendarTool` | `list_calendar_events`, `create_calendar_event` | EventKit |
+| `RemindersTool` | `list_reminders`, `create_reminder` | EventKit |
+| `LocationTool` | `get_current_location` (with optional reverse geocoding) | CoreLocation, MapKit |
+
+Register tool groups in bulk:
+
+```swift
+import AIProviderTools
+
+await client.toolRegistry.registerAll(CalendarTool.self)
+await client.toolRegistry.registerAll(RemindersTool.self)
+await client.toolRegistry.registerAll(LocationTool.self)
+```
+
+These tools were previously part of `AIProviderKit` and have been extracted into their own module to keep the core dependency-free of platform frameworks like EventKit, CoreLocation, and MapKit.
+
+---
+
+## Runner Executable
+
+The `runner` executable (`Sources/runner/`) is a CLI tool for interactive development, live integration testing, and benchmarking against real provider APIs. It replaces the previous `IntegrationTests` executable.
+
+### Subcommands
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `chat` | `swift run runner chat <provider>` | Interactive streaming chat REPL with multi-turn history, slash commands (`/model`, `/skill`, `/clear`, `/help`, `/quit`), and auto-registered tools (`get_current_time`, `run_shell_command` on macOS). |
+| `test` | `swift run runner test <provider\|all>` | Runs a live integration test suite against the specified provider. Tests cover basic completion, streaming, tool execution, recipe rendering, and skill execution. |
+| `benchmark` | `swift run runner benchmark <provider\|all> [--runs N]` | Measures non-streaming latency, streaming time-to-first-token (TTFT), and streaming throughput (tokens/sec). Default: 3 runs per scenario. |
+
+Provider arguments: `claude` (requires `ANTHROPIC_API_KEY`), `openai` (requires `OPENAI_API_KEY`), `apple-intelligence` (requires on-device Apple Intelligence).
+
+### Key types in `Sources/runner/`
+
+| Type | Role |
+|------|------|
+| `ChatApp` (@main) | CLI entry point; dispatches to `chat`, `test`, or `benchmark` subcommands. |
+| `ChatSession` (actor) | Runs the interactive REPL: reads input, streams responses, manages conversation history and slash commands. |
+| `ClaudeIntegrationSuite` (actor) | Five-test integration suite for Claude (Haiku). |
+| `OpenAIIntegrationSuite` (actor) | Integration suite for OpenAI (GPT-4.1 Mini). |
+| `AppleIntelligenceIntegrationSuite` (actor) | Integration suite for Apple Intelligence. |
+| `BenchmarkSuite` (actor) | Runs latency, TTFT, and throughput scenarios across N repetitions and prints a summary table. |
+| `BenchmarkSample` / `BenchmarkStats` | Value types for per-run samples and aggregated statistics. |
+| `IntegrationError` | Shared error enum for all integration suites. |
+| `SummarizerSkill` | Example `Skill` used in integration tests. |
+| `TitleGeneratorSkill` | Example `Skill` registered in chat sessions. |
+
+The `runner` also surfaces an SPM command plugin (`RunIntegrationTests`) so tests can be invoked via `swift package integration-tests <provider>`.
+
+---
+
 ## Adding a New Provider
 
-To add a new AI provider (e.g., OpenAI), follow this checklist:
+To add a new AI provider (e.g., Gemini), follow this checklist:
 
 1. Add a new library target in `Package.swift` with a dependency on `AIProviderKit`.
-2. Create a folder under `Sources/` (e.g., `Sources/OpenAIProvider/`).
+2. Create a folder under `Sources/` (e.g., `Sources/GeminiProvider/`).
 3. Implement the mapper pair:
    - `XRequestMapper` -- converts `AIRequest` to the provider's wire format.
    - `XResponseMapper` -- converts the provider's response to `AIResponse` and `AIStreamEvent`.
 4. Implement `HTTPClient` (or reuse `URLSessionHTTPClient` if the wire protocol is standard REST/SSE).
 5. Create the provider class conforming to `AIProvider` (or `StreamableProvider` if streaming is supported).
-6. Extend `AIModel` with provider-specific model constants (e.g., `.gpt4o`).
+6. Extend `AIModel` with provider-specific model constants (e.g., `.geminiPro`).
 7. No changes to `AIClient` or any core type are required.
 
 See [`Documentation/AddingAProvider.md`](AddingAProvider.md) for a full walkthrough.
@@ -339,71 +426,18 @@ The package uses Swift 6 strict concurrency throughout. Both `StrictConcurrency`
 **Actors** provide thread-safe mutable state:
 - `AIClient` is an actor. All public methods (`send`, `stream`, `execute`) are isolated to the actor.
 - `ToolRegistry`, `SkillRegistry`, and `RecipeRegistry` are actors. Registration and lookup operations are actor-isolated.
+- `ChatSession`, `BenchmarkSuite`, and all integration suites in the `runner` executable are actors, maintaining isolated mutable state (conversation history, pass/fail counters, benchmark samples).
 
 **Sendable compliance** is enforced across all public types:
 - All model types (`AIRequest`, `AIResponse`, `ContentBlock`, `JSONValue`, `Tool`, `Recipe`, `Message`, `TokenUsage`, `StopReason`, `AICapability`, `AIModel`, `SkillResult`, `AILogEntry`, `AILogLevel`) are `Sendable` value types.
 - Protocols (`AIProvider`, `StreamableProvider`, `AuthorizationProvider`, `Skill`) require `Sendable` conformance.
 - `Tool.handler` is typed as `@Sendable (JSONValue) async throws -> JSONValue`.
-- `ClaudeProvider` is a `final class` (not an actor) because it holds only `Sendable` dependencies and performs no mutable state changes after initialization.
+- `ClaudeProvider` and `OpenAIProvider` are `final class`es (not actors) because they hold only `Sendable` dependencies and perform no mutable state changes after initialization.
 - `URLSessionHTTPClient` is `@unchecked Sendable` because `URLSession` predates Swift concurrency.
 
 **Structured concurrency** is used for parallel tool execution: `AIClient.executeTools` uses `withThrowingTaskGroup` to run all tool calls from a single model turn concurrently.
 
 **MainActor isolation**: `AILogStore` is `@MainActor`-isolated and uses `@Observable` for SwiftUI reactivity. `AILogger` forwards entries to `AILogStore.shared` via `Task { @MainActor in ... }`.
-
----
-
-## Context Layer — AIProviderKitContext
-
-> Planned for milestones 0.6.0 – 0.6.7. See [`Documentation/Issues/context-retrieval.md`](Issues/context-retrieval.md) for the full design.
-
-```mermaid
-graph TD
-    FC["FolderContext (actor)\nHigh-level entry point"]
-    FI["FolderIndexer (actor)\nscan → parse → chunk → embed → store"]
-    DP["DocumentParser (protocol)\nTextDocumentParser · PDFDocumentParser"]
-    DC["DocumentChunker\nchunkSize + overlap · ChunkSource"]
-    EP["EmbeddingProvider (protocol)\nVoyage · OpenAI · NLEmbedding"]
-    VS["VectorStore (protocol)\nInMemoryVectorStore"]
-    RC["RetrievalContext\n[ScoredChunk] ready for injection"]
-    RB["AIRequestBuilder\n.context(RetrievalContext)"]
-    AI["AIClient\n.send / .stream"]
-
-    FC -->|owns| FI
-    FI -->|uses| DP
-    FI -->|uses| DC
-    FI -->|uses| EP
-    FI -->|stores in| VS
-    VS -->|search result| RC
-    FC -->|returns| RC
-    RC -->|injected via| RB
-    RB -->|builds AIRequest for| AI
-```
-
-### Context Retrieval Flow
-
-```mermaid
-sequenceDiagram
-    participant App
-    participant FolderContext
-    participant EmbeddingProvider
-    participant VectorStore
-    participant AIRequestBuilder
-    participant AIClient
-
-    App->>FolderContext: init(url:embeddingProvider:options:)
-    Note over FolderContext: Indexes folder on init (async)
-    App->>FolderContext: retrieve(for: query)
-    FolderContext->>EmbeddingProvider: embed([query])
-    EmbeddingProvider-->>FolderContext: [[Float]]
-    FolderContext->>VectorStore: search(query:topK:)
-    VectorStore-->>FolderContext: [ScoredChunk]
-    FolderContext-->>App: RetrievalContext
-    App->>AIRequestBuilder: .context(retrievalContext)
-    App->>AIRequestBuilder: .addMessage(.user(text: query))
-    App->>AIClient: send(request)
-    AIClient-->>App: AIResponse
-```
 
 ---
 
