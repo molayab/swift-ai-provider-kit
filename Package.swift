@@ -30,8 +30,8 @@ let package = Package(
         .library(name: "AIProviderTools", targets: ["AIProviderTools"]),
 
         // Optional CLI tool — chat with any provider or run live integration tests.
-        // swift run runner chat claude | swift run runner test all
-        .executable(name: "runner", targets: ["runner"]),
+        // swift run Runner chat claude | swift run Runner test all
+        .executable(name: "Runner", targets: ["Runner"]),
     ],
     dependencies: [
         .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", exact: "0.63.2")
@@ -104,9 +104,9 @@ let package = Package(
         // MARK: - Runner
 
         .executableTarget(
-            name: "runner",
+            name: "Runner",
             dependencies: ["AIProviderKit", "AIProviderTools", "ClaudeProvider", "OpenAIProvider", "AppleIntelligenceProvider"],
-            path: "Sources/runner",
+            path: "Sources/Runner",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -117,11 +117,11 @@ let package = Package(
             capability: .command(
                 intent: .custom(
                     verb: "integration-tests",
-                    description: "Run live integration tests via runner. Usage: swift package integration-tests <claude|openai|apple-intelligence|all>"
+                    description: "Run live integration tests via Runner. Usage: swift package integration-tests <claude|openai|apple-intelligence|all>"
                 ),
                 permissions: []
             ),
-            dependencies: ["runner"]
+            dependencies: ["Runner"]
         ),
 
         // MARK: - Tests

@@ -1,7 +1,7 @@
 import PackagePlugin
 import Foundation
 
-/// SPM command plugin that runs the `aipk test` subcommand.
+/// SPM command plugin that runs the `Runner test` subcommand.
 ///
 /// Invoke with:
 ///   ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests claude
@@ -11,11 +11,11 @@ import Foundation
 @main
 struct RunIntegrationTestsPlugin: CommandPlugin {
     func performCommand(context: PluginContext, arguments: [String]) async throws {
-        let tool = try context.tool(named: "runner")
+        let tool = try context.tool(named: "Runner")
 
         let process = Process()
         process.executableURL = tool.url
-        // Prepend "test" so plugin arguments map to: aipk test <provider>
+        // Prepend "test" so plugin arguments map to: Runner test <provider>
         process.arguments = ["test"] + arguments
         // Forward the caller's full environment so API keys and other provider
         // secrets are available to the test runner.
