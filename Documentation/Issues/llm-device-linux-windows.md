@@ -312,18 +312,22 @@ graph TD
 | `ClaudeProvider` | Requires HTTP client swap | Requires HTTP client swap + SwiftNIO | `URLSessionHTTPClient` not viable on Linux/Windows |
 | `AppleIntelligenceProvider` | Not portable | Not portable | `FoundationModels` is Apple-only by definition |
 | `AIProviderKitUI` | Not portable | Not portable | SwiftUI unavailable |
-| `LlamaProvider` (proposed) | Portable (REST mode) | Portable (REST mode) | No native Swift bindings; REST server required |
+| `LlamaProvider` REST (proposed) | Portable | Portable | No native Swift bindings; REST server required — **not viable on iOS** (no child process spawning) |
+| `LlamaProvider` in-process (proposed) | Apple only | Apple only | Requires C++ interop build flag; StanfordBDHG fork is archived — use ggml-org releases or MLC LLM SDK |
 
 ---
 
 ## Proposed Paths Forward
 
-### Path A — llama.cpp via Local REST Server (recommended)
+### Path A — llama.cpp via Local REST Server
+
+> **Platform scope: macOS, Linux, Windows only. Not viable on iOS.**
+> iOS prohibits spawning child processes (`fork`, `posix_spawn`, `NSTask` all fail with "Operation not permitted") and prohibits executing bundled binaries. `llama-server` is a standalone executable — it cannot be shipped or launched from within an iOS app sandbox. For iOS, see Path B.
 
 **Description:** A new `LlamaProvider` library target implements `AIProvider` (and optionally `StreamableProvider`) by communicating with a locally-running `llama-server` process via its OpenAI-compatible HTTP API. The user is responsible for starting `llama-server` before calling `AIClient`.
 
-**Why this is the best cross-platform path:**
-- Works identically on macOS, Linux, and Windows — no platform-specific Swift code in the provider itself
+**Why this is the right path for macOS / Linux / Windows:**
+- Works identically across these three platforms — no platform-specific Swift code in the provider itself
 - No C++ interop, no unsafe flags, no SPM binary target complications
 - The `HTTPClient` protocol abstraction in `ClaudeProvider` is a direct precedent — the same pattern applies
 - `llama-server` is distributed in official llama.cpp releases for all platforms
@@ -366,26 +370,58 @@ let provider = LlamaProvider(
 
 ---
 
-### Path B — llama.cpp via Native SPM Binary (Apple only)
+### Path B — llama.cpp In-Process (Apple platforms, required for iOS)
 
-**Description:** A new `LlamaProviderNative` library target uses the StanfordBDHG XCFramework or official ggml-org XCFramework to run inference in-process on Apple platforms.
+> **Platform scope: macOS, iOS, tvOS, visionOS.**
+> This is not an alternative to Path A — they serve different platform contexts. Path A covers macOS/Linux/Windows; Path B covers Apple platforms where in-process inference is the only option. On iOS specifically, Path B (or MLC LLM's Swift SDK) is the **only** viable architecture; every production iOS local-LLM app (PocketPal AI, LLMFarm, MLC Chat, Private LLM) uses in-process inference.
 
-**Why this is secondary to Path A:**
-- Requires enabling Swift/C++ interoperability (`swiftSettings: [.interoperabilityMode(.Cxx)]`) across the entire dependency graph — this is a breaking, transitive requirement for all consumers
-- Apple-platform-only (no Linux/Windows benefit)
+**Description:** A new `LlamaProviderNative` library target links llama.cpp in-process via an XCFramework binary target and runs inference directly, with no HTTP server involved.
+
+**Why this is required for iOS:**
+- iOS cannot spawn child processes — `llama-server` cannot run on iOS under any circumstances
+- An in-process HTTP server workaround (NWListener) is fragile: the OS kills background listeners after ~15 minutes and ATS complicates `localhost` HTTP
+- All shipping iOS LLM apps use in-process inference; the pattern is proven and App Store-approved
+
+**Why it is not the preferred path for macOS/Linux/Windows:**
+- Requires enabling Swift/C++ interoperability (`swiftSettings: [.interoperabilityMode(.Cxx)]`) across the entire consumer dependency graph — a transitive, breaking requirement
 - Binary size increases significantly
-- Does not solve the original cross-platform investigation goal
-- `AppleIntelligenceProvider` already provides on-device inference for Apple platforms
+- `AppleIntelligenceProvider` already provides on-device inference for iOS 26+ / A17 Pro devices
 
-This path has value only if users specifically need llama.cpp's GGUF model ecosystem on Apple while preferring to avoid `FoundationModels` (e.g., using models not supported by Apple's on-device model, or targeting macOS 14/15 where `FoundationModels` is unavailable).
+**XCFramework source — important note on StanfordBDHG:**
+The StanfordBDHG/llama.cpp fork referenced in earlier drafts of this document is **archived and read-only** as of 2024 and does not track upstream llama.cpp improvements. Recommended alternatives:
+
+| Option | Status | Notes |
+|---|---|---|
+| Official ggml-org XCFramework (binary release) | Active | Ships with every llama.cpp release; no source compilation needed |
+| `rnllama.xcframework` (from `llama.rn`) | Active | Used by PocketPal AI; React Native origin but the XCFramework is usable standalone |
+| MLC LLM Swift SDK | Active | Heavier build pipeline (Python + TVM compilation) but Metal-optimised and actively maintained |
+| Apple MLX Swift (`ml-explore/mlx-swift`) | Active | Apple-maintained; requires Apple Silicon (macOS/iOS); excellent performance |
+
+**Practical iOS model sizes:** A 7B Q4_K_M model requires ~5.5 GB at runtime, which exceeds available headroom on most iPhones (even the iPhone 16 Pro with 8 GB has ~4–5 GB free after OS). The `com.apple.developer.kernel.increased-memory-limit` entitlement raises the ceiling but still makes 7B tight. 1.5B–3B quantized models are the practical target for most iPhone hardware.
+
+**Foundation Models vs. llama.cpp on iOS:**
+
+| | Apple Foundation Models | llama.cpp in-process |
+|---|---|---|
+| Device requirement | A17 Pro or M1+ | Any iPhone with sufficient RAM (iPhone 12 Pro+) |
+| OS requirement | iOS 26+ | iOS 14+ |
+| Model flexibility | Fixed Apple model | Any GGUF model |
+| Context window | 4,096 tokens (hard limit) | Configurable |
+| Tool calling | First-class (`@Generable`) | Manual / GBNF grammar |
+| Setup complexity | `import FoundationModels` | XCFramework + model download pipeline |
+| Production use today | Tiny iOS 26 installed base | Shipping in App Store apps |
 
 ---
 
-### Path C — MLC LLM via Local REST Server
+### Path C — MLC LLM
 
-Structurally identical to Path A but backed by `mlc_llm serve`. The `LlamaProvider` in Path A could support both `llama-server` and MLC LLM via configuration, since both expose OpenAI-compatible endpoints. Alternatively, a separate `MLCProvider` target could be added.
+MLC LLM offers two distinct integration modes that map to the platform split above:
 
-MLC LLM is particularly relevant for Windows on Qualcomm Snapdragon (ARM64 + Hexagon NPU), a growing category of devices without NVIDIA GPUs.
+**C1 — REST server (`mlc_llm serve`) — macOS, Linux, Windows only**
+Structurally identical to Path A but backed by `mlc_llm serve`. Both `llama-server` and `mlc_llm serve` expose OpenAI-compatible endpoints, so `LlamaProvider` from Path A can target either via configuration. A separate `MLCProvider` target is unnecessary unless MLC-specific capabilities (e.g., Hexagon NPU on Qualcomm) are needed. The same iOS exclusion applies — `mlc_llm serve` is a spawned process and cannot run on iOS.
+
+**C2 — MLC LLM Swift SDK — iOS and macOS (in-process)**
+MLC LLM ships an official Swift SDK (`MLCEngine`) that runs inference in-process using Metal GPU shaders compiled via Apache TVM. This is a viable Path B alternative for iOS, used by the MLC Chat App Store app. Build complexity is significantly higher than linking an XCFramework: weights must be converted via Python toolchain (`mlc_llm convert_weight`, `mlc_llm gen_config`, `mlc_llm package`) and the compiled Metal library is statically linked into the app.
 
 ---
 
