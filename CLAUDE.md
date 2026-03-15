@@ -82,10 +82,11 @@ Tests use Swift Testing (`@Suite`, `@Test`, `#expect`). Each test follows **give
 | Primary text | `#FFFFFF` |
 | Body / tagline text | `#D0D0D8` |
 | Muted labels | `#7A7A82` |
-| Coming-soon labels | `#666670` |
 | Active provider (Claude) label | `#F0D090` (warm gold), stroke `#D97706` |
+| Active provider (OpenAI) label | `#86EFAC` (light green), stroke `#16A34A` |
+| Active provider (Apple Intelligence) label | `#93C5FD` (sky blue), stroke `#3B82F6` |
 | Streaming badge | `#3FA0FF` |
 | Tools badge | `#4CD964` |
 | Skills badge | `#FFB830` |
 
-Provider box labels: "Claude", "OpenAI", "Foundation Models" (no "Provider" suffix).
+Provider box labels: "Claude", "OpenAI", "Apple Intelligence" (no "Provider" suffix).
