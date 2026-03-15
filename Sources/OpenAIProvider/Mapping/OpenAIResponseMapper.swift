@@ -89,11 +89,11 @@ struct OpenAIResponseMapper: Sendable {
 
     func mapFinishReason(_ raw: String?) -> StopReason {
         switch raw {
-        case "stop":           return .endTurn
-        case "length":         return .maxTokens
-        case "tool_calls":     return .toolUse
+        case "stop": return .endTurn
+        case "length": return .maxTokens
+        case "tool_calls": return .toolUse
         case "content_filter": return .unknown
-        default:               return .unknown
+        default: return .unknown
         }
     }
 
