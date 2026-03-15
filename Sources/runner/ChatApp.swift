@@ -16,11 +16,8 @@ import AppleIntelligenceProvider
 ///   runner test      apple-intelligence  # run Apple Intelligence integration suite
 ///   runner test      all                 # run all available suites
 ///
-///   runner benchmark claude              # benchmark Claude
-///   runner benchmark openai              # benchmark OpenAI
-///   runner benchmark apple-intelligence  # benchmark Apple Intelligence
-///   runner benchmark all                 # benchmark all available providers
-///   runner benchmark claude --runs 5     # override number of runs (default: 3)
+///   runner benchmark apple-intelligence  # benchmark Apple Intelligence (local only)
+///   runner benchmark apple-intelligence --runs 5  # override number of runs (default: 10)
 @main
 struct ChatApp {
     static func main() async {
@@ -158,24 +155,6 @@ struct ChatApp {
         let runs = parseRuns(from: args)
 
         switch provider {
-        case "claude":
-            guard let key = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !key.isEmpty else {
-                print("error: ANTHROPIC_API_KEY not set"); exit(1)
-            }
-            let client = AIClient(
-                provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: key))
-            )
-            await BenchmarkSuite(client: client, model: .claudeHaiku45, providerName: "Claude", runs: runs).run()
-
-        case "openai":
-            guard let key = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !key.isEmpty else {
-                print("error: OPENAI_API_KEY not set"); exit(1)
-            }
-            let client = AIClient(
-                provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: key))
-            )
-            await BenchmarkSuite(client: client, model: .gpt41Mini, providerName: "OpenAI", runs: runs).run()
-
         case "apple-intelligence":
             guard AppleIntelligenceAvailability.isAvailable else {
                 print("error: Apple Intelligence is not available on this device"); exit(1)
@@ -188,53 +167,8 @@ struct ChatApp {
                 runs: runs
             ).run()
 
-        case "all":
-            await runAllBenchmarks(runs: runs)
-
         default:
             printBenchmarkUsage(); exit(1)
-        }
-    }
-
-    private static func runAllBenchmarks(runs: Int) async {
-        var ran = false
-
-        if let key = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !key.isEmpty {
-            ran = true
-            let client = AIClient(
-                provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: key))
-            )
-            await BenchmarkSuite(client: client, model: .claudeHaiku45, providerName: "Claude", runs: runs).run()
-        } else {
-            print("info: ANTHROPIC_API_KEY not set — skipping Claude")
-        }
-
-        if let key = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !key.isEmpty {
-            ran = true
-            let client = AIClient(
-                provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: key))
-            )
-            await BenchmarkSuite(client: client, model: .gpt41Mini, providerName: "OpenAI", runs: runs).run()
-        } else {
-            print("info: OPENAI_API_KEY not set — skipping OpenAI")
-        }
-
-        if AppleIntelligenceAvailability.isAvailable {
-            ran = true
-            let client = AIClient(provider: AppleIntelligenceProvider())
-            await BenchmarkSuite(
-                client: client,
-                model: .appleIntelligenceDefault,
-                providerName: "Apple Intelligence",
-                runs: runs
-            ).run()
-        } else {
-            print("info: Apple Intelligence not available — skipping on-device benchmark")
-        }
-
-        if !ran {
-            print("error: no benchmarks ran — set ANTHROPIC_API_KEY, OPENAI_API_KEY, or run on an Apple Intelligence device")
-            exit(1)
         }
     }
 
@@ -256,7 +190,7 @@ struct ChatApp {
         Commands:
           chat       Start an interactive chat session with a provider
           test       Run live integration tests against a provider
-          benchmark  Measure latency and throughput of a provider
+          benchmark  Measure latency and throughput (local providers only)
 
         Run 'runner <command>' without a provider for options.
         """)
@@ -287,21 +221,24 @@ struct ChatApp {
 
     private static func printBenchmarkUsage() {
         print("""
-        Usage: runner benchmark <provider> [--runs <n>]
+        Usage: runner benchmark apple-intelligence [--runs <n>]
+
+        Benchmarks are only available for local (on-device) providers.
+        Cloud providers (Claude, OpenAI) are excluded — network latency and
+        server load make results non-reproducible and provider-specific.
 
         Providers:
-          claude              Requires ANTHROPIC_API_KEY
-          openai              Requires OPENAI_API_KEY
           apple-intelligence  Requires Apple Intelligence on-device
-          all                 Benchmark all available providers
 
         Options:
-          --runs <n>          Number of repetitions per scenario (default: 3)
+          --runs <n>          Number of measured repetitions per scenario (default: 10)
+                              3 additional warm-up runs are always discarded first.
 
         Scenarios measured:
           Non-streaming latency   Full round-trip time for a short completion
-          Streaming TTFT          Time to first text delta
-          Streaming throughput    Output tokens per second over a longer completion
+          Streaming TTFT          Time to first text delta (median, p95)
+          TPOT                    Time per output token in the decode phase
+          Streaming throughput    Output tokens/s over a longer completion
         """)
     }
 }
