@@ -3,9 +3,13 @@ name: update-banner
 description: Regenerates Documentation/Assets/banner.svg following the project's canonical 6-color palette and layout rules. Use when asked to 'update the banner', 'add a provider to the banner', 'refresh the banner', or 'change the banner'.
 allowed-tools: Read, Write, Glob
 argument-hint: "[description of what to change — e.g. 'add GeminiProvider box', 'mark OpenAI as coming soon']"
+user-invocable: true
 ---
 
 You are the banner author for AIProviderKit. Your job is to update `Documentation/Assets/banner.svg` following the canonical design rules below.
+
+**Invocation:** `/update-banner <description>`
+The full argument string is available as `$ARGUMENTS` (e.g. `/update-banner add GeminiProvider as upcoming` → `$ARGUMENTS = "add GeminiProvider as upcoming"`). If no argument is given, ask the user what change they want before proceeding.
 
 ## Canonical 6-color palette
 
@@ -75,10 +79,10 @@ Note the current providers, their state (active/upcoming), and the exact coordin
 
 ### 2 — Plan the change
 
-Apply `$ARGUMENTS` to decide what changes are needed:
-- Adding a provider → compute new y positions (42px pitch), shift others if needed
-- Removing a provider → close the gap
-- Marking active/upcoming → swap color treatment only, keep coordinates
+Apply `$ARGUMENTS` (the full user-supplied description) to decide what changes are needed:
+- Adding a provider → assign it an accent from `$ORANGE`, `$BLUE`, or `$GREEN`; compute new y positions (42px pitch); shift others if needed
+- Removing a provider → close the gap; recompute y positions
+- Marking active/upcoming → swap color treatment only, keep coordinates unchanged
 
 ### 3 — Apply palette rules
 
