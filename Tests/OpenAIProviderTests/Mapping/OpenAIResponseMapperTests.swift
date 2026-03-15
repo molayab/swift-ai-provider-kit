@@ -224,10 +224,11 @@ struct OpenAIResponseMapperTests {
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        if case .textDelta(let text) = event {
+        #expect(events.count == 1)
+        if case .textDelta(let text) = events.first {
             #expect(text == "Hello")
         } else {
             Issue.record("Expected .textDelta event")
@@ -236,7 +237,7 @@ struct OpenAIResponseMapperTests {
 
     // MARK: - mapStreamEvent — Tool Use Delta
 
-    @Test("mapStreamEvent returns toolUseDelta for tool_calls delta")
+    @Test("mapStreamEvent returns one toolUseDelta per identified tool call in chunk")
     func mapStreamEvent_toolCallsDelta_returnsToolUseDelta() throws {
         // Given
         // swiftlint:disable:next line_length
@@ -244,10 +245,11 @@ struct OpenAIResponseMapperTests {
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        if case .toolUseDelta(let id, let name, _) = event {
+        #expect(events.count == 1)
+        if case .toolUseDelta(let id, let name, _) = events.first {
             #expect(id == "call_s001")
             #expect(name == "get_weather")
         } else {
@@ -255,34 +257,59 @@ struct OpenAIResponseMapperTests {
         }
     }
 
-    @Test("mapStreamEvent returns nil for argument-only tool_calls chunk (no id or name)")
-    func mapStreamEvent_toolCallsArgOnlyChunk_returnsNil() throws {
+    @Test("mapStreamEvent returns one event per identified tool call when chunk contains multiple")
+    func mapStreamEvent_multipleToolCallsInChunk_returnsOneEventEach() throws {
+        // Given — chunk carries two parallel tool calls, each with id and name
+        // swiftlint:disable:next line_length
+        let json = #"{"id":"chatcmpl-s3","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_A","type":"function","function":{"name":"tool_a","arguments":""}},{"index":1,"id":"call_B","type":"function","function":{"name":"tool_b","arguments":""}}]},"finish_reason":null}]}"#
+        let data = Data(json.utf8)
+
+        // When
+        let events = try sut.mapStreamEvent(data)
+
+        // Then
+        #expect(events.count == 2)
+        if case .toolUseDelta(let id, let name, _) = events.first {
+            #expect(id == "call_A")
+            #expect(name == "tool_a")
+        } else {
+            Issue.record("Expected first .toolUseDelta event")
+        }
+        if case .toolUseDelta(let id, let name, _) = events.last {
+            #expect(id == "call_B")
+            #expect(name == "tool_b")
+        } else {
+            Issue.record("Expected second .toolUseDelta event")
+        }
+    }
+
+    @Test("mapStreamEvent returns empty for argument-only tool_calls chunk (no id or name)")
+    func mapStreamEvent_toolCallsArgOnlyChunk_returnsEmpty() throws {
         // Given — subsequent OpenAI streaming chunks carry only `arguments`, no id or name.
-        // mapStreamEvent is stateless and cannot correlate these to a prior tool call,
-        // so it must return nil rather than yielding a toolUseDelta with empty id/name.
+        // mapStreamEvent is stateless and cannot correlate these to a prior tool call.
         let json = #"{"id":"chatcmpl-s2","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"loc"}}]},"finish_reason":null}]}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
     // MARK: - mapStreamEvent — Empty Delta
 
-    @Test("mapStreamEvent returns nil for empty delta")
-    func mapStreamEvent_emptyDelta_returnsNil() throws {
+    @Test("mapStreamEvent returns empty for empty delta")
+    func mapStreamEvent_emptyDelta_returnsEmpty() throws {
         // Given
         let json = #"{"id":"chatcmpl-s1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
     // MARK: - mapStreamEvent — Invalid JSON

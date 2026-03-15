@@ -24,15 +24,15 @@ struct ClaudeResponseMapper: Sendable {
         }
     }
 
-    func mapStreamEvent(_ data: Data) throws(AIError) -> AIStreamEvent? {
+    func mapStreamEvent(_ data: Data) throws(AIError) -> [AIStreamEvent] {
         let event = try decodeStreamEvent(data)
         guard event.type == "content_block_delta",
               let delta = event.delta,
               delta.type == "text_delta",
               let text = delta.text else {
-            return nil
+            return []
         }
-        return .textDelta(text)
+        return [.textDelta(text)]
     }
 
     // MARK: - Private

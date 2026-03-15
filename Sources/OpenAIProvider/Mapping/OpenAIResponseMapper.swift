@@ -54,31 +54,31 @@ struct OpenAIResponseMapper: Sendable {
         }
     }
 
-    func mapStreamEvent(_ data: Data) throws(AIError) -> AIStreamEvent? {
+    func mapStreamEvent(_ data: Data) throws(AIError) -> [AIStreamEvent] {
         let chunk = try decodeStreamChunk(data)
 
-        guard let choice = chunk.choices.first else { return nil }
+        guard let choice = chunk.choices.first else { return [] }
         let delta = choice.delta
 
         if let text = delta.content, !text.isEmpty {
-            return .textDelta(text)
+            return [.textDelta(text)]
         }
 
-        if let toolCallDeltas = delta.toolCalls, let first = toolCallDeltas.first {
-            let id = first.id ?? ""
-            let name = first.function?.name ?? ""
-            let argsDelta = first.function?.arguments ?? ""
-
-            // Only yield when id or name is present — this is the first (identification)
-            // chunk for this tool call. Subsequent argument-only chunks have neither id
-            // nor name; a stateless per-chunk mapper cannot correlate them, so they are
-            // dropped here. Use OpenAIProvider.stream(_:) for correct multi-chunk
-            // accumulation keyed by tool-call index.
-            guard !id.isEmpty || !name.isEmpty else { return nil }
-            return .toolUseDelta(id: id, name: name, inputDelta: argsDelta)
+        if let toolCallDeltas = delta.toolCalls {
+            // Iterate all tool-call deltas in this chunk — OpenAI may include multiple
+            // indexed tool calls in a single SSE chunk. Only emit events for deltas that
+            // carry an id or name; argument-only deltas are dropped because this stateless
+            // mapper has no accumulator to correlate them. Use OpenAIProvider.stream(_:)
+            // for correct multi-chunk, multi-tool accumulation keyed by index.
+            return toolCallDeltas.compactMap { tc in
+                let id = tc.id ?? ""
+                let name = tc.function?.name ?? ""
+                guard !id.isEmpty || !name.isEmpty else { return nil }
+                return .toolUseDelta(id: id, name: name, inputDelta: tc.function?.arguments ?? "")
+            }
         }
 
-        return nil
+        return []
     }
 
     // MARK: - Private

@@ -211,40 +211,41 @@ struct ClaudeResponseMapperTests {
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        if case .textDelta(let text) = event {
+        #expect(events.count == 1)
+        if case .textDelta(let text) = events.first {
             #expect(text == "Hello")
         } else {
             Issue.record("Expected .textDelta event")
         }
     }
 
-    @Test("mapStreamEvent with non-text event returns nil")
-    func mapStreamEvent_nonTextEvent_returnsNil() throws {
+    @Test("mapStreamEvent with non-text event returns empty")
+    func mapStreamEvent_nonTextEvent_returnsEmpty() throws {
         // Given
         let json = #"{"type":"message_start","message":{}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
-    @Test("mapStreamEvent with content_block_start returns nil")
-    func mapStreamEvent_contentBlockStart_returnsNil() throws {
+    @Test("mapStreamEvent with content_block_start returns empty")
+    func mapStreamEvent_contentBlockStart_returnsEmpty() throws {
         // Given
         let json = #"{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 
     @Test("mapStreamEvent with malformed JSON throws")
@@ -258,16 +259,16 @@ struct ClaudeResponseMapperTests {
         }
     }
 
-    @Test("mapStreamEvent with content_block_delta but non-text delta type returns nil")
-    func mapStreamEvent_nonTextDeltaType_returnsNil() throws {
+    @Test("mapStreamEvent with content_block_delta but non-text delta type returns empty")
+    func mapStreamEvent_nonTextDeltaType_returnsEmpty() throws {
         // Given
         let json = #"{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{"}}"#
         let data = Data(json.utf8)
 
         // When
-        let event = try sut.mapStreamEvent(data)
+        let events = try sut.mapStreamEvent(data)
 
         // Then
-        #expect(event == nil)
+        #expect(events.isEmpty)
     }
 }
