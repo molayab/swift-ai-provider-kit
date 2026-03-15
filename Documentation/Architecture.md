@@ -132,13 +132,15 @@ classDiagram
     AIClient --> ToolRegistry
     AIClient --> SkillRegistry
     AIClient --> RecipeRegistry
+    Skill --> Tool : owns
+    Skill --> Recipe : uses
 ```
 
 ### Key types
 
 | Type | Role |
 |---|---|
-| `AIClient` (actor) | Main entry point. Coordinates the provider, registries, and the automatic tool-execution loop. |
+| `AIClient` (actor) | **The agent.** Owns the three registries, drives the automatic tool-execution loop, and routes requests to the active `AIProvider`. |
 | `AIProvider` (protocol) | The single integration point for new AI backends. Requires `identifier`, `capabilities`, and `send(_:)`. |
 | `StreamableProvider` (protocol) | Extends `AIProvider` with `stream(_:)` for server-sent event streaming. |
 | `ModelDiscoveryProvider` (protocol) | Extends `AIProvider` with `listModels()` for runtime model enumeration. `OpenAIProvider` conforms; `ClaudeProvider` planned in 0.3.1. |
@@ -146,9 +148,9 @@ classDiagram
 | `AuthorizationProvider` (protocol) | Supplies HTTP authorization headers. Implementations include `APIKeyAuthorization` (x-api-key) and `BearerAuthorization` (Authorization: Bearer). |
 | `ContentBlock` (enum) | Universal currency for message content: `.text`, `.image`, `.toolUse`, `.toolResult`. All providers map to/from this type. |
 | `JSONValue` (enum) | Type-safe, `Sendable`, `Codable` representation of arbitrary JSON. Used for tool inputs and outputs, avoiding `Any`. |
-| `Tool` (struct) | A callable tool with a name, description, `JSONSchema` input schema, and an async handler. |
-| `Recipe` (struct) | A reusable prompt template with `{{placeholder}}` substitution. |
-| `Skill` (protocol) | Bundles tools, an optional recipe, and post-processing logic into a reusable capability. |
+| `Tool` (struct) | Atomic callable — a name, `JSONSchema` input schema, and async handler. Owns nothing; has no awareness of skills or the agent. |
+| `Recipe` (struct) | Reusable `{{placeholder}}` prompt template. Decouples prompt engineering from code. |
+| `Skill` (protocol) | Owns a set of `Tool`s and an optional `Recipe`. Teaches the model how to use those tools for a specific task and post-processes the response into `SkillResult`. |
 | `ToolGroup` (protocol) | Vends a collection of related `Tool`s for bulk registration via `ToolRegistry.registerAll(_:)`. |
 | `ToolRegistry` (actor) | Thread-safe storage and lookup for `Tool` instances. Supports bulk registration via `ToolGroup`. |
 | `SkillRegistry` (actor) | Thread-safe storage and lookup for `Skill` instances. |

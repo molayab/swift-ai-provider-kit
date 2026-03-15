@@ -45,11 +45,12 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | Feature | Description |
 |---|---|
 | **Provider abstraction** | Swap providers without changing application code |
-| **Automatic tool execution** | `AIClient` executes tool calls and follows up automatically |
+| **Automatic tool execution** | `AIClient` detects `toolUse` stop reasons and loops automatically until `endTurn` |
 | **Streaming** | Server-sent event streaming via `AsyncThrowingStream` |
 | **On-device inference** | Private, offline inference via Apple Intelligence (`FoundationModels`) |
-| **Recipes** | Reusable `{{placeholder}}` prompt templates |
-| **Skills** | Composable capabilities — tools + recipe + post-processing |
+| **Tools** | Atomic callables — a name, input schema, and async handler. No awareness of skills or agents. |
+| **Recipes** | Reusable `{{placeholder}}` prompt templates decoupled from code. |
+| **Skills** | Own a set of `Tool`s and an optional `Recipe`. Teach the model *how* to use those tools for a specific task; post-process the response into `SkillResult`. |
 | **Registries** | Thread-safe `actor`-based stores for tools, skills, and recipes |
 | **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app capture via `AILogStore` |
 | **Predefined tools** | `AIProviderTools` module — time, shell (macOS), calendar, reminders, and location, all via a unified `ToolGroup` interface |
@@ -270,15 +271,16 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class d
 
 | Type | Role |
 |---|---|
-| `AIClient` | Main entry point (actor). Orchestrates the provider, registries, and auto tool-execution loop. |
+| `AIClient` | **The agent.** Actor that owns the three registries, drives the automatic tool-execution loop, and routes requests to the active `AIProvider`. |
 | `AIProvider` | Protocol every provider implements. |
 | `StreamableProvider` | Extends `AIProvider` with SSE streaming. |
 | `ModelDiscoveryProvider` | Extends `AIProvider` with runtime model listing (`listModels()`). |
 | `AIModelInfo` | Model metadata returned by `listModels()` — id, display name, creation date. |
 | `AIRequestBuilder` | Fluent, validated request construction. |
-| `Tool` / `ToolGroup` | A callable function the model can invoke (`Tool`), or a type that vends one or more tools under a unified interface (`ToolGroup`). |
-| `Recipe` | A `{{placeholder}}` prompt template. |
-| `Skill` | A bundle of tools + recipe + post-processing logic. |
+| `Tool` | Atomic callable — a name, `JSONSchema` input schema, and async handler. Owns nothing; has no awareness of skills or the agent. |
+| `ToolGroup` | Namespace that vends one or more related `Tool`s for bulk registration. |
+| `Recipe` | Reusable `{{placeholder}}` prompt template. Decouples prompt engineering from code. |
+| `Skill` | Owns a set of `Tool`s and an optional `Recipe`. Teaches the model how to use those tools for a specific task and post-processes the response into `SkillResult`. |
 | `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
 
 ---
