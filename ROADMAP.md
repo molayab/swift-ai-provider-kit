@@ -55,6 +55,17 @@ This milestone adds the same capability to `ClaudeProvider`.
 - [ ] Map Anthropic response fields: `id` → `AIModel`, `display_name` → `AIModelInfo.displayName`, `created_at` → `AIModelInfo.createdAt`
 - [ ] Unit tests — `MockHTTPClient` stubs for single-page and multi-page responses, error cases
 
+## 0.3.2 — Shared HTTP Networking Layer
+
+Eliminates the duplicated `URLSessionHTTPClient` and `HTTPClient` copies that currently ship independently inside `ClaudeProvider` and `OpenAIProvider`. Moving these into `AIProviderKit` means third-party provider authors get a production-ready HTTP + SSE client for free, without reinventing the wheel.
+
+- [ ] Promote `HTTPClient`, `HTTPRequest`, and `HTTPResponse` from provider-private to `public` types in `AIProviderKit`
+- [ ] Promote `URLSessionHTTPClient` to `AIProviderKit` as the canonical `HTTPClient` implementation
+- [ ] Remove the duplicate `HTTPClient` + `URLSessionHTTPClient` copies from `ClaudeProvider` and `OpenAIProvider`
+- [ ] Update both providers to import and use the shared implementation
+- [ ] Update `Documentation/AddingAProvider.md` — reference the shared types instead of instructing authors to copy the networking layer
+- [ ] Unit tests for `URLSessionHTTPClient` in `AIProviderKitTests` (stream cancellation, SSE line parsing, error mapping)
+
 ## 0.4.0 — Persistence: Core Protocol & In-Memory
 
 Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Documentation/Issues/persistence-layer.md) for the full design.
