@@ -277,14 +277,20 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 // MARK: - Model Constants
 
 public extension AIModel {
-    /// GPT-4o — OpenAI's multimodal flagship.
+    /// GPT-4.1 — OpenAI's flagship instruction-following model with a 1M-token context window.
+    static let gpt41 = AIModel("gpt-4.1")
+    /// GPT-4.1 Mini — smaller, faster variant of GPT-4.1.
+    static let gpt41Mini = AIModel("gpt-4.1-mini")
+    /// GPT-4.1 Nano — fastest and most cost-efficient GPT-4.1 variant.
+    static let gpt41Nano = AIModel("gpt-4.1-nano")
+    /// GPT-4o — OpenAI's multimodal model (superseded by GPT-4.1).
     static let gpt4o = AIModel("gpt-4o")
-    /// GPT-4o Mini — smaller, faster, cheaper variant of GPT-4o.
+    /// GPT-4o Mini — smaller, faster variant of GPT-4o.
     static let gpt4oMini = AIModel("gpt-4o-mini")
-    /// o1 — reasoning-optimised model.
-    static let o1 = AIModel("o1")
+    /// o3 — OpenAI's advanced reasoning model.
+    static let o3 = AIModel("o3")
     /// o3-mini — compact reasoning model.
     static let o3Mini = AIModel("o3-mini")
-    /// o4-mini — latest compact reasoning model.
+    /// o4-mini — fast, cost-efficient reasoning model optimised for coding and vision tasks.
     static let o4Mini = AIModel("o4-mini")
 }
