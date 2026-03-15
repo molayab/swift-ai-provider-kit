@@ -228,7 +228,7 @@ classDiagram
 
     class ClaudeResponseMapper {
         +map(ClaudeResponse) AIResponse
-        +mapStreamEvent(Data) AIStreamEvent?
+        +mapStreamEvent(Data) [AIStreamEvent]
     }
 
     class URLSessionHTTPClient {
@@ -264,7 +264,7 @@ Model constants are defined as static extensions on `AIModel`: `.claudeOpus46`, 
 classDiagram
     class OpenAIProvider {
         +identifier: "openai"
-        +capabilities: text, vision, tools, streaming, systemPrompt
+        +capabilities: text, vision, tools, streaming, systemPrompt, modelDiscovery
         +send(AIRequest) AIResponse
         +stream(AIRequest) AsyncThrowingStream
         +listModels() [AIModelInfo]
@@ -276,7 +276,7 @@ classDiagram
 
     class OpenAIResponseMapper {
         +map(OpenAIChatResponse) AIResponse
-        +mapStreamEvent(Data) AIStreamEvent?
+        +mapStreamEvent(Data) [AIStreamEvent]
     }
 
     class OpenAIConstants {
