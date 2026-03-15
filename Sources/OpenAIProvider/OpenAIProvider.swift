@@ -7,7 +7,7 @@ import Foundation
 ///
 /// ```swift
 /// let provider = OpenAIProvider(
-///     authorization: BearerAuthorization(apiKey: "sk-..."),
+///     authorization: BearerAuthorization(apiKey: "<OPENAI_API_KEY>"),
 /// )
 /// let client = AIClient(provider: provider)
 /// ```
@@ -87,7 +87,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 
     public func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
         AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let openAIRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: openAIRequest)
@@ -102,6 +102,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
                     continuation.finish(throwing: error)
                 }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 

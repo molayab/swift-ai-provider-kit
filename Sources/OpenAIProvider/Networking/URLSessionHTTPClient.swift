@@ -23,7 +23,7 @@ final class URLSessionHTTPClient: HTTPClient, @unchecked Sendable {
 
     func stream(_ request: HTTPRequest) -> AsyncThrowingStream<Data, any Error> {
         AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let urlRequest = self.makeURLRequest(from: request)
                     let (bytes, _) = try await self.session.bytes(for: urlRequest)
@@ -40,6 +40,7 @@ final class URLSessionHTTPClient: HTTPClient, @unchecked Sendable {
                     continuation.finish(throwing: error)
                 }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 

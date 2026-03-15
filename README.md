@@ -104,7 +104,7 @@ import AIProviderKit
 import OpenAIProvider
 
 let client = AIClient(
-    provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: "sk-..."))
+    provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: "<OPENAI_API_KEY>"))
 )
 
 let response = try await client.send(

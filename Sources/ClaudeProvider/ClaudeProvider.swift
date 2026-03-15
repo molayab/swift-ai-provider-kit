@@ -88,7 +88,7 @@ public final class ClaudeProvider: StreamableProvider {
 
     public func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
         AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let claudeRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: claudeRequest)
@@ -103,6 +103,7 @@ public final class ClaudeProvider: StreamableProvider {
                     continuation.finish(throwing: error)
                 }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 

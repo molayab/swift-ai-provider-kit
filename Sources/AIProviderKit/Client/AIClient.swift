@@ -5,7 +5,7 @@
 ///
 /// ```swift
 /// let client = AIClient(
-///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "sk-...")),
+///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "<ANTHROPIC_API_KEY>")),
 ///     logger: AILogger(subsystem: "com.myapp", category: "ai")
 /// )
 /// let response = try await client.send(

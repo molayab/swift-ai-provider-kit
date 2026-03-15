@@ -5,7 +5,7 @@ import AIProviderKit
 /// This is the standard authentication method for the OpenAI API.
 ///
 /// ```swift
-/// let auth = BearerAuthorization(apiKey: "sk-...")
+/// let auth = BearerAuthorization(apiKey: "<OPENAI_API_KEY>")
 /// let provider = OpenAIProvider(authorization: auth)
 /// ```
 public struct BearerAuthorization: AuthorizationProvider {
