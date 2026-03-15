@@ -1,8 +1,9 @@
 import AIProviderKit
-@testable import OpenAIProvider
 import Foundation
+@testable import OpenAIProvider
 import Testing
 
+// swiftlint:disable type_body_length
 @Suite("OpenAIRequestMapper")
 struct OpenAIRequestMapperTests {
 
@@ -328,3 +329,4 @@ struct OpenAIRequestMapperTests {
         #expect(result.maxTokens == 1024)
     }
 }
+// swiftlint:enable type_body_length

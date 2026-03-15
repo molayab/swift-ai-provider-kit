@@ -1,8 +1,10 @@
+// swiftlint:disable file_length
 import AIProviderKit
-@testable import OpenAIProvider
 import Foundation
+@testable import OpenAIProvider
 import Testing
 
+// swiftlint:disable type_body_length
 @Suite("OpenAIProvider")
 struct OpenAIProviderTests {
 
@@ -351,6 +353,7 @@ struct OpenAIProviderTests {
         }
     }
 }
+// swiftlint:enable type_body_length
 
 // MARK: - Test Helpers
 

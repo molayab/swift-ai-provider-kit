@@ -1,5 +1,5 @@
-@testable import OpenAIProvider
 import Foundation
+@testable import OpenAIProvider
 
 final class MockHTTPClient: HTTPClient, @unchecked Sendable {
 

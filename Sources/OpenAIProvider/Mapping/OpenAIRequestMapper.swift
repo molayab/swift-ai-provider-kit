@@ -60,10 +60,11 @@ struct OpenAIRequestMapper: Sendable {
     private func mapUserMessage(_ message: Message) -> [OpenAIMessage] {
         let toolResultMessages: [OpenAIMessage] = message.content.compactMap { block in
             guard case .toolResult(let result) = block else { return nil }
-            let content = result.content.compactMap { inner -> String? in
+            let textParts = result.content.compactMap { inner -> String? in
                 if case .text(let text) = inner { return text }
                 return nil
-            }.joined()
+            }
+            let content = textParts.joined()
             return OpenAIMessage(
                 role: "tool",
                 content: .text(content),

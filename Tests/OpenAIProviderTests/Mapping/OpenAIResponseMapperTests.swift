@@ -1,6 +1,6 @@
 import AIProviderKit
-@testable import OpenAIProvider
 import Foundation
+@testable import OpenAIProvider
 import Testing
 
 @Suite("OpenAIResponseMapper")
@@ -287,6 +287,7 @@ struct OpenAIResponseMapperTests {
     func mapStreamEvent_toolCallsArgOnlyChunk_returnsEmpty() throws {
         // Given — subsequent OpenAI streaming chunks carry only `arguments`, no id or name.
         // mapStreamEvent is stateless and cannot correlate these to a prior tool call.
+        // swiftlint:disable:next line_length
         let json = #"{"id":"chatcmpl-s2","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"loc"}}]},"finish_reason":null}]}"#
         let data = Data(json.utf8)
 

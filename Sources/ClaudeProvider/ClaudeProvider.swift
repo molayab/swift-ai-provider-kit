@@ -93,43 +93,33 @@ public final class ClaudeProvider: StreamableProvider {
                     let claudeRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: claudeRequest)
 
-                    // Accumulator state for the final .message event
                     var messageId = ""
                     var messageModel = request.model.identifier
                     var inputTokens = 0
                     var outputTokens = 0
                     var stopReason = StopReason.unknown
                     var textBuffer = ""
-                    // tool_use blocks by block index: (id, name, accumulated input JSON)
-                    var toolAccumulators: [Int: (id: String, name: String, json: String)] = [:]
+                    var toolAccumulators: [Int: ClaudeToolAccumulator] = [:]
 
                     for try await data in self.httpClient.stream(httpRequest) {
                         let event = try self.responseMapper.decodeStreamEvent(data)
-
                         switch event.type {
                         case "message_start":
                             messageId = event.message?.id ?? messageId
                             messageModel = event.message?.model ?? messageModel
                             inputTokens = event.message?.usage?.inputTokens ?? 0
                         case "content_block_start":
-                            if let block = event.contentBlock,
-                               block.type == "tool_use",
-                               let index = event.index,
-                               let id = block.id,
-                               let name = block.name {
-                                toolAccumulators[index] = (id: id, name: name, json: "")
+                            if let block = event.contentBlock, block.type == "tool_use",
+                               let index = event.index, let id = block.id, let name = block.name {
+                                toolAccumulators[index] = ClaudeToolAccumulator(id: id, name: name, json: "")
                             }
                         case "content_block_delta":
-                            guard let delta = event.delta, let index = event.index else { continue }
-                            if delta.type == "text_delta", let text = delta.text {
-                                textBuffer += text
-                                continuation.yield(.textDelta(text))
-                            } else if delta.type == "input_json_delta", let partial = delta.partialJson {
-                                var acc = toolAccumulators[index] ?? (id: "", name: "", json: "")
-                                acc.json += partial
-                                toolAccumulators[index] = acc
-                                continuation.yield(.toolUseDelta(id: acc.id, name: acc.name, inputDelta: partial))
-                            }
+                            self.applyContentBlockDelta(
+                                event: event,
+                                textBuffer: &textBuffer,
+                                toolAccumulators: &toolAccumulators,
+                                continuation: continuation
+                            )
                         case "message_delta":
                             stopReason = self.responseMapper.mapStopReason(event.delta?.stopReason)
                             outputTokens = event.usage?.outputTokens ?? 0
@@ -141,18 +131,10 @@ public final class ClaudeProvider: StreamableProvider {
                         }
                     }
 
-                    // Assemble final AIResponse from accumulated state
-                    var content: [ContentBlock] = []
-                    if !textBuffer.isEmpty {
-                        content.append(.text(textBuffer))
-                    }
-                    for index in toolAccumulators.keys.sorted() {
-                        let acc = toolAccumulators[index]!
-                        let inputData = acc.json.data(using: .utf8) ?? Data()
-                        let input = (try? JSONDecoder().decode(JSONValue.self, from: inputData)) ?? .object([:])
-                        content.append(.toolUse(.init(id: acc.id, name: acc.name, input: input)))
-                    }
-
+                    let content = self.buildStreamContent(
+                        textBuffer: textBuffer,
+                        toolAccumulators: toolAccumulators
+                    )
                     let response = AIResponse(
                         id: messageId,
                         model: messageModel,
@@ -207,6 +189,54 @@ public final class ClaudeProvider: StreamableProvider {
         }
 
         throw AIError.invalidResponse(statusCode: response.statusCode, body: body)
+    }
+}
+
+// MARK: - Internal types
+
+private struct ClaudeToolAccumulator {
+    var id: String
+    var name: String
+    var json: String
+}
+
+// MARK: - Stream helpers
+
+private extension ClaudeProvider {
+
+    func applyContentBlockDelta(
+        event: ClaudeStreamEvent,
+        textBuffer: inout String,
+        toolAccumulators: inout [Int: ClaudeToolAccumulator],
+        continuation: AsyncThrowingStream<AIStreamEvent, any Error>.Continuation
+    ) {
+        guard let delta = event.delta, let index = event.index else { return }
+        if delta.type == "text_delta", let text = delta.text {
+            textBuffer += text
+            continuation.yield(.textDelta(text))
+        } else if delta.type == "input_json_delta", let partial = delta.partialJson {
+            var acc = toolAccumulators[index] ?? ClaudeToolAccumulator(id: "", name: "", json: "")
+            acc.json += partial
+            toolAccumulators[index] = acc
+            continuation.yield(.toolUseDelta(id: acc.id, name: acc.name, inputDelta: partial))
+        }
+    }
+
+    func buildStreamContent(
+        textBuffer: String,
+        toolAccumulators: [Int: ClaudeToolAccumulator]
+    ) -> [ContentBlock] {
+        var content: [ContentBlock] = []
+        if !textBuffer.isEmpty {
+            content.append(.text(textBuffer))
+        }
+        for index in toolAccumulators.keys.sorted() {
+            let acc = toolAccumulators[index]!
+            let inputData = acc.json.data(using: .utf8) ?? Data()
+            let input = (try? JSONDecoder().decode(JSONValue.self, from: inputData)) ?? .object([:])
+            content.append(.toolUse(.init(id: acc.id, name: acc.name, input: input)))
+        }
+        return content
     }
 }
 
