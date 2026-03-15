@@ -108,17 +108,54 @@ struct ClaudeErrorResponse: Decodable {
 
 struct ClaudeStreamEvent: Decodable {
     let type: String
-    let delta: ClaudeStreamDelta?
     let index: Int?
+    let delta: ClaudeStreamDelta?
+    /// Present on `message_start` events — carries `id`, `model`, and initial token usage.
+    let message: ClaudeStreamMessage?
+    /// Present on `content_block_start` events — identifies the block type plus `id`/`name` for tool_use blocks.
+    let contentBlock: ClaudeStreamContentBlock?
+    /// Present on `message_delta` events — carries final output token count.
+    let usage: ClaudeStreamDeltaUsage?
 
     struct ClaudeStreamDelta: Decodable {
         let type: String?
         let text: String?
         let stopReason: String?
+        /// Incremental tool-call input JSON fragment, present when `type == "input_json_delta"`.
+        let partialJson: String?
 
         enum CodingKeys: String, CodingKey {
             case type, text
             case stopReason = "stop_reason"
+            case partialJson = "partial_json"
         }
+    }
+
+    /// Payload of a `message_start` SSE event.
+    struct ClaudeStreamMessage: Decodable {
+        let id: String?
+        let model: String?
+        let usage: ClaudeUsage?
+    }
+
+    /// Payload of a `content_block_start` SSE event.
+    struct ClaudeStreamContentBlock: Decodable {
+        let type: String
+        let id: String?
+        let name: String?
+    }
+
+    /// Usage fragment carried by `message_delta` events (output tokens only).
+    struct ClaudeStreamDeltaUsage: Decodable {
+        let outputTokens: Int
+
+        enum CodingKeys: String, CodingKey {
+            case outputTokens = "output_tokens"
+        }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type, index, delta, message, usage
+        case contentBlock = "content_block"
     }
 }

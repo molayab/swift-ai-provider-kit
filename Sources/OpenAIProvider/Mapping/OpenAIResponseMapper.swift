@@ -46,13 +46,16 @@ struct OpenAIResponseMapper: Sendable {
         )
     }
 
-    func mapStreamEvent(_ data: Data) throws(AIError) -> AIStreamEvent? {
-        let chunk: OpenAIChatChunk
+    func decodeStreamChunk(_ data: Data) throws(AIError) -> OpenAIChatChunk {
         do {
-            chunk = try JSONDecoder().decode(OpenAIChatChunk.self, from: data)
+            return try JSONDecoder().decode(OpenAIChatChunk.self, from: data)
         } catch {
             throw AIError.decodingFailed(underlying: error)
         }
+    }
+
+    func mapStreamEvent(_ data: Data) throws(AIError) -> AIStreamEvent? {
+        let chunk = try decodeStreamChunk(data)
 
         guard let choice = chunk.choices.first else { return nil }
         let delta = choice.delta
@@ -82,7 +85,7 @@ struct OpenAIResponseMapper: Sendable {
         TokenUsage(inputTokens: usage.promptTokens, outputTokens: usage.completionTokens)
     }
 
-    private func mapFinishReason(_ raw: String?) -> StopReason {
+    func mapFinishReason(_ raw: String?) -> StopReason {
         switch raw {
         case "stop":           return .endTurn
         case "length":         return .maxTokens

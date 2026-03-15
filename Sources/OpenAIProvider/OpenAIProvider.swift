@@ -92,11 +92,76 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
                     let openAIRequest = self.requestMapper.map(request, stream: true)
                     let httpRequest = try await self.buildHTTPRequest(body: openAIRequest)
 
+                    // Accumulator state for the final .message event
+                    var messageId = ""
+                    var messageModel = request.model.identifier
+                    var stopReason = StopReason.unknown
+                    var textBuffer = ""
+                    var inputTokens = 0
+                    var outputTokens = 0
+                    // tool_calls by index: (id, name, accumulated arguments JSON)
+                    var toolAccumulators: [Int: (id: String, name: String, arguments: String)] = [:]
+
                     for try await data in self.httpClient.stream(httpRequest) {
-                        if let event = try self.responseMapper.mapStreamEvent(data) {
-                            continuation.yield(event)
+                        let chunk = try self.responseMapper.decodeStreamChunk(data)
+
+                        if let id = chunk.id, !id.isEmpty { messageId = id }
+                        if let model = chunk.model, !model.isEmpty { messageModel = model }
+
+                        // Final usage-only chunk sent when stream_options.include_usage is true
+                        if let usage = chunk.usage {
+                            inputTokens = usage.promptTokens
+                            outputTokens = usage.completionTokens
+                        }
+
+                        guard let choice = chunk.choices.first else { continue }
+
+                        if let reason = choice.finishReason {
+                            stopReason = self.responseMapper.mapFinishReason(reason)
+                        }
+
+                        let delta = choice.delta
+                        if let text = delta.content, !text.isEmpty {
+                            textBuffer += text
+                            continuation.yield(.textDelta(text))
+                        }
+
+                        if let toolCallDeltas = delta.toolCalls {
+                            for tc in toolCallDeltas {
+                                let idx = tc.index
+                                var acc = toolAccumulators[idx] ?? (id: "", name: "", arguments: "")
+                                if let newId = tc.id, !newId.isEmpty { acc.id = newId }
+                                if let newName = tc.function?.name, !newName.isEmpty { acc.name = newName }
+                                let argsDelta = tc.function?.arguments ?? ""
+                                acc.arguments += argsDelta
+                                toolAccumulators[idx] = acc
+                                if !argsDelta.isEmpty {
+                                    continuation.yield(.toolUseDelta(id: acc.id, name: acc.name, inputDelta: argsDelta))
+                                }
+                            }
                         }
                     }
+
+                    // Assemble final AIResponse from accumulated state
+                    var content: [ContentBlock] = []
+                    if !textBuffer.isEmpty {
+                        content.append(.text(textBuffer))
+                    }
+                    for index in toolAccumulators.keys.sorted() {
+                        let acc = toolAccumulators[index]!
+                        let inputData = acc.arguments.data(using: .utf8) ?? Data()
+                        let input = (try? JSONDecoder().decode(JSONValue.self, from: inputData)) ?? .object([:])
+                        content.append(.toolUse(.init(id: acc.id, name: acc.name, input: input)))
+                    }
+
+                    let response = AIResponse(
+                        id: messageId,
+                        model: messageModel,
+                        content: content,
+                        usage: TokenUsage(inputTokens: inputTokens, outputTokens: outputTokens),
+                        stopReason: stopReason
+                    )
+                    continuation.yield(.message(response))
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)

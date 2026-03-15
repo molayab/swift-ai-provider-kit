@@ -34,7 +34,8 @@ struct OpenAIRequestMapper: Sendable {
             maxTokens: request.maxTokens,
             topP: request.topP,
             stop: request.stopSequences.isEmpty ? nil : request.stopSequences,
-            stream: stream
+            stream: stream,
+            streamOptions: stream ? OpenAIStreamOptions(includeUsage: true) : nil
         )
     }
 

@@ -12,11 +12,21 @@ struct OpenAIChatRequest: Encodable {
     let topP: Double?
     let stop: [String]?
     let stream: Bool
+    let streamOptions: OpenAIStreamOptions?
 
     enum CodingKeys: String, CodingKey {
         case model, messages, tools, temperature, stop, stream
         case maxTokens = "max_tokens"
         case topP = "top_p"
+        case streamOptions = "stream_options"
+    }
+}
+
+struct OpenAIStreamOptions: Encodable {
+    let includeUsage: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case includeUsage = "include_usage"
     }
 }
 
@@ -180,7 +190,10 @@ struct OpenAIModelObject: Decodable {
 
 struct OpenAIChatChunk: Decodable {
     let id: String?
+    let model: String?
     let choices: [OpenAIChunkChoice]
+    /// Present only on the final usage-reporting chunk when `stream_options.include_usage` is set.
+    let usage: OpenAIUsage?
 
     struct OpenAIChunkChoice: Decodable {
         let index: Int
