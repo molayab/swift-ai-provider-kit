@@ -7,8 +7,7 @@ import OpenAIProvider
 
 actor OpenAIIntegrationSuite {
     private let client: AIClient
-    private var passed = 0
-    private var failed = 0
+    private let runner = IntegrationSuiteRunner()
 
     init(apiKey: String) {
         client = AIClient(
@@ -22,35 +21,14 @@ actor OpenAIIntegrationSuite {
         print("  Provider : OpenAI (GPT-4.1 Mini)")
         print("═══════════════════════════════════════════\n")
 
-        await run("Basic text completion") { try await self.testBasicCompletion() }
-        await run("Streaming") { try await self.testStreaming() }
-        await run("Automatic tool execution") { try await self.testToolExecution() }
-        await run("Recipe rendering") { try await self.testRecipe() }
-        await run("Skill execution") { try await self.testSkill() }
-        await run("Model discovery") { try await self.testModelDiscovery() }
+        await runner.run("Basic text completion") { try await self.testBasicCompletion() }
+        await runner.run("Streaming") { try await self.testStreaming() }
+        await runner.run("Automatic tool execution") { try await self.testToolExecution() }
+        await runner.run("Recipe rendering") { try await self.testRecipe() }
+        await runner.run("Skill execution") { try await self.testSkill() }
+        await runner.run("Model discovery") { try await self.testModelDiscovery() }
 
-        printSummary()
-    }
-
-    // MARK: - Runner
-
-    private func run(_ name: String, _ body: () async throws -> Void) async {
-        do {
-            try await body()
-            print("  ✅  \(name)")
-            passed += 1
-        } catch {
-            print("  ❌  \(name)")
-            print("       → \(error)")
-            failed += 1
-        }
-    }
-
-    private func printSummary() {
-        print("\n───────────────────────────────────────────")
-        print("  \(passed + failed) tests — \(passed) passed, \(failed) failed")
-        print("───────────────────────────────────────────")
-        if failed > 0 { exit(1) }
+        await runner.printSummary()
     }
 
     // MARK: - Tests
@@ -64,7 +42,7 @@ actor OpenAIIntegrationSuite {
 
         let response = try await client.send(request)
 
-        guard !response.text.isEmpty         else { throw IntegrationError.emptyResponse }
+        guard !response.text.isEmpty else { throw IntegrationError.emptyResponse }
         guard response.stopReason == .endTurn else { throw IntegrationError.unexpectedStopReason(response.stopReason) }
     }
 
@@ -98,7 +76,7 @@ actor OpenAIIntegrationSuite {
         let response = try await client.send(request)
 
         guard response.stopReason == .endTurn else { throw IntegrationError.unexpectedStopReason(response.stopReason) }
-        guard !response.text.isEmpty          else { throw IntegrationError.emptyResponse }
+        guard !response.text.isEmpty else { throw IntegrationError.emptyResponse }
     }
 
     private func testRecipe() async throws {

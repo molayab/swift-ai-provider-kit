@@ -59,10 +59,12 @@ struct FMResponseMapper: Sendable {
         }
     }
 
+    private static let jsonDecoder = JSONDecoder()
+
     private func parseJSONValue(_ jsonString: String) -> JSONValue {
         guard
             let data = jsonString.data(using: .utf8),
-            let value = try? JSONDecoder().decode(JSONValue.self, from: data)
+            let value = try? Self.jsonDecoder.decode(JSONValue.self, from: data)
         else {
             return .string(jsonString)
         }

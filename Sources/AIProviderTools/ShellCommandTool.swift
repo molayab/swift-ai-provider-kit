@@ -24,7 +24,7 @@ import Foundation
 ///
 /// ```swift
 /// #if os(macOS)
-/// await client.toolRegistry.register(ShellCommandTool.tool)
+/// await client.toolRegistry.register(try ShellCommandTool.tool())
 /// #endif
 /// ```
 ///
@@ -48,7 +48,7 @@ public enum ShellCommandTool: ToolGroup {
         inputSchema: .object(
             properties: [
                 "command": .string(description: "The shell command to execute (runs via /bin/zsh -c)."),
-                "working_directory": .string(description: "Optional absolute path to use as the working directory.")
+                "workingDirectory": .string(description: "Optional absolute path to use as the working directory.")
             ],
             required: ["command"]
         )
@@ -61,24 +61,43 @@ public enum ShellCommandTool: ToolGroup {
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
         process.arguments = ["-c", command]
 
-        if let workingDir = input["working_directory"]?.stringValue {
+        if let workingDir = input["workingDirectory"]?.stringValue {
             process.currentDirectoryURL = URL(fileURLWithPath: workingDir)
         }
 
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
         process.standardOutput = stdoutPipe
-        process.standardError  = stderrPipe
+        process.standardError = stderrPipe
 
         do {
             try process.run()
-            process.waitUntilExit()
         } catch {
             return .object(["error": .string("Failed to launch process: \(error.localizedDescription)")])
         }
 
-        let stdout = String(data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        let stderr = String(data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        // Drain both pipes concurrently before calling waitUntilExit().
+        // macOS pipe buffers are 64 KB; a child that writes more will block
+        // on write(2) waiting for the parent to read — but the parent would
+        // be stuck in waitUntilExit() if reads happen after the wait, causing
+        // a deadlock. readDataToEndOfFile() is blocking, so we bridge each
+        // read onto a dedicated GCD thread and drive them with async let so
+        // both pipes are drained in parallel.
+        async let stdoutData: Data = withCheckedContinuation { cont in
+            DispatchQueue.global(qos: .utility).async {
+                cont.resume(returning: stdoutPipe.fileHandleForReading.readDataToEndOfFile())
+            }
+        }
+        async let stderrData: Data = withCheckedContinuation { cont in
+            DispatchQueue.global(qos: .utility).async {
+                cont.resume(returning: stderrPipe.fileHandleForReading.readDataToEndOfFile())
+            }
+        }
+        let (outData, errData) = await (stdoutData, stderrData)
+        process.waitUntilExit()
+
+        let stdout = String(data: outData, encoding: .utf8) ?? ""
+        let stderr = String(data: errData, encoding: .utf8) ?? ""
 
         return .object([
             "stdout": .string(stdout),

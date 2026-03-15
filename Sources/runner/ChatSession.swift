@@ -18,13 +18,13 @@ actor ChatSession {
     private var history: [Message] = []
 
     /// Tools included in every request so the model can invoke them freely.
-    private var tools: [Tool] {
+    private let tools: [Tool] = {
         var all: [Tool] = [CurrentTimeTool.currentTime]
         #if os(macOS)
         all.append(ShellCommandTool.shellCommand)
         #endif
         return all
-    }
+    }()
 
     init(client: AIClient, providerName: String, defaultModel: AIModel) {
         self.client = client

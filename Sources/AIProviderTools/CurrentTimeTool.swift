@@ -19,9 +19,18 @@ import Foundation
 /// Or access the tool directly:
 ///
 /// ```swift
-/// await client.toolRegistry.register(CurrentTimeTool.tool)
+/// await client.toolRegistry.register(try CurrentTimeTool.tool())
 /// ```
 public enum CurrentTimeTool: ToolGroup {
+
+    // ISO8601DateFormatter is thread-safe after initialisation (documented by Apple).
+    nonisolated(unsafe) private static let iso8601 = ISO8601DateFormatter()
+    private static let humanFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.dateStyle = .full
+        fmt.timeStyle = .long
+        return fmt
+    }()
 
     /// All tools in this group (exactly one).
     public static var all: [Tool] { [currentTime] }
@@ -42,13 +51,10 @@ public enum CurrentTimeTool: ToolGroup {
         let now = Date()
 
         if wantHuman {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .full
-            formatter.timeStyle = .long
-            return .string(formatter.string(from: now))
+            return .string(CurrentTimeTool.humanFormatter.string(from: now))
         } else {
-            let iso = ISO8601DateFormatter().string(from: now)
-            let tz  = TimeZone.current.identifier
+            let iso = CurrentTimeTool.iso8601.string(from: now)
+            let tz = TimeZone.current.identifier
             return .object([
                 "iso8601": .string(iso),
                 "timezone": .string(tz)

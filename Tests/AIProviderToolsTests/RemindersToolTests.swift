@@ -2,6 +2,13 @@ import AIProviderKit
 import AIProviderTools
 import Testing
 
+// NOTE: Execution tests are intentionally omitted for RemindersTool.
+// EKEventStore requires explicit user permission (reminders entitlement +
+// runtime authorisation prompt) that cannot be granted in a headless test
+// environment. Because EKEventStore is a concrete class with no protocol
+// seam, injecting a mock requires a wrapper abstraction that has not yet
+// been built. Until that abstraction exists these tests cover only tool
+// metadata and schema correctness. Tracked in Documentation/Issues/.
 @Suite("RemindersTool")
 struct RemindersToolTests {
 

@@ -14,8 +14,8 @@ struct CurrentTimeToolTests {
     }
 
     @Test("tool returns the same instance as all[0]")
-    func toolMatchesAll() {
-        #expect(CurrentTimeTool.tool.name == CurrentTimeTool.all[0].name)
+    func toolMatchesAll() throws {
+        #expect(try CurrentTimeTool.tool().name == CurrentTimeTool.all[0].name)
     }
 
     // MARK: - Metadata

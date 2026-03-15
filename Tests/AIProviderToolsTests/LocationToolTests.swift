@@ -2,6 +2,14 @@ import AIProviderKit
 import AIProviderTools
 import Testing
 
+// NOTE: Execution tests are intentionally omitted for LocationTool.
+// CLLocationManager requires explicit user permission (location entitlement +
+// runtime authorisation prompt) and a physical device or a simulated location;
+// neither is available in a headless CI environment. Because CLLocationManager
+// is a concrete class with no protocol seam, injecting a mock requires a
+// wrapper abstraction that has not yet been built. Until that abstraction
+// exists these tests cover only tool metadata and schema correctness.
+// Tracked in Documentation/Issues/.
 @Suite("LocationTool")
 struct LocationToolTests {
 
@@ -13,8 +21,8 @@ struct LocationToolTests {
     }
 
     @Test("tool returns the same instance as all[0]")
-    func toolMatchesAll() {
-        #expect(LocationTool.tool.name == LocationTool.all[0].name)
+    func toolMatchesAll() throws {
+        #expect(try LocationTool.tool().name == LocationTool.all[0].name)
     }
 
     // MARK: - Metadata

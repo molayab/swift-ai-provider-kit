@@ -20,11 +20,11 @@
 /// await client.toolRegistry.registerAll(LocationTool.self)
 /// ```
 ///
-/// For groups that vend exactly one tool, the `tool` extension property gives
-/// direct access without going through `all`:
+/// For groups that vend exactly one tool, the `tool()` function gives direct
+/// access without going through `all`:
 ///
 /// ```swift
-/// let tool = CurrentTimeTool.tool
+/// let tool = try CurrentTimeTool.tool()
 /// ```
 public protocol ToolGroup {
     /// All tools provided by this group. Must not be empty.
@@ -32,14 +32,33 @@ public protocol ToolGroup {
 }
 
 public extension ToolGroup {
-    /// Direct accessor for `ToolGroup` types that vend exactly one tool.
+    /// Returns the single tool in this group.
     ///
-    /// Calling this on a multi-tool group returns the first tool. Prefer
-    /// using `all` when you need every tool in the group.
-    static var tool: Tool {
+    /// Throws `ToolGroupError.empty` if `all` is empty. In debug builds, calling
+    /// this on a multi-tool group additionally triggers an `assertionFailure`; in
+    /// release builds it silently returns the first tool. Use `all` or
+    /// `registerAll(_:)` for groups that expose more than one tool.
+    static func tool() throws -> Tool {
         guard let first = all.first else {
-            preconditionFailure("\(Self.self).all must not be empty")
+            throw ToolGroupError.empty(groupType: "\(Self.self)")
         }
+        assert(
+            all.count == 1,
+            "\(Self.self).tool() requires all.count == 1 (found \(all.count)). Use all or registerAll(_:) instead."
+        )
         return first
+    }
+}
+
+/// Errors thrown by ``ToolGroup/tool()``.
+public enum ToolGroupError: Error, CustomStringConvertible {
+    /// The group's `all` array is empty, violating the protocol contract.
+    case empty(groupType: String)
+
+    public var description: String {
+        switch self {
+        case .empty(let type):
+            return "\(type).all must not be empty"
+        }
     }
 }

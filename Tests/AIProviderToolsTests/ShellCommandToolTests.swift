@@ -1,5 +1,6 @@
 import AIProviderKit
 import AIProviderTools
+import Foundation
 import Testing
 
 // `ShellCommandTool` is macOS-only — guard the entire suite.
@@ -16,8 +17,8 @@ struct ShellCommandToolTests {
     }
 
     @Test("tool returns the same instance as all[0]")
-    func toolMatchesAll() {
-        #expect(ShellCommandTool.tool.name == ShellCommandTool.all[0].name)
+    func toolMatchesAll() throws {
+        #expect(try ShellCommandTool.tool().name == ShellCommandTool.all[0].name)
     }
 
     // MARK: - Metadata
@@ -46,7 +47,7 @@ struct ShellCommandToolTests {
         #expect(required?.contains("command") == true)
     }
 
-    @Test("input schema has optional working_directory parameter")
+    @Test("input schema has optional workingDirectory parameter")
     func inputSchemaOptionalWorkingDirectory() {
         // given
         let schema: JSONSchema = ShellCommandTool.shellCommand.inputSchema
@@ -56,7 +57,7 @@ struct ShellCommandToolTests {
             Issue.record("Expected object schema")
             return
         }
-        #expect(properties["working_directory"] != nil)
+        #expect(properties["workingDirectory"] != nil)
     }
 
     // MARK: - Execution
@@ -123,12 +124,12 @@ struct ShellCommandToolTests {
         #expect(dict["error"] != nil)
     }
 
-    @Test("working_directory parameter is respected")
+    @Test("workingDirectory parameter is respected")
     func workingDirectoryParameter() async throws {
         // given
         let input: JSONValue = .object([
             "command": .string("pwd"),
-            "working_directory": .string("/tmp")
+            "workingDirectory": .string("/tmp")
         ])
 
         // when

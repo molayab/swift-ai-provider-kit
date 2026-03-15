@@ -7,8 +7,7 @@ import Foundation
 
 actor ClaudeIntegrationSuite {
     private let client: AIClient
-    private var passed = 0
-    private var failed = 0
+    private let runner = IntegrationSuiteRunner()
 
     init(apiKey: String) {
         client = AIClient(
@@ -22,34 +21,13 @@ actor ClaudeIntegrationSuite {
         print("  Provider : Claude (Haiku)")
         print("═══════════════════════════════════════════\n")
 
-        await run("Basic text completion") { try await self.testBasicCompletion() }
-        await run("Streaming") { try await self.testStreaming() }
-        await run("Automatic tool execution") { try await self.testToolExecution() }
-        await run("Recipe rendering") { try await self.testRecipe() }
-        await run("Skill execution") { try await self.testSkill() }
+        await runner.run("Basic text completion") { try await self.testBasicCompletion() }
+        await runner.run("Streaming") { try await self.testStreaming() }
+        await runner.run("Automatic tool execution") { try await self.testToolExecution() }
+        await runner.run("Recipe rendering") { try await self.testRecipe() }
+        await runner.run("Skill execution") { try await self.testSkill() }
 
-        printSummary()
-    }
-
-    // MARK: - Runner
-
-    private func run(_ name: String, _ body: () async throws -> Void) async {
-        do {
-            try await body()
-            print("  ✅  \(name)")
-            passed += 1
-        } catch {
-            print("  ❌  \(name)")
-            print("       → \(error)")
-            failed += 1
-        }
-    }
-
-    private func printSummary() {
-        print("\n───────────────────────────────────────────")
-        print("  \(passed + failed) tests — \(passed) passed, \(failed) failed")
-        print("───────────────────────────────────────────")
-        if failed > 0 { exit(1) }
+        await runner.printSummary()
     }
 
     // MARK: - Tests
