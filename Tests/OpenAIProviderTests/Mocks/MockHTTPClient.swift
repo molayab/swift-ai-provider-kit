@@ -1,6 +1,16 @@
 import Foundation
 @testable import OpenAIProvider
 
+/// Test double for `HTTPClient`.
+///
+/// Marked `@unchecked Sendable` because its mutable state is accessed in a strictly
+/// sequential manner within each test: all `stubbed*` properties are written once
+/// during test setup (before any async call begins), `send`/`stream` are invoked via
+/// `await` (establishing a happens-before edge), and `receivedRequests` is inspected
+/// only after that `await` returns. Each test owns its own `MockHTTPClient` instance,
+/// so no two concurrent contexts ever access the same object simultaneously.
+/// Violating this invariant (e.g. sharing the mock across concurrent tests) would
+/// reintroduce the data race — do not do this.
 final class MockHTTPClient: HTTPClient, @unchecked Sendable {
 
     var stubbedResponse = HTTPResponse(statusCode: 200, body: Data())
