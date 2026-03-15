@@ -83,17 +83,27 @@ public enum ShellCommandTool: ToolGroup {
         // a deadlock. readDataToEndOfFile() is blocking, so we bridge each
         // read onto a dedicated GCD thread and drive them with async let so
         // both pipes are drained in parallel.
-        async let stdoutData: Data = withCheckedContinuation { cont in
-            DispatchQueue.global(qos: .utility).async {
-                cont.resume(returning: stdoutPipe.fileHandleForReading.readDataToEndOfFile())
+        //
+        // Task cancellation: withTaskCancellationHandler terminates the child
+        // process if the Swift task is cancelled while waiting for pipe data,
+        // preventing an orphaned process. The async let bindings live inside
+        // the operation closure because async let variables cannot be captured
+        // across closure boundaries.
+        let (outData, errData) = await withTaskCancellationHandler {
+            async let stdoutData: Data = withCheckedContinuation { cont in
+                DispatchQueue.global(qos: .utility).async {
+                    cont.resume(returning: stdoutPipe.fileHandleForReading.readDataToEndOfFile())
+                }
             }
-        }
-        async let stderrData: Data = withCheckedContinuation { cont in
-            DispatchQueue.global(qos: .utility).async {
-                cont.resume(returning: stderrPipe.fileHandleForReading.readDataToEndOfFile())
+            async let stderrData: Data = withCheckedContinuation { cont in
+                DispatchQueue.global(qos: .utility).async {
+                    cont.resume(returning: stderrPipe.fileHandleForReading.readDataToEndOfFile())
+                }
             }
+            return await (stdoutData, stderrData)
+        } onCancel: {
+            process.terminate()
         }
-        let (outData, errData) = await (stdoutData, stderrData)
         process.waitUntilExit()
 
         let stdout = String(data: outData, encoding: .utf8) ?? ""
