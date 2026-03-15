@@ -22,6 +22,9 @@ actor ChatSession {
         var all: [Tool] = [CurrentTimeTool.currentTime]
         #if os(macOS)
         all.append(ShellCommandTool.shellCommand)
+        all.append(AppleScriptTool.runScript)
+        all.append(contentsOf: FileSystemTool.all)
+        all.append(contentsOf: ClipboardTool.all)
         #endif
         return all
     }()
@@ -64,6 +67,9 @@ actor ChatSession {
         await client.toolRegistry.register(CurrentTimeTool.currentTime)
         #if os(macOS)
         await client.toolRegistry.register(ShellCommandTool.shellCommand)
+        await client.toolRegistry.register(AppleScriptTool.runScript)
+        await client.toolRegistry.registerAll(FileSystemTool.self)
+        await client.toolRegistry.registerAll(ClipboardTool.self)
         await client.skillRegistry.register(ShellExplainerSkill())
         #endif
         await client.skillRegistry.register(TitleGeneratorSkill())
@@ -209,6 +215,10 @@ actor ChatSession {
         """
         #if os(macOS)
         help += "\n          run_shell_command            Ask the model to run any shell command"
+        help += "\n          run_applescript              Ask the model to automate macOS apps via AppleScript"
+        help += "\n          read_file / write_file       Ask the model to read or write any file"
+        help += "\n          list_directory               Ask the model to list a directory"
+        help += "\n          get_clipboard / set_clipboard  Read or write the system clipboard"
         #endif
         help += "\n\n        Built-in skills:\n          title-generator              /skill title-generator <your text here>"
         #if os(macOS)
