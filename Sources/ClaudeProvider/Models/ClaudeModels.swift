@@ -116,6 +116,8 @@ struct ClaudeStreamEvent: Decodable {
     let contentBlock: ClaudeStreamContentBlock?
     /// Present on `message_delta` events — carries final output token count.
     let usage: ClaudeStreamDeltaUsage?
+    /// Present on `error` events — carries the Anthropic error type and message.
+    let error: ClaudeStreamErrorPayload?
 
     struct ClaudeStreamDelta: Decodable {
         let type: String?
@@ -154,8 +156,14 @@ struct ClaudeStreamEvent: Decodable {
         }
     }
 
+    /// Payload of an `error` SSE event — carries the Anthropic error type and human-readable message.
+    struct ClaudeStreamErrorPayload: Decodable {
+        let type: String
+        let message: String
+    }
+
     enum CodingKeys: String, CodingKey {
-        case type, index, delta, message, usage
+        case type, index, delta, message, usage, error
         case contentBlock = "content_block"
     }
 }

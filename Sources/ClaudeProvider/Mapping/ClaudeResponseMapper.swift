@@ -81,7 +81,8 @@ struct ClaudeResponseMapper: Sendable {
             state.outputTokens = event.usage?.outputTokens ?? 0
 
         case "error":
-            throw AIError.invalidResponse(statusCode: 529, body: "Anthropic stream error")
+            let message = event.error.map { "\($0.type): \($0.message)" } ?? "Anthropic stream error"
+            throw AIError.invalidResponse(statusCode: 0, body: message)
 
         default:
             break

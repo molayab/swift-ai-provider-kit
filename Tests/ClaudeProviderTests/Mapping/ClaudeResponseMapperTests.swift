@@ -331,16 +331,23 @@ struct ClaudeResponseMapperTests {
         #expect(response.toolUses[0].input == .object(["city": .string("Rome")]))
     }
 
-    @Test("processStreamEvent throws invalidResponse on error event")
-    func processStreamEvent_errorEvent_throws() throws {
+    @Test("processStreamEvent throws invalidResponse(statusCode:0) with provider message on error event")
+    func processStreamEvent_errorEvent_throwsInvalidResponseWithMessage() throws {
         // Given
         let json = #"{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}"#
         let event = try sut.decodeStreamEvent(Data(json.utf8))
         var state = sut.makeStreamState(fallbackModel: "claude-sonnet-4-6")
 
-        // When / Then
-        #expect(throws: AIError.self) {
+        // When / Then — statusCode 0 signals a provider-level error, not an HTTP status
+        do {
             _ = try sut.processStreamEvent(event, state: &state)
+            Issue.record("Expected processStreamEvent to throw")
+        } catch AIError.invalidResponse(let statusCode, let body) {
+            #expect(statusCode == 0)
+            #expect(body?.contains("overloaded_error") == true)
+            #expect(body?.contains("Overloaded") == true)
+        } catch {
+            Issue.record("Expected AIError.invalidResponse, got \(error)")
         }
     }
 
