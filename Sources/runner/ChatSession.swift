@@ -17,6 +17,15 @@ actor ChatSession {
     private var currentModel: AIModel
     private var history: [Message] = []
 
+    /// System prompt sent with every request.
+    /// Instructs the model to use tools autonomously rather than asking the user
+    /// for information a tool can retrieve. Kept short for Apple Intelligence's
+    /// 4 096-token context budget.
+    private let systemPrompt = """
+        You are a capable assistant. Use tools autonomously — never ask for \
+        information a tool can retrieve. Chain tool calls; clarify only when ambiguous.
+        """
+
     /// Tools included in every request so the model can invoke them freely.
     private let tools: [Tool] = {
         var all: [Tool] = [CurrentTimeTool.currentTime]
@@ -152,6 +161,7 @@ actor ChatSession {
             do {
                 let request = try AIRequestBuilder()
                     .model(currentModel)
+                    .systemPrompt(systemPrompt)
                     .messages(requestHistory)
                     .tools(tools)
                     .maxTokens(2_048)
