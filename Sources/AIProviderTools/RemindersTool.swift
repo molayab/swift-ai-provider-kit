@@ -1,3 +1,5 @@
+// EventKit is only available on iOS and macOS — not visionOS, watchOS, or tvOS.
+#if os(iOS) || os(macOS)
 import AIProviderKit
 import EventKit
 
@@ -105,3 +107,4 @@ public enum RemindersTool: ToolGroup {
         return .object(["success": true, "reminderId": .string(reminder.calendarItemIdentifier)])
     }
 }
+#endif

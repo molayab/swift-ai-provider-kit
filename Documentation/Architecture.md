@@ -20,7 +20,7 @@
 
 ## Overview
 
-AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 26+, watchOS 11+, tvOS 26+, and visionOS 2+, built with Swift 6 and full strict concurrency compliance.
+AIProviderKit is a Swift package that provides a provider-agnostic abstraction layer for interacting with AI models. The package targets iOS 26+, macOS 26+, and visionOS 2+ (core providers only), built with Swift 6 and full strict concurrency compliance. watchOS and tvOS are not supported — `AIProviderTools` depends on EventKit and MapKit which are unavailable on those platforms.
 
 The package ships five library products and one executable:
 

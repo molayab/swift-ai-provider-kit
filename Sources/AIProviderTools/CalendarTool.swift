@@ -1,3 +1,5 @@
+// EventKit is only available on iOS and macOS — not visionOS, watchOS, or tvOS.
+#if os(iOS) || os(macOS)
 import AIProviderKit
 import EventKit
 
@@ -97,3 +99,4 @@ public enum CalendarTool: ToolGroup {
         return .object(["success": true, "eventId": .string(event.eventIdentifier ?? "")])
     }
 }
+#endif

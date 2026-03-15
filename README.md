@@ -6,7 +6,7 @@
   <a href="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml"><img src="https://github.com/molayab/swift-ai-provider-kit/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
   <img src="https://img.shields.io/badge/SwiftLint-enforced-orange?logo=swift&logoColor=white" alt="SwiftLint"/>
   <img src="https://img.shields.io/badge/Swift-6.2-orange?logo=swift&logoColor=white" alt="Swift 6"/>
-  <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2014%20%7C%20watchOS%2011%20%7C%20tvOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
+  <img src="https://img.shields.io/badge/Platforms-iOS%2026%20%7C%20macOS%2026%20%7C%20visionOS%202-blue" alt="Platforms"/>
 </p>
 
 A modular Swift package for integrating AI providers in a provider-agnostic way. Swap between Claude, on-device Apple Intelligence, or future providers without changing application code — with built-in streaming, automatic tool execution, reusable prompt templates, and composable skills.
@@ -316,15 +316,13 @@ See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for
 
 ## Requirements
 
-| Platform | Minimum |
-|---|---|
-| iOS | 26.0 |
-| macOS | 26.0 |
-| watchOS | 11.0 |
-| tvOS | 26.0 |
-| visionOS | 2.0 |
-| **Swift** | **6.0** |
-| **Xcode** | **26.0+** |
+| Platform | Minimum | Notes |
+|---|---|---|
+| iOS | 26.0 | Full support |
+| macOS | 26.0 | Full support |
+| visionOS | 2.0 | Core providers only — `CalendarTool` and `RemindersTool` unavailable (no EventKit) |
+| **Swift** | **6.0** | |
+| **Xcode** | **26.0+** | |
 
 > **External dependencies:** none. All products use only the Swift standard library and `Foundation`. `AppleIntelligenceProvider` additionally requires the `FoundationModels` framework (iOS 26+ / macOS 26+).
 
