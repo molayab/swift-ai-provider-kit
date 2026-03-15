@@ -297,10 +297,9 @@ struct OpenAIRequestMapperTests {
 
         // Then
         let roles = result.messages.map(\.role)
-        #expect(!roles.contains("system") || result.messages[0].role == "system")
-        let nonSystemMessages = result.messages.filter { $0.role != "system" }
-        #expect(nonSystemMessages.count == 1)
-        #expect(nonSystemMessages[0].role == "user")
+        #expect(!roles.contains("system"))
+        #expect(result.messages.count == 1)
+        #expect(result.messages[0].role == "user")
     }
 
     // MARK: - Model and MaxTokens
