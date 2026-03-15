@@ -68,7 +68,9 @@ platforms: [
 ]
 ```
 
-All three library targets share this constraint. No Linux or Windows targets are declared.
+> **Note on `platforms` semantics:** The `platforms` field only sets minimum deployment targets for Apple OSes. Linux and Windows cannot be listed there — `SupportedPlatform` has no `.linux` or `.windows` member. SwiftPM implicitly assumes a package supports all platforms unless source-level compilation or framework availability prevents it. In other words, `platforms` is not what makes this package Apple-only; the actual blockers are the Apple-only frameworks used in the source (URLSession, EventKit, CoreLocation, `os.Logger`, SwiftUI, FoundationModels).
+
+All three library targets share this Apple-platform declaration. Linux and Windows are not blocked by the manifest entry — they are blocked by Apple-only framework dependencies in the source.
 
 ### Providers today
 
@@ -394,11 +396,12 @@ MLC LLM is particularly relevant for Windows on Qualcomm Snapdragon (ARM64 + Hex
 **Description:** Make `ClaudeProvider` compile on Linux by replacing `URLSessionHTTPClient` with an `AsyncHTTPClient`-backed implementation, conditionally compiled for Linux.
 
 **Required changes:**
-1. **`Package.swift`** — Remove `platforms` constraint from `AIProviderKit` and `ClaudeProvider` targets (keep it on `AppleIntelligenceProvider`, `AIProviderKitUI`, and built-in tools)
-2. **`ClaudeProvider/Networking/`** — Add `AsyncHTTPClientAdapter` conforming to the existing `HTTPClient` protocol, conditionally compiled on Linux (`#if os(Linux)`)
-3. **`AIProviderKit/Tools/`** — Wrap `CalendarTool`, `RemindersTool`, `LocationTool` in `#if canImport(EventKit)` / `#if canImport(CoreLocation)` guards
-4. **`AIProviderKit/Logging/AILogger.swift`** — Conditionally use `os.Logger` on Apple; fall back to `swift-log` or `print` on Linux (adds a dependency or reduces logging capability)
-5. **`Package.swift`** — Add `AsyncHTTPClient` as a Linux-only conditional dependency
+1. **`ClaudeProvider/Networking/`** — Add `AsyncHTTPClientAdapter` conforming to the existing `HTTPClient` protocol, conditionally compiled on Linux (`#if os(Linux)`)
+2. **`AIProviderKit/Tools/`** — Wrap `CalendarTool`, `RemindersTool`, `LocationTool` in `#if canImport(EventKit)` / `#if canImport(CoreLocation)` guards
+3. **`AIProviderKit/Logging/AILogger.swift`** — Conditionally use `os.Logger` on Apple; fall back to `swift-log` or `print` on Linux (adds a dependency or reduces logging capability)
+4. **`Package.swift`** — Add `AsyncHTTPClient` as a Linux-only conditional dependency (via `.when(platforms: [.linux])` in target dependencies)
+
+> **On the `platforms` field:** Removing or narrowing the `platforms` declaration is not required for Linux support — SwiftPM ignores that field on Linux entirely. The real work is eliminating Apple-only framework dependencies from the source via `#if canImport(...)` guards and providing Linux-compatible alternatives.
 
 **`LlamaProvider` from Path A** would automatically benefit from Path D's networking fix on Linux.
 
@@ -428,7 +431,6 @@ Tasks are ordered by dependency and grouped by path.
 
 ### Prerequisite (Path D / shared foundation)
 
-- [ ] Remove `platforms` declaration from `AIProviderKit` and `ClaudeProvider` targets in `Package.swift`; add it explicitly only to `AppleIntelligenceProvider`, `AIProviderKitUI`, `CalendarTool`, `RemindersTool`, `LocationTool`
 - [ ] Add `#if canImport(EventKit)` guards around `CalendarTool` and `RemindersTool`
 - [ ] Add `#if canImport(CoreLocation)` guard around `LocationTool`
 - [ ] Audit `AILogger.swift` for `os.Logger` usage; implement a `#if canImport(os)` conditional with a `print`-based fallback for Linux
