@@ -22,6 +22,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Examples](#examples)
+- [Runner CLI](#runner-cli)
 - [Architecture](#architecture)
 - [Roadmap](#roadmap)
 - [Requirements](#requirements)
@@ -53,7 +54,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | **Skills** | Own a set of `Tool`s and an optional `Recipe`. Teach the model *how* to use those tools for a specific task; post-process the response into `SkillResult`. |
 | **Registries** | Thread-safe `actor`-based stores for tools, skills, and recipes |
 | **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app capture via `AILogStore` |
-| **Predefined tools** | `AIProviderTools` module — time, shell (macOS), calendar, reminders, and location, all via a unified `ToolGroup` interface |
+| **Predefined tools** | `AIProviderTools` module — time, shell, AppleScript, file I/O, clipboard (macOS), calendar, reminders, and location, all via a unified `ToolGroup` interface |
 
 ---
 
@@ -180,7 +181,10 @@ await client.toolRegistry.registerAll(CalendarTool.self)
 await client.toolRegistry.registerAll(RemindersTool.self)
 await client.toolRegistry.registerAll(LocationTool.self)
 #if os(macOS)
-await client.toolRegistry.registerAll(ShellCommandTool.self)
+await client.toolRegistry.registerAll(ShellCommandTool.self)   // run shell commands
+await client.toolRegistry.registerAll(AppleScriptTool.self)    // automate macOS apps
+await client.toolRegistry.registerAll(FileSystemTool.self)     // read / write files
+await client.toolRegistry.registerAll(ClipboardTool.self)      // get / set clipboard
 #endif
 
 // Tool calls are executed and followed up automatically
@@ -255,6 +259,58 @@ All entries are also written to the system log and visible in **Console.app**.
 
 ---
 
+## Runner CLI
+
+The package ships a `Runner` executable that acts as a live playground for any provider. No Xcode project needed — just `swift run`.
+
+```bash
+# Interactive streaming chat with Claude
+swift run Runner chat claude
+
+# Interactive streaming chat with OpenAI
+OPENAI_API_KEY=sk-... swift run Runner chat openai
+
+# On-device Apple Intelligence (macOS 26 / iOS 26, no key required)
+swift run Runner chat apple-intelligence
+
+# Run live integration tests against all providers
+ANTHROPIC_API_KEY=sk-ant-... OPENAI_API_KEY=sk-... swift run Runner test all
+```
+
+### Chat commands
+
+| Command | Description |
+|---|---|
+| `/model <id>` | Switch to a different model mid-session |
+| `/skill <skill-id> <text>` | Run a registered skill directly |
+| `/benchmark [--runs <n>]` | Measure latency and throughput (default: 10 runs) |
+| `/history` | Print the full conversation history |
+| `/clear` | Reset conversation history |
+| `/help` | Show all commands |
+| `/quit` | Exit |
+
+### macOS system tools (auto-registered)
+
+On macOS, the Runner registers a full set of system interaction tools the model can call freely during chat:
+
+| Tool | What it does |
+|---|---|
+| `get_current_time` | Returns the current date and time |
+| `run_shell_command` | Runs any `/bin/zsh` command and returns stdout / stderr |
+| `run_applescript` | Executes AppleScript to automate macOS apps and the UI |
+| `read_file` / `write_file` | Reads or writes a UTF-8 file by path |
+| `list_directory` | Returns names and types of entries in a directory |
+| `get_clipboard` / `set_clipboard` | Reads or writes the system clipboard |
+
+### Built-in skills (auto-registered)
+
+| Skill | Invoke with |
+|---|---|
+| `title-generator` | `/skill title-generator <your text>` |
+| `shell-explainer` *(macOS)* | `/skill shell-explainer <command or pipeline>` |
+
+---
+
 ## Architecture
 
 ```
@@ -262,7 +318,7 @@ AIProviderKit              Core protocols, models, builders, registries, client
 ClaudeProvider             Anthropic Messages API implementation
 OpenAIProvider             OpenAI Chat Completions API implementation
 AppleIntelligenceProvider  On-device inference via Apple Intelligence (iOS 26+ / macOS 26+)
-AIProviderTools            Ready-to-use ToolGroup implementations (time, shell, calendar, reminders, location)
+AIProviderTools            Ready-to-use ToolGroup implementations (time, shell, AppleScript, file I/O, clipboard, calendar, reminders, location)
 ```
 
 See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class diagrams, sequence diagrams, and the concurrency model.
