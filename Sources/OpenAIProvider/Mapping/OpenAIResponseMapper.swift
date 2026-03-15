@@ -146,8 +146,7 @@ struct OpenAIResponseMapper: Sendable {
         }
 
         for index in state.toolAccumulators.keys.sorted() {
-            // swiftlint:disable:next force_unwrapping
-            let acc = state.toolAccumulators[index]!
+            guard let acc = state.toolAccumulators[index] else { continue }
             let inputData = acc.arguments.data(using: .utf8) ?? Data()
             let input = (try? JSONDecoder().decode(JSONValue.self, from: inputData)) ?? .object([:])
             content.append(.toolUse(.init(id: acc.id, name: acc.name, input: input)))
