@@ -84,9 +84,6 @@
   <!-- RIGHT SECTION — Architecture diagram   -->
   <!-- ═══════════════════════════════════════ -->
 
-  <!-- Section label -->
-  <text x="862" y="36" fill="#4A4A52" font-size="10" text-anchor="end" letter-spacing="1.5">ARCHITECTURE</text>
-
   <!-- "Your App" box -->
   <rect x="362" y="96" width="94" height="36" rx="7" fill="#1E1E26" stroke="#505058" stroke-width="1.5"/>
   <text x="409" y="118" fill="#E0E0E8" font-size="11.5" font-weight="600" text-anchor="middle">Your App</text>
@@ -129,7 +126,7 @@
   <rect x="648" y="152" width="140" height="28" rx="6" fill="url(#llamaFill)" stroke="#16A34A" stroke-width="1.5" stroke-dasharray="5 3"/>
   <circle cx="664" cy="166" r="4.5" fill="#4ADE80" opacity="0.95"/>
   <text x="718" y="170" fill="#86EFAC" font-size="11" text-anchor="middle">Llama / Local</text>
-  <text x="780" y="167" fill="#666670" font-size="9" text-anchor="end">1.0+</text>
+  <text x="780" y="167" fill="#666670" font-size="9" text-anchor="end">soon</text>
 
   <!-- Caption -->
   <text x="613" y="215" fill="#606068" font-size="9.5" text-anchor="middle">providers are the AI brains — swap without changing app code</text>
