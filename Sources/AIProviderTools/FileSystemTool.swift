@@ -36,11 +36,16 @@ public enum FileSystemTool: ToolGroup {
         name: "read_file",
         description: """
         Reads the UTF-8 text content of a file and returns it as a string. \
-        Use to inspect source code, configuration files, logs, or any plain-text file.
+        Supports pagination via `offset` and `maxChars` for large files or \
+        models with limited context windows (e.g. Apple Intelligence ≈ 4 096 tokens). \
+        When `truncated` is true in the response, call again with a larger `offset` \
+        to read the next chunk.
         """,
         inputSchema: .object(
             properties: [
-                "path": .string(description: "Absolute or home-relative (~) path to the file to read.")
+                "path":     .string(description: "Absolute or home-relative (~) path to the file to read."),
+                "offset":   .integer(description: "Character offset to start reading from. Default: 0."),
+                "maxChars": .integer(description: "Maximum number of characters to return. Omit for the entire file.")
             ],
             required: ["path"]
         )
@@ -50,10 +55,30 @@ public enum FileSystemTool: ToolGroup {
         }
         let path = (rawPath as NSString).expandingTildeInPath
         do {
-            let content = try String(contentsOfFile: path, encoding: .utf8)
+            let full    = try String(contentsOfFile: path, encoding: .utf8)
+            let total   = full.count
+            let offset  = max(0, input["offset"]?.intValue ?? 0)
+            let startIdx = full.index(full.startIndex, offsetBy: min(offset, total))
+            let slice   = String(full[startIdx...])
+
+            if let maxChars = input["maxChars"]?.intValue, maxChars > 0, slice.count > maxChars {
+                let endIdx  = slice.index(slice.startIndex, offsetBy: maxChars)
+                let chunk   = String(slice[..<endIdx])
+                return .object([
+                    "content":    .string(chunk),
+                    "bytes":      .integer(chunk.utf8.count),
+                    "offset":     .integer(offset),
+                    "totalChars": .integer(total),
+                    "truncated":  true
+                ])
+            }
+
             return .object([
-                "content": .string(content),
-                "bytes":   .integer(content.utf8.count)
+                "content":    .string(slice),
+                "bytes":      .integer(slice.utf8.count),
+                "offset":     .integer(offset),
+                "totalChars": .integer(total),
+                "truncated":  false
             ])
         } catch {
             return .object(["error": .string(error.localizedDescription)])

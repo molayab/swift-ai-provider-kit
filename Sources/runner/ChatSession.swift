@@ -160,31 +160,65 @@ actor ChatSession {
     private func sendMessage(_ text: String) async {
         history.append(.user(text: text))
 
-        do {
-            let request = try AIRequestBuilder()
-                .model(currentModel)
-                .messages(history)
-                .tools(tools)
-                .maxTokens(2_048)
-                .build()
+        // `dropCount` tracks how many messages to drop from the front of history
+        // when retrying after a context-length overflow. Each retry sheds the
+        // oldest exchange (one user + one assistant message) until the request fits
+        // or only the current turn remains (at which point we give up).
+        var dropCount = 0
+        while true {
+            let requestHistory = dropCount > 0 ? Array(history.dropFirst(dropCount)) : history
 
-            print("\n\(providerName): ", terminator: "")
-            fflush(stdout)
+            do {
+                let request = try AIRequestBuilder()
+                    .model(currentModel)
+                    .messages(requestHistory)
+                    .tools(tools)
+                    .maxTokens(2_048)
+                    .build()
 
-            var fullText = ""
-            for try await event in await client.stream(request) {
-                if case .textDelta(let delta) = event {
-                    print(delta, terminator: "")
-                    fflush(stdout)
-                    fullText += delta
+                print("\n\(providerName): ", terminator: "")
+                fflush(stdout)
+
+                var fullText = ""
+                for try await event in await client.stream(request) {
+                    if case .textDelta(let delta) = event {
+                        print(delta, terminator: "")
+                        fflush(stdout)
+                        fullText += delta
+                    }
                 }
-            }
-            print()
+                print()
 
-            history.append(.assistant(text: fullText))
-        } catch {
-            print("\nerror: \(error)")
-            history.removeLast()
+                history.append(.assistant(text: fullText))
+                return
+
+            } catch let aiError as AIError {
+                switch aiError {
+                case .contextLengthExceeded:
+                    let dropMore = dropCount + 2
+                    if dropMore < history.count {
+                        if dropCount == 0 {
+                            print("(context window full — trimming oldest history to fit…)")
+                        }
+                        dropCount = dropMore
+                        // Loop and retry with fewer messages.
+                    } else {
+                        print("\nerror: the content is too large to fit in this model's context window.")
+                        print("       Try /model claude-sonnet-4-6 for a much larger context, or read")
+                        print("       the file in chunks with the maxChars parameter.")
+                        history.removeLast()
+                        return
+                    }
+                default:
+                    print("\nerror: \(aiError)")
+                    history.removeLast()
+                    return
+                }
+            } catch {
+                print("\nerror: \(error)")
+                history.removeLast()
+                return
+            }
         }
     }
 

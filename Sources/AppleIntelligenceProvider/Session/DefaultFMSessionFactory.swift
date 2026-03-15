@@ -66,12 +66,16 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
         let prompt = latestUserPrompt(from: request)
         // With tools registered, the session calls them automatically during inference.
         // `respond(to:)` returns only after all tool calls are resolved.
-        let response = try await session.respond(to: prompt)
-        return FMResponse(
-            content: response.content,
-            toolCalls: [],
-            stopReason: .endTurn
-        )
+        do {
+            let response = try await session.respond(to: prompt)
+            return FMResponse(
+                content: response.content,
+                toolCalls: [],
+                stopReason: .endTurn
+            )
+        } catch {
+            throw mapGenerationError(error)
+        }
     }
 
     func stream(_ request: FMRequest) -> AsyncThrowingStream<FMStreamDelta, any Error> {
@@ -98,7 +102,7 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
                     }
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    continuation.finish(throwing: mapGenerationError(error))
                 }
             }
             // Cancel the inner task when the consumer stops iterating (break, task
@@ -120,6 +124,17 @@ final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
         request.messages.last { $0.role == "user" }?.content
             ?? request.messages.last?.content
             ?? ""
+    }
+
+    /// Maps `LanguageModelSession.GenerationError.exceededContextWindowSize` to the
+    /// provider-agnostic `AIError.contextLengthExceeded` so callers never need to import
+    /// `FoundationModels` to handle context-overflow conditions. All other errors pass through.
+    private func mapGenerationError(_ error: any Error) -> any Error {
+        if let genError = error as? LanguageModelSession.GenerationError,
+           case .exceededContextWindowSize = genError {
+            return AIError.contextLengthExceeded
+        }
+        return error
     }
 }
 #endif
