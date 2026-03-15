@@ -19,9 +19,9 @@ actor ChatSession {
 
     /// Tools included in every request so the model can invoke them freely.
     private var tools: [Tool] {
-        var all: [Tool] = [AIProviderTools.currentTime]
+        var all: [Tool] = [CurrentTimeTool.currentTime]
         #if os(macOS)
-        all.append(AIProviderTools.shellCommand)
+        all.append(ShellCommandTool.shellCommand)
         #endif
         return all
     }
@@ -61,9 +61,9 @@ actor ChatSession {
     // MARK: - Setup
 
     private func registerExamples() async {
-        await client.toolRegistry.register(AIProviderTools.currentTime)
+        await client.toolRegistry.register(CurrentTimeTool.currentTime)
         #if os(macOS)
-        await client.toolRegistry.register(AIProviderTools.shellCommand)
+        await client.toolRegistry.register(ShellCommandTool.shellCommand)
         #endif
         await client.skillRegistry.register(TitleGeneratorSkill())
     }

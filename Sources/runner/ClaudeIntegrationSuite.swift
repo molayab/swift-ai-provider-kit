@@ -88,7 +88,7 @@ actor ClaudeIntegrationSuite {
     /// Registers a `get_current_time` tool, asks Claude to call it, and
     /// verifies AIClient auto-executed the tool and completed in `endTurn`.
     private func testToolExecution() async throws {
-        let timeTool = AIProviderTools.currentTime
+        let timeTool = CurrentTimeTool.currentTime
         await client.toolRegistry.register(timeTool)
 
         let request = try AIRequestBuilder()

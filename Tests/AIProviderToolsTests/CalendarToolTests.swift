@@ -5,7 +5,7 @@ import AIProviderTools
 @Suite("CalendarTool")
 struct CalendarToolTests {
 
-    // MARK: - Group
+    // MARK: - ToolGroup
 
     @Test("all contains exactly two tools")
     func allCount() {

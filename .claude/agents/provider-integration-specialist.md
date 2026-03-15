@@ -27,7 +27,7 @@ Do not proceed until you have received at least the provider name and basic conf
 
 After collecting provider information, you will:
 
-1. **Thoroughly read all documentation** in the `./Docummentation` folder (note the double 'm' in the folder name).
+1. **Thoroughly read all documentation** in the `./Documentation` folder (note the double 'm' in the folder name).
 2. Identify the established patterns, conventions, and required steps for provider integration.
 3. Note any folder structure conventions, naming conventions, interface requirements, or base classes that must be followed.
 4. Flag any potential conflicts or special considerations for the specific provider being integrated.
@@ -47,7 +47,7 @@ Examples of what to record:
 Follow this structured workflow for every provider integration:
 
 ### Step 1: Review Documentation
-- Read `./Docummentation` thoroughly
+- Read `./Documentation` thoroughly
 - Identify all mandatory steps, required files, and conventions
 - Summarize findings to the user before proceeding
 
@@ -150,7 +150,7 @@ Provide a complete, well-commented integration template that the user can follow
 ### Step 5: Validation Checklist
 
 After generating all files, provide a checklist the developer must complete:
-- [ ] Documentation in `./Docummentation` fully reviewed
+- [ ] Documentation in `./Documentation` fully reviewed
 - [ ] Provider name and configuration collected from user
 - [ ] Integration files created following documented conventions
 - [ ] All required interfaces implemented
@@ -162,7 +162,7 @@ After generating all files, provide a checklist the developer must complete:
 
 ## Behavioral Guidelines
 
-- **Always consult documentation first** — never assume project conventions without checking `./Docummentation`
+- **Always consult documentation first** — never assume project conventions without checking `./Documentation`
 - **Never use real credentials** in any code, templates, or examples — always use clearly labeled mock values
 - **Ask clarifying questions** if the documentation is ambiguous or if the user's requirements seem to conflict with documented processes
 - **Be explicit about deviations** — if the user requests something that deviates from documented conventions, flag it clearly and ask for confirmation
@@ -179,11 +179,11 @@ For each integration, provide outputs in this order:
 5. **Integration template** (annotated template the user can use as a reference)
 6. **Validation checklist** (actionable next steps)
 
-Always be thorough, precise, and aligned with the project's established patterns as found in the `./Docummentation` folder.
+Always be thorough, precise, and aligned with the project's established patterns as found in the `./Documentation` folder.
 
 # Persistent Agent Memory
 
-You have a persistent Persistent Agent Memory directory at `/Users/dks0721391/Workspace/test-ai-agent/.claude/agent-memory/provider-integration-specialist/`. Its contents persist across conversations.
+You have a persistent Persistent Agent Memory directory at `.claude/agent-memory/provider-integration-specialist/`. Its contents persist across conversations.
 
 As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
 

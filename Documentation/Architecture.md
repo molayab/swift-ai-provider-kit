@@ -112,6 +112,7 @@ classDiagram
     class ToolGroup {
         <<protocol>>
         +all: [Tool]$
+        +tool: Tool$
     }
 
     class AIClient {
@@ -328,40 +329,37 @@ Key differences from `ClaudeProvider`:
 
 `AIProviderTools` (`Sources/AIProviderTools/`) is a standalone library that ships ready-to-use `Tool` and `ToolGroup` implementations. It depends only on `AIProviderKit` and has no provider-specific coupling, so any `AIClient` can use these tools regardless of the backend.
 
-### Standalone tools
+Every type in `AIProviderTools` conforms to `ToolGroup`, whether it wraps a single operation or a family of related operations. This gives callers a single, uniform registration API regardless of cardinality.
 
-| Symbol | Tool name | Description |
-|--------|-----------|-------------|
-| `currentTime` | `get_current_time` | Returns the current date, time, and timezone in ISO 8601 or human-readable format. |
-| `shellCommand` | `run_shell_command` | Executes a shell command via `/bin/zsh` and returns stdout, stderr, and exit code. **macOS only** (`#if os(macOS)`). |
+### ToolGroup conformers
 
-Register standalone tools individually:
+| Type | Tools | `all` count | Framework |
+|------|-------|-------------|-----------|
+| `CurrentTimeTool` | `get_current_time` | 1 | Foundation |
+| `ShellCommandTool` | `run_shell_command` | 1 | Foundation — **macOS only** |
+| `CalendarTool` | `list_calendar_events`, `create_calendar_event` | 2 | EventKit |
+| `RemindersTool` | `list_reminders`, `create_reminder` | 2 | EventKit |
+| `LocationTool` | `get_current_location` (with optional reverse geocoding) | 1 | CoreLocation, MapKit |
 
-```swift
-import AIProviderTools
-
-await client.toolRegistry.register(AIProviderTools.currentTime)
-#if os(macOS)
-await client.toolRegistry.register(AIProviderTools.shellCommand)
-#endif
-```
-
-### ToolGroup implementations
-
-| Type | Tools | Framework |
-|------|-------|-----------|
-| `CalendarTool` | `list_calendar_events`, `create_calendar_event` | EventKit |
-| `RemindersTool` | `list_reminders`, `create_reminder` | EventKit |
-| `LocationTool` | `get_current_location` (with optional reverse geocoding) | CoreLocation, MapKit |
-
-Register tool groups in bulk:
+Register any group — single or multi — with the same call:
 
 ```swift
 import AIProviderTools
 
+await client.toolRegistry.registerAll(CurrentTimeTool.self)
 await client.toolRegistry.registerAll(CalendarTool.self)
 await client.toolRegistry.registerAll(RemindersTool.self)
 await client.toolRegistry.registerAll(LocationTool.self)
+#if os(macOS)
+await client.toolRegistry.registerAll(ShellCommandTool.self)
+#endif
+```
+
+For single-tool groups, the `tool` protocol extension provides direct access without going through `all`:
+
+```swift
+let tool = CurrentTimeTool.tool        // same as CurrentTimeTool.all[0]
+let named = CurrentTimeTool.currentTime // the named static constant
 ```
 
 These tools were previously part of `AIProviderKit` and have been extracted into their own module to keep the core dependency-free of platform frameworks like EventKit, CoreLocation, and MapKit.

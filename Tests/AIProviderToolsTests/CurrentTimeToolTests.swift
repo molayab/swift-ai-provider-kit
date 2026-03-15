@@ -6,22 +6,34 @@ import AIProviderTools
 @Suite("CurrentTimeTool")
 struct CurrentTimeToolTests {
 
+    // MARK: - ToolGroup
+
+    @Test("all contains exactly one tool")
+    func allCount() {
+        #expect(CurrentTimeTool.all.count == 1)
+    }
+
+    @Test("tool returns the same instance as all[0]")
+    func toolMatchesAll() {
+        #expect(CurrentTimeTool.tool.name == CurrentTimeTool.all[0].name)
+    }
+
     // MARK: - Metadata
 
     @Test("tool has correct name")
     func name() {
-        #expect(AIProviderTools.currentTime.name == "get_current_time")
+        #expect(CurrentTimeTool.currentTime.name == "get_current_time")
     }
 
     @Test("tool has non-empty description")
     func descriptionIsNonEmpty() {
-        #expect(!AIProviderTools.currentTime.description.isEmpty)
+        #expect(!CurrentTimeTool.currentTime.description.isEmpty)
     }
 
     @Test("input schema has optional format property")
     func inputSchemaFormatProperty() {
         // given
-        let schema: JSONSchema = AIProviderTools.currentTime.inputSchema
+        let schema: JSONSchema = CurrentTimeTool.currentTime.inputSchema
 
         // then
         guard case .object(let properties, _, _) = schema else {
@@ -39,7 +51,7 @@ struct CurrentTimeToolTests {
         let input: JSONValue = .object([:])
 
         // when
-        let result = try await AIProviderTools.currentTime.execute(with: input)
+        let result = try await CurrentTimeTool.currentTime.execute(with: input)
 
         // then
         guard case .object(let dict) = result else {
@@ -56,7 +68,7 @@ struct CurrentTimeToolTests {
         let input: JSONValue = .object(["format": .string("human")])
 
         // when
-        let result = try await AIProviderTools.currentTime.execute(with: input)
+        let result = try await CurrentTimeTool.currentTime.execute(with: input)
 
         // then
         guard case .string(let text) = result else {
@@ -72,7 +84,7 @@ struct CurrentTimeToolTests {
         let input: JSONValue = .object([:])
 
         // when
-        let result = try await AIProviderTools.currentTime.execute(with: input)
+        let result = try await CurrentTimeTool.currentTime.execute(with: input)
 
         // then
         guard case .object(let dict) = result,

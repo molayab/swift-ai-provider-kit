@@ -5,11 +5,16 @@ import AIProviderTools
 @Suite("LocationTool")
 struct LocationToolTests {
 
-    // MARK: - Group
+    // MARK: - ToolGroup
 
     @Test("all contains exactly one tool")
     func allCount() {
         #expect(LocationTool.all.count == 1)
+    }
+
+    @Test("tool returns the same instance as all[0]")
+    func toolMatchesAll() {
+        #expect(LocationTool.tool.name == LocationTool.all[0].name)
     }
 
     // MARK: - Metadata

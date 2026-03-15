@@ -85,7 +85,7 @@ actor OpenAIIntegrationSuite {
     }
 
     private func testToolExecution() async throws {
-        let timeTool = AIProviderTools.currentTime
+        let timeTool = CurrentTimeTool.currentTime
         await client.toolRegistry.register(timeTool)
 
         let request = try AIRequestBuilder()

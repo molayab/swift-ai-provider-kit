@@ -52,7 +52,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | **Skills** | Composable capabilities — tools + recipe + post-processing |
 | **Registries** | Thread-safe `actor`-based stores for tools, skills, and recipes |
 | **Structured logging** | `os.Logger`-backed `AILogger` with optional in-app capture via `AILogStore` |
-| **Predefined tools** | Location, Calendar, and Reminders tools ready to drop in |
+| **Predefined tools** | `AIProviderTools` module — time, shell (macOS), calendar, reminders, and location, all via a unified `ToolGroup` interface |
 
 ---
 
@@ -71,6 +71,7 @@ Add the products you need:
 .product(name: "ClaudeProvider", package: "AIProviderKit"),            // Claude — Anthropic API
 .product(name: "OpenAIProvider", package: "AIProviderKit"),            // OpenAI Chat Completions API
 .product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device Apple Intelligence
+.product(name: "AIProviderTools", package: "AIProviderKit"),           // Ready-to-use tools (optional)
 ```
 
 ---
@@ -167,10 +168,19 @@ for try await event in client.stream(request) {
 
 ### Tool use
 
+Every tool in `AIProviderTools` conforms to `ToolGroup`, so registration is always the same call — whether the group has one tool or many:
+
 ```swift
-// Register tools once
-await client.toolRegistry.register(LocationTool.make())
+import AIProviderTools
+
+// All tools use the same ToolGroup interface
+await client.toolRegistry.registerAll(CurrentTimeTool.self)
 await client.toolRegistry.registerAll(CalendarTool.self)
+await client.toolRegistry.registerAll(RemindersTool.self)
+await client.toolRegistry.registerAll(LocationTool.self)
+#if os(macOS)
+await client.toolRegistry.registerAll(ShellCommandTool.self)
+#endif
 
 // Tool calls are executed and followed up automatically
 let response = try await client.send(
@@ -180,6 +190,13 @@ let response = try await client.send(
         .addMessage(.user(text: "What events do I have near me this week?"))
         .build()
 )
+```
+
+For single-tool groups, the `tool` shorthand gives direct access when you only need the `Tool` value:
+
+```swift
+let timeTool = CurrentTimeTool.tool
+await client.toolRegistry.register(timeTool)
 ```
 
 ### Custom tools
@@ -244,6 +261,7 @@ AIProviderKit              Core protocols, models, builders, registries, client
 ClaudeProvider             Anthropic Messages API implementation
 OpenAIProvider             OpenAI Chat Completions API implementation
 AppleIntelligenceProvider  On-device inference via Apple Intelligence (iOS 26+ / macOS 26+)
+AIProviderTools            Ready-to-use ToolGroup implementations (time, shell, calendar, reminders, location)
 ```
 
 See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class diagrams, sequence diagrams, and the concurrency model.
@@ -258,7 +276,7 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class d
 | `ModelDiscoveryProvider` | Extends `AIProvider` with runtime model listing (`listModels()`). |
 | `AIModelInfo` | Model metadata returned by `listModels()` — id, display name, creation date. |
 | `AIRequestBuilder` | Fluent, validated request construction. |
-| `Tool` / `ToolGroup` | A callable function (or group) the model can invoke. |
+| `Tool` / `ToolGroup` | A callable function the model can invoke (`Tool`), or a type that vends one or more tools under a unified interface (`ToolGroup`). |
 | `Recipe` | A `{{placeholder}}` prompt template. |
 | `Skill` | A bundle of tools + recipe + post-processing logic. |
 | `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
