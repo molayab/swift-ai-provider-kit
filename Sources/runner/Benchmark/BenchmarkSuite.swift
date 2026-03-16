@@ -284,8 +284,8 @@ extension BenchmarkSuite {
             pad(fmt(ttft.medianTTFT, " s"), colStat),
             pad(fmt(ttft.meanTTFT, " s"), colStat),
             pad(fmt(ttft.p95TTFT, " s"), colStat),
-            pad(fmt(ttft.minDuration, " s"), colStat),
-            fmt(ttft.maxDuration, " s")
+            pad(fmt(ttft.minTTFT, " s"), colStat),
+            fmt(ttft.maxTTFT, " s")
         ].joined(separator: "  ")
         print("  \(ttftRow)")
 

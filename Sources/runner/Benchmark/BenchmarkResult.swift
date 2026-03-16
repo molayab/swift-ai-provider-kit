@@ -46,6 +46,8 @@ struct BenchmarkStats {
     var meanTTFT: TimeInterval { ttfts.mean }
     var medianTTFT: TimeInterval { ttfts.median }
     var p95TTFT: TimeInterval { ttfts.percentile(0.95) }
+    var minTTFT: TimeInterval { ttfts.min() ?? 0 }
+    var maxTTFT: TimeInterval { ttfts.max() ?? 0 }
 
     // MARK: Throughput
 
