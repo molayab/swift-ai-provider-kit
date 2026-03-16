@@ -23,15 +23,6 @@ import Foundation
 /// ```
 public enum CurrentTimeTool: ToolGroup {
 
-    // ISO8601DateFormatter is thread-safe after initialisation (documented by Apple).
-    nonisolated(unsafe) private static let iso8601 = ISO8601DateFormatter()
-    private static let humanFormatter: DateFormatter = {
-        let fmt = DateFormatter()
-        fmt.dateStyle = .full
-        fmt.timeStyle = .long
-        return fmt
-    }()
-
     /// All tools in this group (exactly one).
     public static var all: [Tool] { [currentTime] }
 
@@ -51,9 +42,9 @@ public enum CurrentTimeTool: ToolGroup {
         let now = Date()
 
         if wantHuman {
-            return .string(CurrentTimeTool.humanFormatter.string(from: now))
+            return .string(now.formatted(date: .complete, time: .complete))
         } else {
-            let iso = CurrentTimeTool.iso8601.string(from: now)
+            let iso = now.ISO8601Format()
             let tz = TimeZone.current.identifier
             return .object([
                 "iso8601": .string(iso),
