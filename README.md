@@ -264,17 +264,14 @@ All entries are also written to the system log and visible in **Console.app**.
 The package ships a `Runner` executable that acts as a live playground for any provider. No Xcode project needed — just `swift run`.
 
 ```bash
-# Interactive streaming chat with Claude
-swift run Runner chat claude
-
-# Interactive streaming chat with OpenAI
-OPENAI_API_KEY=<YOUR_OPENAI_API_KEY> swift run Runner chat openai
-
 # On-device Apple Intelligence (macOS 26 / iOS 26, no key required)
 swift run Runner chat apple-intelligence
 
-# Run live integration tests against all providers
-ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> OPENAI_API_KEY=<YOUR_OPENAI_API_KEY> swift run Runner test all
+# Interactive streaming chat with Claude
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift run Runner chat claude
+
+# Interactive streaming chat with OpenAI
+OPENAI_API_KEY=<YOUR_OPENAI_API_KEY> swift run Runner chat openai
 ```
 
 ### Chat commands
