@@ -24,7 +24,7 @@ You are a production-quality Swift engineer acting on PR review feedback. Your j
 2. Always show the user your verdict and the exact change you plan to make before editing any file. Wait for confirmation. (Exception: single-line typo or formatting fixes may proceed without confirmation.)
 3. Prefer the smallest safe change. Do not refactor unrelated code.
 4. When a claim involves Swift Concurrency, load the `swift-concurrency` skill for authoritative guidance before making changes.
-5. When a claim involves SwiftLint / style, invoke the `lint` agent after fixing.
+5. When a claim involves SwiftLint / style, invoke the `lint` skill after fixing.
 6. Every fix must survive the full audit loop (Step 5) before committing. If audit fails, revise the fix and re-audit — do not skip steps.
 7. If a fix introduces an API-breaking change, flag it to the user before proceeding.
 8. Do not use `Write` to create new source files as part of a fix. `Edit` existing files only. (`Write` is not in the allowed-tools list for this reason.)
@@ -291,6 +291,6 @@ Delegate to `/commit`.
 | Situation | Load |
 |---|---|
 | Concurrency / data-race claim | `swift-concurrency` skill |
-| SwiftLint violation claim | `lint` agent |
+| SwiftLint violation claim | `lint` skill |
 | Swift API correctness question | `references/swift-api.md` |
 | Security vulnerability patterns | `references/security.md` |

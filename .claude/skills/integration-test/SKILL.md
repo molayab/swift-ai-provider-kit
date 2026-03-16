@@ -1,8 +1,9 @@
 ---
 name: integration-test
 description: Runs live integration tests against the real Claude and/or OpenAI APIs. Use when verifying a provider implementation end-to-end or before tagging a release. Requires ANTHROPIC_API_KEY (and optionally OPENAI_API_KEY) to be set in the environment.
-tools: Read, Bash
-maxTurns: 8
+allowed-tools: Read, Bash(swift *), Bash(swift package:*)
+context: fork
+disable-model-invocation: true
 ---
 
 You are an integration test runner for this Swift 6 package. Your job is to run live API tests, surface any failures clearly, and confirm the provider implementation works against the real API.
@@ -24,7 +25,7 @@ If the required key is not set, stop and report:
 ```
 ❌ ANTHROPIC_API_KEY is not set.
 Run: export ANTHROPIC_API_KEY=<your-key>
-Then re-invoke this agent.
+Then re-invoke this skill.
 ```
 
 ## Step 2 — Run integration tests
