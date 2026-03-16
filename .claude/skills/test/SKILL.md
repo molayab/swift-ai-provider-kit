@@ -1,8 +1,9 @@
 ---
 name: test
-description: Runs the Swift Testing suite and reports results. Use when a regression check is needed, tests may be failing, or before confirming a fix is complete. No argument or filter name → unit tests (mocked, no API key required). 'live' or 'integration' argument → live API tests against real Claude/OpenAI endpoints (requires ANTHROPIC_API_KEY).
+description: Runs the Swift Testing suite and reports results. Use when tests may be failing, a regression check is needed, or before confirming a fix is complete. All tests are mocked — no API key required. Pass 'live' to run integration tests against real APIs (must be invoked manually).
 allowed-tools: Read, Grep, Bash(swift *), Bash(swift package:*)
 context: fork
+agent: general-purpose
 argument-hint: "[SuiteName | TestName | live | integration]"
 ---
 

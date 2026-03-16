@@ -1,22 +1,22 @@
 ---
 name: add
-description: Scaffolds new code for AIProviderKit. First word of the argument routes to the right workflow. 'provider <Name>' scaffolds a complete new AI provider (mapper pattern, no changes to AIClient). 'tool <Name>' adds a new ToolGroup, Tool, or Skill. Use when asked to 'add a provider', 'add Gemini support', 'add a tool', 'create a new tool', 'give the model a new capability', or 'implement [action] as a tool'.
+description: Scaffolds a new AI provider or tool for AIProviderKit. Use when asked to 'add a provider', 'add Gemini support', 'add a tool', 'create a new tool', or 'implement [action] as a tool'. Invoke as '/add provider GeminiProvider' or '/add tool WeatherTool'.
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash(swift *)
 argument-hint: "provider <ProviderName>  |  tool <ToolName>"
 ---
 
-You are a Swift 6 package architect for AIProviderKit. The first word of `$ARGUMENTS` selects the workflow.
+You are a Swift 6 package architect for AIProviderKit. `$0` selects the workflow, `$1` is the name:
 
-- **`provider <Name>`** → scaffold a new AI provider
-- **`tool <Name>`** → add a new ToolGroup / Tool / Skill
+- **`provider`** → scaffold a new AI provider. Name: `$1`
+- **`tool`** → add a new ToolGroup / Tool / Skill. Name: `$1`
 
-If `$ARGUMENTS` is missing or does not start with `provider` or `tool`, ask the user which workflow they want before proceeding.
+If `$ARGUMENTS` is missing or `$0` is not `provider` or `tool`, ask the user before proceeding.
 
 ---
 
 ## provider workflow
 
-`$PROVIDER` = everything after the first word (e.g. `GeminiProvider`)
+`$PROVIDER` = `$1` (e.g. `GeminiProvider`)
 
 Apply the Open/Closed Principle: no changes to `AIClient` or any existing provider are required.
 
@@ -106,7 +106,7 @@ Tests/${PROVIDER}Tests/
     └── MockHTTPClient.swift             ← copy from ClaudeProviderTests verbatim
 ```
 
-> For Swift code templates for each file, see `references/templates.md` in the `add-provider` skill directory.
+> For Swift code templates for each file, see [`references/templates.md`](references/templates.md).
 
 ### Step 4 — Implement
 
@@ -153,7 +153,7 @@ All three must exit clean. Report the result of each command.
 
 ## tool workflow
 
-`$TOOL` = everything after the first word (e.g. `WeatherTool`)
+`$TOOL` = `$1` (e.g. `WeatherTool`)
 
 You are a Swift 6 capability engineer for AIProviderKit. Add the right callable construct, wired up correctly with `JSONSchema` / `JSONValue`, and tested.
 
@@ -196,6 +196,8 @@ Sources/AIProviderKit/Models/Recipe.swift
 ### Step 3 — Implement
 
 New tools go in `Sources/AIProviderTools/${TOOL}.swift`.
+
+See [`references/patterns.md`](references/patterns.md) for complete Swift code templates for each option (single-action, multi-action, Skill).
 
 **Key rules for all tools:**
 - `inputSchema` uses `JSONSchema` — `.object`, `.string`, `.integer`, `.boolean`, `.array(items:)`

@@ -1,8 +1,10 @@
 ---
 name: milestone
-description: Milestone planner and design doc generator for AIProviderKit. No argument → reads ROADMAP.md, scans codebase, returns a concrete implementation plan for the current active milestone. With a version argument (e.g. '0.3.2') → writes a design document in Documentation/Issues/, updates ROADMAP.md and README.md, then opens a draft PR. Use when asking "what's next?", starting a new milestone, planning work for a specific version, or proposing a design doc.
+description: Milestone planner and design doc generator. No argument → plan the current active milestone. Version argument (e.g. '0.3.2') → write a design doc, update ROADMAP.md and README.md, open a draft PR. Use when asked "what's next?", to start a milestone, or to propose a design doc.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git *), Bash(gh *)
 context: fork
+agent: general-purpose
+disable-model-invocation: true
 argument-hint: "[version — e.g. 0.3.2, or leave blank to plan the current milestone]"
 ---
 
