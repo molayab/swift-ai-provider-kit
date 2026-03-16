@@ -11,29 +11,41 @@ You are a Swift 6 capability engineer for AIProviderKit. Your job is to add the 
 
 ✅ Always: use `JSONSchema` for `inputSchema`, `JSONValue` for all handler I/O, `enum` for `ToolGroup`, `@Sendable` handlers with no captured mutable state
 
+✅ Always: every tool — even one that wraps a single action — must be a `ToolGroup` enum. Standalone `let` constants are not used in this codebase.
+
 ⚠️ Ask first: if the tool needs platform entitlements (e.g. EventKit, CoreLocation, Reminders) — confirm the consuming app has them before referencing platform APIs
 
 🚫 Never: use `Any`, `[String: Any]`, `Encodable` without a concrete type, or captured mutable state in a tool handler
+
+🚫 Never: create a top-level `let` constant as a tool. All tools live inside a `ToolGroup` enum.
 
 ## Step 1 — Choose the right construct
 
 | Request | Use |
 |---|---|
-| Single action | `Tool` (standalone constant) |
-| 2+ related actions (list/create/delete) | `ToolGroup` enum in `Sources/AIProviderKit/Tools/` |
+| Single action | `ToolGroup` enum with one entry in `all` |
+| 2+ related actions (list/create/delete) | `ToolGroup` enum with multiple entries in `all` |
 | Tools + prompt template + post-processing | `Skill` protocol (in consuming app, not core) |
 
-## Step 2 — Read the canonical example first
+Every `ToolGroup` automatically gets a `tool()` throwing function (protocol extension) for single-tool groups:
+```swift
+try CurrentTimeTool.tool()  // same as CurrentTimeTool.all[0]
+```
+
+## Step 2 — Read the canonical examples first
 
 ```
-Sources/AIProviderKit/Tools/CalendarTool.swift  ← canonical ToolGroup
-Sources/AIProviderKit/Protocols/ToolGroup.swift
+Sources/AIProviderTools/CurrentTimeTool.swift   ← canonical single-tool ToolGroup
+Sources/AIProviderTools/CalendarTool.swift      ← canonical multi-tool ToolGroup
+Sources/AIProviderKit/Protocols/ToolGroup.swift ← protocol + tool extension
 Sources/AIProviderKit/Models/Tool.swift
 Sources/AIProviderKit/Protocols/Skill.swift
 Sources/AIProviderKit/Models/Recipe.swift
 ```
 
 ## Step 3 — Implement
+
+New tools go in `Sources/AIProviderTools/$ARGUMENTSTool.swift`.
 
 See `references/patterns.md` for complete Swift code templates for each option.
 
@@ -43,40 +55,66 @@ See `references/patterns.md` for complete Swift code templates for each option.
 - Handler outputs: always `JSONValue` — use `.object(["success": .bool(true), ...])` for structured results
 - Handlers are `@Sendable` — no captured mutable state; use platform singletons (`EKEventStore()`) inside the closure
 
-**ToolGroup registration** (document in the group's doc comment):
+**Registration** (document in the group's doc comment):
 ```swift
-await client.toolRegistry.registerAll($ARGUMENTSTool.self)
+// Single-tool group
+await client.toolRegistry.registerAll(CurrentTimeTool.self)
+
+// Multi-tool group
+await client.toolRegistry.registerAll(CalendarTool.self)
 ```
 
 ## Step 4 — Write tests
 
-Tests live in `Tests/AIProviderKitTests/`. Mirror existing subfolder structure. Create a new `Tools/` subfolder if none exists.
+Tests live in `Tests/AIProviderToolsTests/`. File name: `$ARGUMENTSToolTests.swift`.
 
 ```swift
-import AIProviderKit
 import Testing
+import AIProviderKit
+import AIProviderTools
 
 @Suite("$ARGUMENTSTool")
 struct $ARGUMENTSToolTests {
 
+    // MARK: - ToolGroup
+
+    @Test("all contains exactly N tools")
+    func allCount() {
+        #expect($ARGUMENTSTool.all.count == 1) // adjust N
+    }
+
+    @Test("tool returns the same instance as all[0]")
+    func toolMatchesAll() {
+        #expect($ARGUMENTSTool.tool.name == $ARGUMENTSTool.all[0].name)
+    }
+
+    // MARK: - Metadata
+
+    @Test("tool has correct name")
+    func name() {
+        #expect($ARGUMENTSTool.$ACTION.name == "$ARGUMENTS_SNAKE")
+    }
+
+    // MARK: - Execution
+
     @Test("returns success with valid input")
     func execute_validInput_returnsSuccess() async throws {
-        // Given
+        // given
         let input = JSONValue.object(["paramName": .string("value")])
-        // When
+        // when
         let result = try await $ARGUMENTSTool.$ACTION.execute(with: input)
-        // Then
+        // then
         #expect(result["success"]?.boolValue == true)
     }
 
     @Test("handles missing required input gracefully")
     func execute_missingInput_returnsFailure() async throws {
-        // Given
+        // given
         let input = JSONValue.object([:])
-        // When
+        // when
         let result = try await $ARGUMENTSTool.$ACTION.execute(with: input)
-        // Then
-        #expect(result["success"]?.boolValue == false)
+        // then
+        #expect(result["error"] != nil)
     }
 }
 ```
@@ -85,7 +123,7 @@ struct $ARGUMENTSToolTests {
 
 ```bash
 swift build
-swift test --filter AIProviderKitTests
+swift test --filter AIProviderToolsTests
 swift package plugin --allow-writing-to-package-directory swiftlint lint --strict
 ```
 

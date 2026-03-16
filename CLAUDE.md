@@ -17,7 +17,7 @@ swift test --filter ClaudeProviderTests
 swift test --filter AIClientTests/sendForwardsRequest
 
 # Run integration tests against the real Claude API (requires ANTHROPIC_API_KEY)
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests
 ```
 
 ## Architecture

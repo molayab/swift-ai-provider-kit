@@ -165,7 +165,7 @@ struct FMResponseMapperTests {
 
     // MARK: - Token Usage
 
-    @Test("token usage is zero")
+    @Test("token usage is zero (FoundationModels does not report counts)")
     func map_tokenUsage_isZero() {
         // Given
         let fmResponse = FMResponse(content: "ok", toolCalls: [], stopReason: .endTurn)
@@ -173,7 +173,8 @@ struct FMResponseMapperTests {
         // When
         let response = sut.map(fmResponse, model: "m")
 
-        // Then
+        // Then — FoundationModels does not expose token counts; callers detect
+        // the zero and apply their own estimation (e.g. BenchmarkSuite char/4).
         #expect(response.usage.inputTokens == 0)
         #expect(response.usage.outputTokens == 0)
     }

@@ -1,13 +1,13 @@
-import Foundation
 import AIProviderKit
+import AIProviderTools
 import ClaudeProvider
+import Foundation
 
 // MARK: - Suite
 
 actor ClaudeIntegrationSuite {
     private let client: AIClient
-    private var passed = 0
-    private var failed = 0
+    private let runner = IntegrationSuiteRunner()
 
     init(apiKey: String) {
         client = AIClient(
@@ -21,34 +21,13 @@ actor ClaudeIntegrationSuite {
         print("  Provider : Claude (Haiku)")
         print("═══════════════════════════════════════════\n")
 
-        await run("Basic text completion") { try await self.testBasicCompletion() }
-        await run("Streaming")             { try await self.testStreaming() }
-        await run("Automatic tool execution") { try await self.testToolExecution() }
-        await run("Recipe rendering")      { try await self.testRecipe() }
-        await run("Skill execution")       { try await self.testSkill() }
+        await runner.run("Basic text completion") { try await self.testBasicCompletion() }
+        await runner.run("Streaming") { try await self.testStreaming() }
+        await runner.run("Automatic tool execution") { try await self.testToolExecution() }
+        await runner.run("Recipe rendering") { try await self.testRecipe() }
+        await runner.run("Skill execution") { try await self.testSkill() }
 
-        printSummary()
-    }
-
-    // MARK: - Runner
-
-    private func run(_ name: String, _ body: () async throws -> Void) async {
-        do {
-            try await body()
-            print("  ✅  \(name)")
-            passed += 1
-        } catch {
-            print("  ❌  \(name)")
-            print("       → \(error)")
-            failed += 1
-        }
-    }
-
-    private func printSummary() {
-        print("\n───────────────────────────────────────────")
-        print("  \(passed + failed) tests — \(passed) passed, \(failed) failed")
-        print("───────────────────────────────────────────")
-        if failed > 0 { exit(1) }
+        await runner.printSummary()
     }
 
     // MARK: - Tests
@@ -87,12 +66,7 @@ actor ClaudeIntegrationSuite {
     /// Registers a `get_current_time` tool, asks Claude to call it, and
     /// verifies AIClient auto-executed the tool and completed in `endTurn`.
     private func testToolExecution() async throws {
-        let timeTool = Tool(
-            name: "get_current_time",
-            description: "Returns the current UTC time as an ISO 8601 string.",
-            inputSchema: .object(properties: [:], required: []),
-            handler: { _ in .string(ISO8601DateFormatter().string(from: Date())) }
-        )
+        let timeTool = CurrentTimeTool.currentTime
         await client.toolRegistry.register(timeTool)
 
         let request = try AIRequestBuilder()
@@ -140,21 +114,5 @@ actor ClaudeIntegrationSuite {
         )
 
         guard !result.output.isEmpty else { throw IntegrationError.emptyResponse }
-    }
-}
-
-// MARK: - Error
-
-enum IntegrationError: Error, CustomStringConvertible {
-    case emptyResponse
-    case unexpectedStopReason(StopReason)
-
-    var description: String {
-        switch self {
-        case .emptyResponse:
-            return "Response text was empty"
-        case .unexpectedStopReason(let reason):
-            return "Unexpected stop reason: \(reason.rawValue)"
-        }
     }
 }

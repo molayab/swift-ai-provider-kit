@@ -1,11 +1,17 @@
+// EventKit is only available on iOS and macOS — not visionOS, watchOS, or tvOS.
+#if os(iOS) || os(macOS)
+import AIProviderKit
 import EventKit
 
 /// Ready-to-use `Tool`s for reading and creating reminders via EventKit.
 ///
 /// ```swift
-/// RemindersTool.all.forEach { await client.toolRegistry.register($0) }
+/// await client.toolRegistry.registerAll(RemindersTool.self)
 /// ```
 public enum RemindersTool: ToolGroup {
+
+    // ISO8601DateFormatter is thread-safe after initialisation (documented by Apple).
+    nonisolated(unsafe) private static let iso8601 = ISO8601DateFormatter()
 
     /// All provided reminder tools.
     public static var all: [Tool] { [listReminders, createReminder] }
@@ -47,7 +53,7 @@ public enum RemindersTool: ToolGroup {
                         "list": .string(reminder.calendar.title),
                         "notes": reminder.notes.map { .string($0) } ?? .null,
                         "dueDate": reminder.dueDateComponents?.date.map {
-                            .string(ISO8601DateFormatter().string(from: $0))
+                            .string(RemindersTool.iso8601.string(from: $0))
                         } ?? .null,
                         "priority": .integer(Int(reminder.priority))
                     ])
@@ -85,7 +91,7 @@ public enum RemindersTool: ToolGroup {
         reminder.notes = input["notes"]?.stringValue
 
         if let dueDateString = input["dueDate"]?.stringValue,
-           let dueDate = ISO8601DateFormatter().date(from: dueDateString) {
+           let dueDate = RemindersTool.iso8601.date(from: dueDateString) {
             reminder.dueDateComponents = Calendar.current.dateComponents(
                 [.year, .month, .day, .hour, .minute],
                 from: dueDate
@@ -101,3 +107,4 @@ public enum RemindersTool: ToolGroup {
         return .object(["success": true, "reminderId": .string(reminder.calendarItemIdentifier)])
     }
 }
+#endif
