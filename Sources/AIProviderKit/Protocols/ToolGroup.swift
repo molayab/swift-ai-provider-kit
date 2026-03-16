@@ -34,18 +34,16 @@ public protocol ToolGroup {
 public extension ToolGroup {
     /// Returns the single tool in this group.
     ///
-    /// Throws `ToolGroupError.empty` if `all` is empty. In debug builds, calling
-    /// this on a multi-tool group additionally triggers an `assertionFailure`; in
-    /// release builds it silently returns the first tool. Use `all` or
-    /// `registerAll(_:)` for groups that expose more than one tool.
+    /// Throws `ToolGroupError.empty` if `all` is empty and
+    /// `ToolGroupError.multipleTools` if `all` contains more than one tool.
+    /// Use `all` or `registerAll(_:)` for groups that expose more than one tool.
     static func tool() throws -> Tool {
         guard let first = all.first else {
             throw ToolGroupError.empty(groupType: "\(Self.self)")
         }
-        assert(
-            all.count == 1,
-            "\(Self.self).tool() requires all.count == 1 (found \(all.count)). Use all or registerAll(_:) instead."
-        )
+        guard all.count == 1 else {
+            throw ToolGroupError.multipleTools(groupType: "\(Self.self)", count: all.count)
+        }
         return first
     }
 }
@@ -54,11 +52,15 @@ public extension ToolGroup {
 public enum ToolGroupError: Error, CustomStringConvertible {
     /// The group's `all` array is empty, violating the protocol contract.
     case empty(groupType: String)
+    /// `tool()` was called on a group that vends more than one tool.
+    case multipleTools(groupType: String, count: Int)
 
     public var description: String {
         switch self {
         case .empty(let type):
             return "\(type).all must not be empty"
+        case .multipleTools(let type, let count):
+            return "\(type).tool() requires exactly one tool (found \(count)). Use all or registerAll(_:) instead."
         }
     }
 }
