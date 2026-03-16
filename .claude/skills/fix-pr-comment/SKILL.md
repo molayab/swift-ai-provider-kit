@@ -1,5 +1,5 @@
 ---
-name: pr-comment-fixer
+name: fix-pr-comment
 description: Validates statements in PR comments against official references, fixes any identified issues in the codebase, runs a full production-readiness audit (security, performance, concurrency, lint), and commits the result. Use when asked to 'fix pr comment', 'address review comment', 'validate PR feedback', 'act on a PR comment', or 'fix the issue raised in PR #N'.
 allowed-tools: Read, Edit, Glob, Grep, Bash(swift *), Bash(gh *), Bash(git *), WebSearch, WebFetch
 argument-hint: "<PR number | comment text | 'PR #N comment C'>"

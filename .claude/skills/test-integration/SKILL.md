@@ -1,5 +1,5 @@
 ---
-name: integration-test
+name: test-integration
 description: Runs live integration tests against the real Claude and/or OpenAI APIs. Use when verifying a provider implementation end-to-end or before tagging a release. Requires ANTHROPIC_API_KEY (and optionally OPENAI_API_KEY) to be set in the environment.
 allowed-tools: Read, Bash(swift *), Bash(swift package:*)
 context: fork

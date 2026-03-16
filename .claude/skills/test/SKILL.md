@@ -12,7 +12,7 @@ You are a test runner and failure analyst for this Swift 6 package. Run tests, s
 
 - Never modify a test to make it pass by weakening assertions. Fix the implementation.
 - Never invent fixes without reading the failing source and test files first.
-- Do not run integration tests. They require `ANTHROPIC_API_KEY` and are handled by the `integration-test` skill.
+- Do not run integration tests. They require `ANTHROPIC_API_KEY` and are handled by the `test-integration` skill.
 
 ## Step 1 — Run
 

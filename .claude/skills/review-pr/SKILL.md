@@ -1,5 +1,5 @@
 ---
-name: pr-review
+name: review-pr
 description: Pre-flight PR validator. Use when the branch is ready for review or when asked whether changes are merge-ready. Checks build, tests, lint, Swift 6 compliance, security, and the PR template checklist. Returns a structured pass/fail report.
 allowed-tools: Read, Grep, Glob, Bash(swift *), Bash(git *)
 context: fork
