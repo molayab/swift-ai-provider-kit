@@ -27,9 +27,9 @@ You are a Swift 6 capability engineer for AIProviderKit. Your job is to add the 
 | 2+ related actions (list/create/delete) | `ToolGroup` enum with multiple entries in `all` |
 | Tools + prompt template + post-processing | `Skill` protocol (in consuming app, not core) |
 
-Every `ToolGroup` automatically gets a `tool` shorthand (protocol extension) for single-tool groups:
+Every `ToolGroup` automatically gets a `tool()` throwing function (protocol extension) for single-tool groups:
 ```swift
-CurrentTimeTool.tool     // same as CurrentTimeTool.all[0]
+try CurrentTimeTool.tool()  // same as CurrentTimeTool.all[0]
 ```
 
 ## Step 2 — Read the canonical examples first
