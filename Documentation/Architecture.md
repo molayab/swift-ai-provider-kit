@@ -378,7 +378,7 @@ The `Runner` executable (`Sources/runner/`) is a CLI tool for interactive develo
 |---------|-------|-------------|
 | `chat` | `swift run Runner chat <provider>` | Interactive streaming chat REPL with multi-turn history, slash commands (`/model`, `/skill`, `/clear`, `/help`, `/quit`), and auto-registered tools (`get_current_time`, `run_shell_command` on macOS). |
 | `test` | `swift run Runner test <provider\|all>` | Runs a live integration test suite against the specified provider. Tests cover basic completion, streaming, tool execution, recipe rendering, and skill execution. |
-| `benchmark` | `swift run Runner benchmark <provider\|all> [--runs N]` | Measures non-streaming latency, streaming time-to-first-token (TTFT), and streaming throughput (tokens/sec). Default: 3 runs per scenario. |
+| `benchmark` | `swift run Runner benchmark <provider\|all> [--runs N]` | Measures non-streaming latency, streaming time-to-first-token (TTFT), and streaming throughput (tokens/sec). Default: 10 measured runs per scenario (plus 3 discarded warm-up runs). |
 
 Provider arguments: `claude` (requires `ANTHROPIC_API_KEY`), `openai` (requires `OPENAI_API_KEY`), `apple-intelligence` (requires on-device Apple Intelligence).
 
