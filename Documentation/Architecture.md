@@ -29,7 +29,7 @@ The package ships five library products and one executable:
 - **OpenAIProvider** -- the OpenAI Chat Completions API implementation. Depends only on `AIProviderKit`.
 - **AppleIntelligenceProvider** -- on-device inference via Apple Intelligence (iOS 26+ / macOS 26+). Depends only on `AIProviderKit`; requires the `FoundationModels` framework at runtime.
 - **AIProviderTools** -- ready-to-use `Tool` and `ToolGroup` implementations (time, shell, calendar, reminders, location). Depends only on `AIProviderKit`.
-- **runner** -- a CLI executable for interactive chat, live integration tests, and provider benchmarks. Depends on all library modules.
+- **Runner** -- a CLI executable for interactive chat, live integration tests, and provider benchmarks. Depends on all library modules.
 
 Persistence and context retrieval modules are planned for future milestones.
 
@@ -370,7 +370,7 @@ These tools were previously part of `AIProviderKit` and have been extracted into
 
 ## Runner Executable
 
-The `runner` executable (`Sources/runner/`) is a CLI tool for interactive development, live integration testing, and benchmarking against real provider APIs. It replaces the previous `IntegrationTests` executable.
+The `Runner` executable (`Sources/runner/`) is a CLI tool for interactive development, live integration testing, and benchmarking against real provider APIs. It replaces the previous `IntegrationTests` executable.
 
 ### Subcommands
 
@@ -397,7 +397,7 @@ Provider arguments: `claude` (requires `ANTHROPIC_API_KEY`), `openai` (requires 
 | `SummarizerSkill` | Example `Skill` used in integration tests. |
 | `TitleGeneratorSkill` | Example `Skill` registered in chat sessions. |
 
-The `runner` also surfaces an SPM command plugin (`RunIntegrationTests`) so tests can be invoked via `swift package integration-tests <provider>`.
+The `Runner` also surfaces an SPM command plugin (`RunIntegrationTests`) so tests can be invoked via `swift package integration-tests <provider>`.
 
 ---
 

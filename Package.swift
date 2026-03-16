@@ -104,7 +104,7 @@ let package = Package(
         .executableTarget(
             name: "Runner",
             dependencies: ["AIProviderKit", "AIProviderTools", "ClaudeProvider", "OpenAIProvider", "AppleIntelligenceProvider"],
-            path: "Sources/Runner",
+            path: "Sources/runner",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
