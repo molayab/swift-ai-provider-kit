@@ -200,7 +200,7 @@ let response = try await client.send(
 For single-tool groups, the `tool` shorthand gives direct access when you only need the `Tool` value:
 
 ```swift
-let timeTool = CurrentTimeTool.tool
+let timeTool = try CurrentTimeTool.tool()
 await client.toolRegistry.register(timeTool)
 ```
 
