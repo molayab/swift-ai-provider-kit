@@ -1,13 +1,13 @@
+import AIProviderKit
 import CoreLocation
 import MapKit
 
 /// A ready-to-use `Tool` that provides the device's current location to the model.
 ///
-/// Add this to your `ToolRegistry` or pass it directly in `AIRequest.tools`.
 /// The user will be prompted for location permission on first use.
 ///
 /// ```swift
-/// await client.toolRegistry.register(LocationTool.make())
+/// await client.toolRegistry.registerAll(LocationTool.self)
 /// ```
 public enum LocationTool: ToolGroup {
 

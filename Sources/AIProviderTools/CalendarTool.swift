@@ -1,11 +1,17 @@
+// EventKit is only available on iOS and macOS — not visionOS, watchOS, or tvOS.
+#if os(iOS) || os(macOS)
+import AIProviderKit
 import EventKit
 
-/// Ready-to-use `Tool`s for reading and writing calendar events.
+/// Ready-to-use `Tool`s for reading and writing calendar events via EventKit.
 ///
 /// ```swift
-/// CalendarTool.all.forEach { await client.toolRegistry.register($0) }
+/// await client.toolRegistry.registerAll(CalendarTool.self)
 /// ```
 public enum CalendarTool: ToolGroup {
+
+    // ISO8601DateFormatter is thread-safe after initialisation (documented by Apple).
+    nonisolated(unsafe) private static let iso8601 = ISO8601DateFormatter()
 
     /// All provided calendar tools.
     public static var all: [Tool] { [listEvents, createEvent] }
@@ -41,8 +47,8 @@ public enum CalendarTool: ToolGroup {
         let eventList: [JSONValue] = events.map { event in
             .object([
                 "title": .string(event.title ?? ""),
-                "startDate": .string(ISO8601DateFormatter().string(from: event.startDate)),
-                "endDate": .string(ISO8601DateFormatter().string(from: event.endDate)),
+                "startDate": .string(CalendarTool.iso8601.string(from: event.startDate)),
+                "endDate": .string(CalendarTool.iso8601.string(from: event.endDate)),
                 "calendar": .string(event.calendar.title),
                 "notes": event.notes.map { .string($0) } ?? .null,
                 "isAllDay": .bool(event.isAllDay)
@@ -70,8 +76,8 @@ public enum CalendarTool: ToolGroup {
         guard let title = input["title"]?.stringValue,
               let startString = input["startDate"]?.stringValue,
               let endString = input["endDate"]?.stringValue,
-              let startDate = ISO8601DateFormatter().date(from: startString),
-              let endDate = ISO8601DateFormatter().date(from: endString) else {
+              let startDate = CalendarTool.iso8601.date(from: startString),
+              let endDate = CalendarTool.iso8601.date(from: endString) else {
             return .object(["success": false, "error": "Invalid or missing required fields."])
         }
 
@@ -93,3 +99,4 @@ public enum CalendarTool: ToolGroup {
         return .object(["success": true, "eventId": .string(event.eventIdentifier ?? "")])
     }
 }
+#endif

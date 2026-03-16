@@ -20,6 +20,8 @@ struct FMResponseMapper: Sendable {
             content = [.text(response.content)]
         }
 
+        // FoundationModels does not expose token counts — report 0 so callers
+        // can detect the absence and apply their own estimation strategy.
         return AIResponse(
             id: UUID().uuidString,
             model: model,
@@ -33,6 +35,20 @@ struct FMResponseMapper: Sendable {
         .textDelta(delta.text)
     }
 
+    /// Synthesises a final `AIResponse` from the fully accumulated stream text.
+    /// Called by `AppleIntelligenceProvider.stream(_:)` after all deltas have
+    /// been yielded so that consumers receive a `.message` event with token estimates.
+    func mapStreamFinal(_ text: String, model: String) -> AIResponse {
+        let estimatedOutput = max(1, text.utf16.count / 4)
+        return AIResponse(
+            id: UUID().uuidString,
+            model: model,
+            content: [.text(text)],
+            usage: TokenUsage(inputTokens: 0, outputTokens: estimatedOutput),
+            stopReason: .endTurn
+        )
+    }
+
     // MARK: - Private
 
     private func mapStopReason(_ reason: FMStopReason) -> StopReason {
@@ -43,10 +59,12 @@ struct FMResponseMapper: Sendable {
         }
     }
 
+    private static let jsonDecoder = JSONDecoder()
+
     private func parseJSONValue(_ jsonString: String) -> JSONValue {
         guard
             let data = jsonString.data(using: .utf8),
-            let value = try? JSONDecoder().decode(JSONValue.self, from: data)
+            let value = try? Self.jsonDecoder.decode(JSONValue.self, from: data)
         else {
             return .string(jsonString)
         }

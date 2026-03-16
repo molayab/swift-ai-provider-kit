@@ -140,5 +140,5 @@ swift test --filter ClaudeProviderTests
 swift test --filter AIClientTests/sendForwardsRequest
 
 # Integration tests (requires ANTHROPIC_API_KEY)
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests
 ```

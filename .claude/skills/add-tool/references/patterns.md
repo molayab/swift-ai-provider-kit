@@ -4,12 +4,71 @@ Complete Swift code patterns for each construct. Replace `$ARGUMENTS`, `$ACTION`
 
 ---
 
-## Option A — ToolGroup (2+ related actions)
+## Option A — Single-action ToolGroup
 
-File: `Sources/AIProviderKit/Tools/$ARGUMENTSTool.swift`
+Every tool in this project is a `ToolGroup`, even when it wraps only one action. This keeps the registration API uniform — callers always use `registerAll`.
+
+File: `Sources/AIProviderTools/$ARGUMENTSTool.swift`
 
 ```swift
 import Foundation   // Add only if needed for platform APIs
+import AIProviderKit
+
+/// A `ToolGroup` that provides $ARGUMENTS capability.
+///
+/// Register via the unified `ToolGroup` interface:
+///
+/// ```swift
+/// await client.toolRegistry.registerAll($ARGUMENTSTool.self)
+/// ```
+///
+/// Or access the single tool directly via the `tool` shorthand:
+///
+/// ```swift
+/// let tool = $ARGUMENTSTool.tool
+/// ```
+public enum $ARGUMENTSTool: ToolGroup {
+
+    /// All tools in this group (exactly one).
+    public static var all: [Tool] { [$ACTION] }
+
+    // MARK: - Tool
+
+    public static let $ACTION = Tool(
+        name: "$ARGUMENTS_SNAKE",
+        description: "One sentence the model uses to decide when to call this tool.",
+        inputSchema: .object(
+            properties: [
+                "requiredParam": .string(description: "Description of this parameter."),
+                "optionalParam": .integer(description: "Optional. Defaults to 10.")
+            ],
+            required: ["requiredParam"]
+        )
+    ) { input async throws in
+        guard let param = input["requiredParam"]?.stringValue else {
+            return .object(["error": .string("Missing required parameter: requiredParam")])
+        }
+        let count = input["optionalParam"]?.intValue ?? 10
+
+        // Perform the operation...
+
+        return .object([
+            "success": .bool(true),
+            "result": .string("…")
+        ])
+    }
+}
+```
+
+---
+
+## Option B — Multi-action ToolGroup (2+ related actions)
+
+File: `Sources/AIProviderTools/$ARGUMENTSTool.swift`
+
+```swift
+import Foundation   // Add only if needed
+import AIProviderKit
 
 /// Ready-to-use `Tool`s for $ARGUMENTS operations.
 ///
@@ -61,32 +120,9 @@ public enum $ARGUMENTSTool: ToolGroup {
 
 ---
 
-## Option B — Standalone Tool (single action)
-
-```swift
-let $ARGUMENTSTool = Tool(
-    name: "$ARGUMENTS_SNAKE",
-    description: "One sentence the model uses to decide when to call this.",
-    inputSchema: .object(
-        properties: [
-            "key": .string(description: "…")
-        ],
-        required: ["key"]
-    )
-) { input async throws in
-    let value = input["key"]?.stringValue ?? ""
-    return .string(value)
-}
-
-// Register:
-await client.toolRegistry.register($ARGUMENTSTool)
-```
-
----
-
 ## Option C — Skill (tools + recipe + post-processing)
 
-Defined in the consuming app/module — not inside `AIProviderKit` core.
+Defined in the consuming app/module — not inside `AIProviderTools` or `AIProviderKit` core.
 
 ```swift
 import AIProviderKit
@@ -97,7 +133,7 @@ struct $ARGUMENTSSkill: Skill {
     let description = "What this skill does in one sentence."
 
     let tools: [Tool] = [
-        $ARGUMENTSTool.$ACTION_ONE
+        $ARGUMENTSTool.$ACTION
     ]
 
     let recipe: Recipe? = Recipe(

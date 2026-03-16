@@ -42,19 +42,19 @@ to pass the build.
 
 ```bash
 # Claude suite
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests claude
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests claude
 
 # Apple Intelligence suite (no API key needed)
 swift package integration-tests apple-intelligence
 
 # Both suites (skips any that are unavailable)
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests all
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests all
 ```
 
 ### Directly
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... swift run IntegrationTests claude
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift run IntegrationTests claude
 swift run IntegrationTests apple-intelligence
 ```
 
