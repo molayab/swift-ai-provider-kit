@@ -213,7 +213,7 @@ For the changed file(s):
 Only if the change touches network or provider code, and `ANTHROPIC_API_KEY` is available:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests 2>&1
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests 2>&1
 ```
 
 ---

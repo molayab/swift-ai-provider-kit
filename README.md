@@ -87,7 +87,7 @@ import AIProviderKit
 import ClaudeProvider
 
 let client = AIClient(
-    provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "sk-ant-..."))
+    provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "<YOUR_ANTHROPIC_API_KEY>"))
 )
 
 let response = try await client.send(
@@ -268,13 +268,13 @@ The package ships a `Runner` executable that acts as a live playground for any p
 swift run Runner chat claude
 
 # Interactive streaming chat with OpenAI
-OPENAI_API_KEY=sk-... swift run Runner chat openai
+OPENAI_API_KEY=<YOUR_OPENAI_API_KEY> swift run Runner chat openai
 
 # On-device Apple Intelligence (macOS 26 / iOS 26, no key required)
 swift run Runner chat apple-intelligence
 
 # Run live integration tests against all providers
-ANTHROPIC_API_KEY=sk-ant-... OPENAI_API_KEY=sk-... swift run Runner test all
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> OPENAI_API_KEY=<YOUR_OPENAI_API_KEY> swift run Runner test all
 ```
 
 ### Chat commands
@@ -365,7 +365,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 swift test
 
 # Integration tests — requires ANTHROPIC_API_KEY
-ANTHROPIC_API_KEY=sk-ant-... swift package integration-tests
+ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests
 ```
 
 See [`Documentation/IntegrationTests.md`](Documentation/IntegrationTests.md) for full details.
