@@ -107,6 +107,11 @@ public final class AppleIntelligenceProvider: StreamableProvider {
                         continuation.yield(self.responseMapper.mapStreamDelta(delta))
                     }
 
+                    guard !Task.isCancelled else {
+                        continuation.finish()
+                        return
+                    }
+
                     // Emit a final .message event so consumers (BenchmarkSuite,
                     // AIClient tool-use loop) receive the complete response + token estimates.
                     let finalResponse = self.responseMapper.mapStreamFinal(accumulated, model: modelId)
