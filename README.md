@@ -38,6 +38,7 @@ Built with Swift 6, full `Sendable` compliance, and SOLID principles throughout.
 | **Claude** (Anthropic) | `ClaudeProvider` | ✅ Shipped | Full streaming, tools, vision |
 | **Apple Intelligence** | `AppleIntelligenceProvider` | ✅ Shipped | On-device, iOS 26+ / macOS 26+, requires Apple Intelligence enabled |
 | **OpenAI** | `OpenAIProvider` | ✅ Shipped | Chat Completions API — streaming, tools, vision, dynamic model listing |
+| **Llama / local** | `LlamaProvider` | 💡 Post-1.0.0 | Wraps a locally-running `llama-server`; targets macOS, Linux, and Windows via OpenAI-compatible REST |
 
 ---
 

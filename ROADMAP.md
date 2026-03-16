@@ -167,5 +167,7 @@ All of 0.2–0.6.7, plus:
 - OpenAI Assistants API (thread + file management) — being deprecated mid-2026 in favour of Responses API
 - Prompt caching support (Anthropic / OpenAI)
 - Webhook / push notification integration for long-running requests
-- Android / Linux support (swift-foundation)
+- `LlamaProvider` — wraps a locally-running `llama-server` (OpenAI-compatible REST) for on-device / offline inference on macOS, Linux, and Windows; iOS on-device is already covered by `AppleIntelligenceProvider`. See [`Documentation/Issues/llm-device-linux-windows.md`](Documentation/Issues/llm-device-linux-windows.md) for the full investigation.
+- Linux support — make `AIProviderKit` and `ClaudeProvider` compile on Linux via `AsyncHTTPClient` HTTP backend and `#if canImport(...)` guards for Apple-only frameworks; `AIProviderKitUI` remains Apple-only. See investigation doc above.
+- Windows support — blocked until SwiftNIO for Windows reaches production status; documented but not actionable yet.
 - SQLite vector store backend (`sqlite-vec`) for `AIProviderKitContext`
