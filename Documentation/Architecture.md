@@ -112,7 +112,7 @@ classDiagram
     class ToolGroup {
         <<protocol>>
         +all: [Tool]$
-        +tool: Tool$
+        +tool() Tool$
     }
 
     class AIClient {
@@ -360,7 +360,7 @@ await client.toolRegistry.registerAll(ShellCommandTool.self)
 For single-tool groups, the `tool` protocol extension provides direct access without going through `all`:
 
 ```swift
-let tool = CurrentTimeTool.tool        // same as CurrentTimeTool.all[0]
+let tool = try CurrentTimeTool.tool()  // same as CurrentTimeTool.all[0]
 let named = CurrentTimeTool.currentTime // the named static constant
 ```
 
