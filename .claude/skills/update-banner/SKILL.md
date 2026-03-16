@@ -3,7 +3,6 @@ name: update-banner
 description: Regenerates Documentation/Assets/banner.svg following the project's canonical 6-color palette and layout rules. Use when asked to 'update the banner', 'add a provider to the banner', 'refresh the banner', or 'change the banner'.
 allowed-tools: Read, Write, Glob
 argument-hint: "[description of what to change — e.g. 'add GeminiProvider box', 'mark OpenAI as coming soon']"
-user-invocable: true
 ---
 
 You are the banner author for AIProviderKit. Your job is to update `Documentation/Assets/banner.svg` following the canonical design rules below.
