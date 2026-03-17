@@ -1,15 +1,15 @@
-# Persistence Layer Design (0.3 – 0.5)
+# Persistence Layer Design (0.4.0 – 0.4.2)
 
 ## Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [0.3.0 — Core Protocol & In-Memory](#030--core-protocol--in-memory)
-- [0.4.0 — File System Backend](#040--file-system-backend)
-- [0.5.0 — Database Backend](#050--database-backend)
+- [0.4.0 — Core Protocol & In-Memory](#040--core-protocol--in-memory)
+- [0.4.1 — File System Backend](#041--file-system-backend)
+- [0.4.2 — Database Backend](#042--database-backend)
 
 > **Status:** Planned
-> **Milestones:** 0.3.0 · 0.4.0 · 0.5.0
+> **Milestones:** 0.4.0 · 0.4.1 · 0.4.2
 > **Created:** 2026-03-12
 
 ## Overview
@@ -43,14 +43,14 @@ graph TD
 
     AIClient --> SupportedConversationStore
 
-    EM --> EMCS["EphemeralMemoryConversationStore\n(0.3.0 · AIProviderKit)"]
-    FS --> FSCS["FileSystemConversationStore\n(0.4.0 · AIProviderKitPersistenceFS)"]
-    DB --> SDCS["SwiftDataConversationStore\n(0.5.0 · AIProviderKitPersistenceDB)"]
+    EM --> EMCS["EphemeralMemoryConversationStore\n(0.4.0 · AIProviderKit)"]
+    FS --> FSCS["FileSystemConversationStore\n(0.4.1 · AIProviderKitPersistenceFS)"]
+    DB --> SDCS["SwiftDataConversationStore\n(0.4.2 · AIProviderKitPersistenceDB)"]
 ```
 
 ## 0.4.0 — Core Protocol & In-Memory
 
-Establishes the persistence contract and a zero-dependency default backend. All higher-level `AIClient` APIs are introduced here; later milestones add new backend cases without changing any call sites.
+Establishes the persistence contract and a zero-dependency default backend. All higher-level `AIClient` APIs are introduced here; `0.4.1` and `0.4.2` add new backend cases without changing any call sites.
 
 - `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
 - `SupportedConversationStore` enum — `.ephemeralMemory` / `.fileSystem` / `.database` cases
@@ -61,7 +61,7 @@ Establishes the persistence contract and a zero-dependency default backend. All 
 - Conversation management API — list, load, delete, archive
 - Token-budget trimming — prune oldest turns when context limit is approached
 
-## 0.5.0 — File System Backend
+## 0.4.1 — File System Backend
 
 Works on every Apple platform and Linux without any additional frameworks. Ships as `AIProviderKitPersistenceFS`; importing it unlocks the `.fileSystem` case on `SupportedConversationStore`.
 
@@ -71,7 +71,7 @@ Works on every Apple platform and Linux without any additional frameworks. Ships
 - Conversation index file — fast list / search without loading all turn payloads
 - Import / export — portable conversation JSON bundles
 
-## 0.6.0 — Database Backend
+## 0.4.2 — Database Backend
 
 SwiftData-backed store for apps that need querying, indexing, or multi-process access. Ships as `AIProviderKitPersistenceDB`; importing it unlocks the `.database` case on `SupportedConversationStore`.
 
