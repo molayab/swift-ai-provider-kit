@@ -94,6 +94,36 @@ struct ClaudeUsage: Decodable {
     }
 }
 
+// MARK: - Model List (GET /v1/models)
+
+struct ClaudeModelListResponse: Decodable {
+    let data: [ClaudeModelObject]
+    let hasMore: Bool
+    let firstId: String?
+    let lastId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case data
+        case hasMore = "has_more"
+        case firstId = "first_id"
+        case lastId = "last_id"
+    }
+}
+
+struct ClaudeModelObject: Decodable {
+    let id: String
+    let displayName: String
+    let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case displayName = "display_name"
+        case createdAt = "created_at"
+    }
+}
+
+// MARK: - Error
+
 struct ClaudeErrorResponse: Decodable {
     let type: String
     let error: Detail

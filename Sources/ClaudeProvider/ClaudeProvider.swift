@@ -12,17 +12,18 @@ import Foundation
 /// )
 /// let client = AIClient(provider: provider)
 /// ```
-public final class ClaudeProvider: StreamableProvider {
+public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
 
     // MARK: - Constants
 
     private static let baseURL = URL(string: "https://api.anthropic.com/v1/messages")!
+    private static let modelsURL = URL(string: "https://api.anthropic.com/v1/models")!
     private static let anthropicVersion = "2023-06-01"
 
     // MARK: - AIProvider
 
     public let identifier = "claude"
-    public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt]
+    public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt, .modelDiscovery]
 
     // MARK: - Dependencies
 
@@ -113,11 +114,71 @@ public final class ClaudeProvider: StreamableProvider {
         }
     }
 
+    // MARK: - ModelDiscoveryProvider
+
+    public func listModels() async throws(AIError) -> [AIModelInfo] {
+        var accumulated: [AIModelInfo] = []
+        var afterId: String?
+
+        repeat {
+            guard !Task.isCancelled else { throw AIError.networkError(URLError(.cancelled)) }
+
+            guard var components = URLComponents(url: Self.modelsURL, resolvingAgainstBaseURL: false) else {
+                throw AIError.encodingFailed(underlying: URLError(.badURL))
+            }
+            if let cursor = afterId {
+                components.queryItems = [URLQueryItem(name: "after_id", value: cursor)]
+            }
+            guard let url = components.url else {
+                throw AIError.encodingFailed(underlying: URLError(.badURL))
+            }
+
+            let httpRequest = try await buildGETRequest(url: url)
+
+            let httpResponse: HTTPResponse
+            do {
+                httpResponse = try await httpClient.send(httpRequest)
+            } catch let urlError as URLError {
+                throw AIError.networkError(urlError)
+            } catch {
+                throw AIError.networkError(URLError(.unknown))
+            }
+
+            try validateStatus(httpResponse)
+
+            let page: ClaudeModelListResponse
+            do {
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                page = try decoder.decode(ClaudeModelListResponse.self, from: httpResponse.body)
+            } catch {
+                throw AIError.decodingFailed(underlying: error)
+            }
+
+            let models = page.data.map { object in
+                AIModelInfo(model: AIModel(object.id), displayName: object.displayName, createdAt: object.createdAt)
+            }
+            accumulated.append(contentsOf: models)
+            afterId = page.hasMore ? page.lastId : nil
+        } while afterId != nil
+
+        return accumulated
+    }
+
     // MARK: - Private helpers
 
-    private func buildHTTPRequest<Body: Encodable>(body: Body) async throws(AIError) -> HTTPRequest {
+    private func buildBaseHeaders() async throws(AIError) -> [String: String] {
         var headers = try await authorization.authorizationHeaders()
         headers["anthropic-version"] = Self.anthropicVersion
+        return headers
+    }
+
+    private func buildGETRequest(url: URL) async throws(AIError) -> HTTPRequest {
+        return HTTPRequest(method: "GET", url: url, headers: try await buildBaseHeaders(), body: nil)
+    }
+
+    private func buildHTTPRequest<Body: Encodable>(body: Body) async throws(AIError) -> HTTPRequest {
+        var headers = try await buildBaseHeaders()
         headers["content-type"] = "application/json"
 
         let bodyData: Data

@@ -45,15 +45,15 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 - [x] Unit tests — 46 tests, fully mocked via `MockHTTPClient` (no API key required)
 - [ ] Integration tests — `swift package integration-tests` extended for OpenAI
 
-## 0.3.1 — Dynamic Model Discovery: Claude
+## 0.3.1 — Dynamic Model Discovery: Claude ✓
 
 `OpenAIProvider` already conforms to `ModelDiscoveryProvider` (ships in 0.3.0).
 This milestone adds the same capability to `ClaudeProvider`.
 
-- [ ] `ClaudeProvider: ModelDiscoveryProvider` — implement `listModels()` via `GET /v1/models`
-- [ ] Cursor-based pagination support — follow `has_more` / `after_id` until all pages are fetched
-- [ ] Map Anthropic response fields: `id` → `AIModel`, `display_name` → `AIModelInfo.displayName`, `created_at` → `AIModelInfo.createdAt`
-- [ ] Unit tests — `MockHTTPClient` stubs for single-page and multi-page responses, error cases
+- [x] `ClaudeProvider: ModelDiscoveryProvider` — implement `listModels()` via `GET /v1/models`
+- [x] Cursor-based pagination support — follow `has_more` / `after_id` until all pages are fetched
+- [x] Map Anthropic response fields: `id` → `AIModel`, `display_name` → `AIModelInfo.displayName`, `created_at` → `AIModelInfo.createdAt`
+- [x] Unit tests — `MockHTTPClient` stubs for single-page and multi-page responses, error cases
 
 ## 0.3.2 — Shared HTTP Networking Layer
 
