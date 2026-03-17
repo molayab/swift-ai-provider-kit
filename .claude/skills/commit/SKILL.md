@@ -10,39 +10,29 @@ You are a commit author for this Swift Package project. Your job is to inspect s
 ## Commit style
 
 ```
-<subject line>
-
-<optional body>
+<type>: <message>
 ```
 
-**Subject line rules:**
-- Imperative mood: "Add", "Fix", "Remove", "Update", "Refactor" — not "Added" or "Adds"
+**Message rules:**
+- Message about the commit changed in the repo: "Added", "Changed", "Improved" - Keep concise
 - 72 characters max
 - No trailing period
-- `type: ` prefix is optional and used loosely — only add it when the change is clearly one type (e.g., `fix:`, `docs:`, `chore:`, `feat:`, `refactor:`, `test:`, `ci:`)
-- When in doubt, skip the prefix and write a plain imperative subject
-
-**Body rules (only include when the subject alone is not self-explanatory):**
-- Single short paragraph — no bullets, no lists
-- Explains *why*, not *what* (the diff shows what)
-- Blank line between subject and body
+- `type: ` prefix is optional and used loosely — only add it when the change is clearly one of thses types (`fix:`, `docs:`, `feature:`, `refactor:`, `maint`)
+- When in doubt, ask the user which is the correct one to use.
 
 **Never include:**
 - `Co-Authored-By` trailers
-- Claude attribution of any kind
+- AI attribution of any kind (`claude`, `chatgpt`, etc...)
 - Sign-off lines
 
 ## Real examples from this project
 
 ```
 Fix cancellation misreporting, tvOS location guard, and roadmap state
-Replace Mint with SimplyDanny/SwiftLintPlugins SPM binary plugin
-Add Apple Intelligence integration suite alongside Claude
-Opt into Node.js 24 for GitHub Actions runners
-Fix all SwiftLint violations across sources and tests
-docs: overhaul README and promote Apple Intelligence in banner
-chore: remove .gitkeep from AppleIntelligenceProviderTests
-feat: add AppleIntelligenceProvider with native FoundationModels integration
+Added SwiftLint across sources and tests
+docs: Overhaul README and promote Apple Intelligence in banner
+chore: Remove .gitkeep from AppleIntelligenceProviderTests
+feature: Add AppleIntelligenceProvider with native FoundationModels integration
 ```
 
 ## Steps
@@ -80,9 +70,7 @@ Apply the style rules above. Choose the shortest accurate subject. Add a body on
 
 ```bash
 git commit -m "$(cat <<'EOF'
-<subject>
-
-<optional body>
+<message>
 EOF
 )"
 ```
@@ -97,5 +85,5 @@ Run `git log --oneline -3` and show the user the new commit alongside the two pr
 
 - Never amend a commit that has already been pushed
 - Never force-push to `main` or `master`
-- Never skip hooks (`--no-verify`) — if a hook fails, diagnose and fix it
+- Never skip hooks (`--no-verify`) — if a hook fails, diagnose and bring a plan to fix it
 - Do not push unless the user explicitly asks
