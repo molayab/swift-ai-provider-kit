@@ -43,7 +43,7 @@ early adopters; minor breaking changes may still occur before 1.0.0.
 - [x] Vision support — URL and base64 images via `image_url` content parts
 - [x] SSE streaming — text deltas and tool-call deltas via `AsyncThrowingStream`
 - [x] Unit tests — 46 tests, fully mocked via `MockHTTPClient` (no API key required)
-- [ ] Integration tests — `swift package integration-tests` extended for OpenAI
+- [x] Integration tests — `swift package integration-tests` extended for OpenAI
 
 ## 0.3.1 — Dynamic Model Discovery: Claude ✓
 
