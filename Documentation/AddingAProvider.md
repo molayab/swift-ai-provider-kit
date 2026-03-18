@@ -8,18 +8,23 @@ This guide walks through implementing a new `AIProvider` without touching any ex
 
 ### 1. Create the target
 
-Add a new library target in `Package.swift`:
+Add a new library target in `Package.swift`. Include `AIProviderKitNetworking` in dependencies if the provider makes HTTP calls (most REST providers will):
 
 ```swift
 .library(name: "OpenAIProvider", targets: ["OpenAIProvider"]),
 // ...
-.target(name: "OpenAIProvider", dependencies: ["AIProviderKit"], path: "Sources/OpenAIProvider"),
+.target(
+    name: "OpenAIProvider",
+    dependencies: ["AIProviderKit", "AIProviderKitNetworking"],
+    path: "Sources/OpenAIProvider"
+),
 ```
 
 ### 2. Implement `AIProvider`
 
 ```swift
 import AIProviderKit
+import AIProviderKitNetworking
 
 public final class OpenAIProvider: StreamableProvider {
 
@@ -27,7 +32,7 @@ public final class OpenAIProvider: StreamableProvider {
     public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt]
 
     private let authorization: any AuthorizationProvider
-    private let httpClient: any HTTPClient    // your internal protocol
+    private let httpClient: any HTTPClient    // from AIProviderKitNetworking
 
     public init(authorization: any AuthorizationProvider) { ... }
 
@@ -79,7 +84,31 @@ Both Claude and OpenAI use similar message structures. The key differences are:
 
 ### 6. Test with the shared test helpers
 
-Your test target can import `AIProviderKit` and use `MockData` for baseline fixtures. Inject `MockHTTPClient` via the internal `init` to avoid any network calls.
+Your test target can import `AIProviderKit` and use `MockData` for baseline fixtures. Add `AIProviderKitNetworking` to your test target's dependencies and inject a `MockHTTPClient` (conforming to `HTTPClient`) via the internal `init` to avoid any network calls.
+
+Your `MockHTTPClient` should `import AIProviderKitNetworking` — not `@testable import YourProvider` — to access the `HTTPClient` protocol, since it is public in `AIProviderKitNetworking`:
+
+```swift
+import AIProviderKitNetworking
+
+final class MockHTTPClient: HTTPClient, @unchecked Sendable {
+    var stubbedResponse = HTTPResponse(statusCode: 200, body: Data())
+    var stubbedError: (any Error)?
+    private(set) var receivedRequests: [HTTPRequest] = []
+
+    func send(_ request: HTTPRequest) async throws -> HTTPResponse {
+        receivedRequests.append(request)
+        if let error = stubbedError { throw error }
+        return stubbedResponse
+    }
+
+    func stream(_ request: HTTPRequest) -> AsyncThrowingStream<Data, any Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
+}
+```
+
+On Apple platforms `URLSessionHTTPClient` is the default backend. On Linux or Windows, pass an alternative `any HTTPClient` conformer backed by e.g. SwiftNIO's `AsyncHTTPClient`.
 
 ```mermaid
 flowchart LR
