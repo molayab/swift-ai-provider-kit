@@ -1,4 +1,5 @@
 import AIProviderKit
+import AIProviderKitNetworking
 @testable import ClaudeProvider
 import Foundation
 import Testing

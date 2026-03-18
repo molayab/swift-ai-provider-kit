@@ -10,6 +10,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "AIProviderKitNetworking",
+            targets: ["AIProviderKitNetworking"]
+        ),
+        .library(
             name: "AIProviderKit",
             targets: ["AIProviderKit"]
         ),
@@ -35,6 +39,18 @@ let package = Package(
         .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", exact: "0.63.2")
     ],
     targets: [
+        // MARK: - Networking
+
+        .target(
+            name: "AIProviderKitNetworking",
+            path: "Sources/AIProviderKitNetworking",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
+        ),
+
         // MARK: - Core
 
         .target(
@@ -51,7 +67,7 @@ let package = Package(
 
         .target(
             name: "ClaudeProvider",
-            dependencies: ["AIProviderKit"],
+            dependencies: ["AIProviderKit", "AIProviderKitNetworking"],
             path: "Sources/ClaudeProvider",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
@@ -64,7 +80,7 @@ let package = Package(
 
         .target(
             name: "OpenAIProvider",
-            dependencies: ["AIProviderKit"],
+            dependencies: ["AIProviderKit", "AIProviderKitNetworking"],
             path: "Sources/OpenAIProvider",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
@@ -125,6 +141,16 @@ let package = Package(
         // MARK: - Tests
 
         .testTarget(
+            name: "AIProviderKitNetworkingTests",
+            dependencies: ["AIProviderKitNetworking"],
+            path: "Tests/AIProviderKitNetworkingTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
+        ),
+        .testTarget(
             name: "AIProviderKitTests",
             dependencies: ["AIProviderKit"],
             path: "Tests/AIProviderKitTests",
@@ -136,7 +162,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ClaudeProviderTests",
-            dependencies: ["ClaudeProvider", "AIProviderKit"],
+            dependencies: ["ClaudeProvider", "AIProviderKit", "AIProviderKitNetworking"],
             path: "Tests/ClaudeProviderTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
@@ -156,7 +182,7 @@ let package = Package(
         ),
         .testTarget(
             name: "OpenAIProviderTests",
-            dependencies: ["OpenAIProvider", "AIProviderKit"],
+            dependencies: ["OpenAIProvider", "AIProviderKit", "AIProviderKitNetworking"],
             path: "Tests/OpenAIProviderTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
