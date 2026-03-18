@@ -9,12 +9,25 @@ final class SendableCapture<T>: @unchecked Sendable {
 }
 
 // Tests share MockURLProtocol.requestHandler (a process-wide global required by the
-// URLProtocol API). @Suite(.serialized) ensures at most one test in this suite runs at a
-// time, preventing handler cross-contamination. The OSAllocatedUnfairLock inside
-// MockURLProtocol additionally guards the handler against concurrent reads from the URL
-// loading system's background threads.
-@Suite("URLSessionHTTPClient", .serialized)
-struct URLSessionHTTPClientTests {
+// URLProtocol API). Using a class suite with async init/deinit ensures at most one test
+// body runs at a time via HandlerSemaphore, preventing handler cross-contamination.
+//
+// Note: @Suite(.serialized) only serializes *parameterized* test cases and has no effect
+// on regular tests. The class init()/deinit pattern is the correct Swift Testing idiom
+// for per-test setUp/tearDown with shared mutable state.
+//
+// The OSAllocatedUnfairLock inside MockURLProtocol additionally guards the handler
+// against concurrent reads from the URL loading system's background threads.
+@Suite("URLSessionHTTPClient", .tags(.networking))
+final class URLSessionHTTPClientTests {
+
+    init() async {
+        await HandlerSemaphore.shared.acquire()
+    }
+
+    deinit {
+        Task { await HandlerSemaphore.shared.release() }
+    }
 
     private static let testURL = URL(string: "https://example.com/test")!
 
@@ -58,14 +71,14 @@ struct URLSessionHTTPClientTests {
 
         // when
         _ = try await sut.send(request)
-        let capturedRequest = capture.value
+        let capturedRequest = try #require(capture.value)
 
         // then
-        #expect(capturedRequest?.httpMethod == "POST")
-        #expect(capturedRequest?.value(forHTTPHeaderField: "content-type") == "application/json")
-        #expect(capturedRequest?.value(forHTTPHeaderField: "x-api-key") == "test-key")
+        #expect(capturedRequest.httpMethod == "POST")
+        #expect(capturedRequest.value(forHTTPHeaderField: "content-type") == "application/json")
+        #expect(capturedRequest.value(forHTTPHeaderField: "x-api-key") == "test-key")
         // URLProtocol converts httpBody to httpBodyStream internally; read from whichever is set
-        let bodyData = capturedRequest?.httpBody ?? capturedRequest?.httpBodyStream.flatMap { stream in
+        let bodyData = capturedRequest.httpBody ?? capturedRequest.httpBodyStream.flatMap { stream in
             var data = Data()
             stream.open()
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
@@ -181,15 +194,10 @@ struct URLSessionHTTPClientTests {
         let sut = URLSessionHTTPClient(session: MockURLProtocol.makeSession())
         let request = HTTPRequest(method: "POST", url: Self.testURL, headers: [:], body: nil)
 
-        // when
-        var caughtError: HTTPStreamError?
-        do {
+        // when / then
+        let caughtError = await #expect(throws: HTTPStreamError.self) {
             for try await _ in sut.stream(request) {}
-        } catch let error as HTTPStreamError {
-            caughtError = error
         }
-
-        // then
         #expect(caughtError?.statusCode == 429)
         #expect(caughtError?.body == errorBody)
     }
