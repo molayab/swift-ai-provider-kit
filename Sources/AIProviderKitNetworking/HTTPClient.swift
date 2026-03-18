@@ -2,7 +2,7 @@ import Foundation
 
 /// Thrown by `URLSessionHTTPClient.stream` when the server responds with a non-2xx status.
 /// Providers catch this and map it to `AIError` via their `validateStatus` helper.
-public struct HTTPStreamError: Error {
+public struct HTTPStreamError: Error, Sendable {
     public let statusCode: Int
     public let body: Data
 
