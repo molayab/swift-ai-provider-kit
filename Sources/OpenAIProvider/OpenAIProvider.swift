@@ -1,4 +1,5 @@
 import AIProviderKit
+import AIProviderKitNetworking
 import Foundation
 
 /// An `AIProvider` implementation targeting the OpenAI Chat Completions API.

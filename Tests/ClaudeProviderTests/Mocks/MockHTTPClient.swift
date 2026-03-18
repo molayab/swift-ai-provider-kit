@@ -1,4 +1,4 @@
-@testable import ClaudeProvider
+import AIProviderKitNetworking
 import Foundation
 
 /// Test double for `HTTPClient`.

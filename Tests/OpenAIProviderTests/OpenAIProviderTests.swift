@@ -1,5 +1,6 @@
 // swiftlint:disable file_length
 import AIProviderKit
+import AIProviderKitNetworking
 import Foundation
 @testable import OpenAIProvider
 import Testing

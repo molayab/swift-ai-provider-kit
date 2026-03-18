@@ -1,5 +1,5 @@
+import AIProviderKitNetworking
 import Foundation
-@testable import OpenAIProvider
 
 /// Test double for `HTTPClient`.
 ///
