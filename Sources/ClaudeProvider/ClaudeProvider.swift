@@ -36,6 +36,29 @@ public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
 
     // MARK: - Init
 
+    /// Creates a provider using a caller-supplied `HTTPClient`.
+    ///
+    /// Use this initialiser on Linux, Windows, or whenever you need to substitute a
+    /// custom networking backend (e.g. one built on SwiftNIO's `AsyncHTTPClient`).
+    public convenience init(
+        authorization: any AuthorizationProvider,
+        httpClient: any HTTPClient,
+        logger: AILogger? = nil
+    ) {
+        self.init(
+            authorization: authorization,
+            httpClient: httpClient,
+            requestMapper: ClaudeRequestMapper(),
+            responseMapper: ClaudeResponseMapper(),
+            logger: logger
+        )
+    }
+
+    #if canImport(Darwin)
+    /// Creates a provider using the default `URLSessionHTTPClient` backend.
+    ///
+    /// Available on Apple platforms only. On Linux or Windows use
+    /// `init(authorization:httpClient:logger:)` and supply an alternative backend.
     public convenience init(
         authorization: any AuthorizationProvider,
         logger: AILogger? = nil
@@ -46,6 +69,7 @@ public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
             logger: logger
         )
     }
+    #endif
 
     init(
         authorization: any AuthorizationProvider,
