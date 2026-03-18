@@ -75,6 +75,7 @@ Add the products you need:
 .product(name: "OpenAIProvider", package: "AIProviderKit"),            // OpenAI Chat Completions API
 .product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device Apple Intelligence
 .product(name: "AIProviderTools", package: "AIProviderKit"),           // Ready-to-use tools (optional)
+.product(name: "AIProviderKitNetworking", package: "AIProviderKit"),   // Shared HTTP + SSE client (for custom providers)
 ```
 
 ---
@@ -348,6 +349,8 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 | **0.1.0** | Core architecture + Claude provider | ✅ Shipped |
 | **0.2.0** | Apple Intelligence provider (on-device) | ✅ Shipped |
 | **0.3.0** | OpenAI provider + `ModelDiscoveryProvider` | ✅ Shipped |
+| **0.3.1** | Dynamic model discovery for `ClaudeProvider` | ✅ Shipped |
+| **0.3.2** | Shared HTTP networking layer (`AIProviderKitNetworking`) | ✅ Shipped |
 | **0.4.0** | Persistence — core protocol + in-memory backend | 🔜 Planned |
 | **0.4.1** | Persistence — file system backend | 🔜 Planned |
 | **0.4.2** | Persistence — SwiftData backend | 🔜 Planned |
