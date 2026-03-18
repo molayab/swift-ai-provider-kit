@@ -1,11 +1,20 @@
 @testable import AIProviderKitNetworking
 import Foundation
+import os
 import Testing
 
-/// Mutable capture box for values written from a `@Sendable` closure and read after
-/// an `await` establishes a happens-before edge. Each test owns its own instance.
-final class SendableCapture<T>: @unchecked Sendable {
-    var value: T?
+/// Thread-safe capture box for values written from a `@Sendable` closure on a
+/// background thread and read from an async test context. The internal
+/// `OSAllocatedUnfairLock` provides the synchronization that justifies
+/// `@unchecked Sendable`. Each test owns its own instance.
+final class SendableCapture<T: Sendable>: @unchecked Sendable {
+    private let _lock = OSAllocatedUnfairLock<T?>(initialState: nil)
+
+    var value: T? { _lock.withLock { $0 } }
+
+    func set(_ newValue: T) {
+        _lock.withLock { $0 = newValue }
+    }
 }
 
 // Tests share MockURLProtocol.requestHandler (a process-wide global required by the
@@ -58,7 +67,7 @@ final class URLSessionHTTPClientTests {
         // handler (background thread) and read after the await completes (happens-before).
         let capture = SendableCapture<URLRequest>()
         MockURLProtocol.requestHandler = { request in
-            capture.value = request
+            capture.set(request)
             return (.init(url: Self.testURL, statusCode: 200, httpVersion: nil, headerFields: nil)!, Data())
         }
         let sut = URLSessionHTTPClient(session: MockURLProtocol.makeSession())
