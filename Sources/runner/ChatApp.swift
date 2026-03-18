@@ -54,7 +54,7 @@ struct ChatApp {
             let client = AIClient(
                 provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: key))
             )
-            await ChatSession(client: client, providerName: "Claude", defaultModel: .claudeHaiku45).run()
+            await ChatSession(client: client, providerName: "Claude", defaultModel: ClaudeModel.haiku45.aiModel).run()
 
         case "openai":
             guard let key = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !key.isEmpty else {
@@ -63,7 +63,7 @@ struct ChatApp {
             let client = AIClient(
                 provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: key))
             )
-            await ChatSession(client: client, providerName: "OpenAI", defaultModel: .gpt41Mini).run()
+            await ChatSession(client: client, providerName: "OpenAI", defaultModel: OpenAIModel.gpt41Mini.aiModel).run()
 
         case "apple-intelligence":
             guard AppleIntelligenceAvailability.isAvailable else {
@@ -73,7 +73,7 @@ struct ChatApp {
             await ChatSession(
                 client: client,
                 providerName: "Apple Intelligence",
-                defaultModel: .appleIntelligenceDefault
+                defaultModel: AppleIntelligenceModel.default.aiModel
             ).run()
 
         default:
@@ -162,7 +162,7 @@ struct ChatApp {
             let client = AIClient(provider: AppleIntelligenceProvider())
             await BenchmarkSuite(
                 client: client,
-                model: .appleIntelligenceDefault,
+                model: AppleIntelligenceModel.default.aiModel,
                 providerName: "Apple Intelligence",
                 runs: runs
             ).run()

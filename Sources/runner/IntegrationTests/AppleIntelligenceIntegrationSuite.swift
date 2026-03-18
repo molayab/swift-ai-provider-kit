@@ -32,7 +32,7 @@ actor AppleIntelligenceIntegrationSuite {
 
     private func testBasicCompletion() async throws {
         let request = try AIRequestBuilder()
-            .model(.appleIntelligenceDefault)
+            .model(AppleIntelligenceModel.default)
             .addMessage(.user(text: "Reply with exactly one word: hello"))
             .build()
 
@@ -44,7 +44,7 @@ actor AppleIntelligenceIntegrationSuite {
 
     private func testStreaming() async throws {
         let request = try AIRequestBuilder()
-            .model(.appleIntelligenceDefault)
+            .model(AppleIntelligenceModel.default)
             .addMessage(.user(text: "Count from 1 to 3, one number per line."))
             .build()
 
@@ -61,7 +61,7 @@ actor AppleIntelligenceIntegrationSuite {
         await client.toolRegistry.register(timeTool)
 
         let request = try AIRequestBuilder()
-            .model(.appleIntelligenceDefault)
+            .model(AppleIntelligenceModel.default)
             .addMessage(.user(text: "What is the current time? Use the get_current_time tool."))
             .tools([timeTool])
             .build()
@@ -84,7 +84,7 @@ actor AppleIntelligenceIntegrationSuite {
         let response = try await client.send(
             recipe: recipe,
             values: ["text": "hello", "language": "Spanish"],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         guard !response.text.isEmpty else { throw IntegrationError.emptyResponse }
@@ -97,7 +97,7 @@ actor AppleIntelligenceIntegrationSuite {
         let result = try await client.execute(
             skillId: skill.identifier,
             input: "The quick brown fox jumps over the lazy dog. This classic pangram uses every letter of the alphabet.",
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         guard !result.output.isEmpty else { throw IntegrationError.emptyResponse }

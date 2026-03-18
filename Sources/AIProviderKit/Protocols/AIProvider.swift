@@ -10,8 +10,20 @@ public protocol AIProvider: Sendable {
     /// The set of capabilities this provider supports.
     var capabilities: Set<AICapability> { get }
 
+    /// Returns `true` when this provider can handle the given model.
+    ///
+    /// `AIClient` calls this to route each request to the correct backend in a
+    /// multi-provider setup. The default implementation returns `true`, which is
+    /// appropriate when only one provider is registered. Override this in each
+    /// concrete provider to return `true` only for models the provider owns.
+    func canHandle(model: AIModel) -> Bool
+
     /// Sends a request and awaits a complete response.
     func send(_ request: AIRequest) async throws(AIError) -> AIResponse
+}
+
+public extension AIProvider {
+    func canHandle(model: AIModel) -> Bool { true }
 }
 
 /// Extends `AIProvider` with server-sent event streaming.

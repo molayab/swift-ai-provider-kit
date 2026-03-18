@@ -30,6 +30,8 @@ public final class AppleIntelligenceProvider: StreamableProvider {
 
     public let capabilities: Set<AICapability> = [.text, .streaming, .systemPrompt, .tools]
 
+    public func canHandle(model: AIModel) -> Bool { AppleIntelligenceModel.handles(model) }
+
     // MARK: - Dependencies
 
     private let sessionFactory: any FMSessionFactory
@@ -127,9 +129,3 @@ public final class AppleIntelligenceProvider: StreamableProvider {
     }
 }
 
-// MARK: - Model Constants
-
-public extension AIModel {
-    /// The default on-device Apple Intelligence model.
-    static let appleIntelligenceDefault = AIModel("com.apple.foundation-models.default")
-}

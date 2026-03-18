@@ -38,6 +38,10 @@ public enum AIError: Error, Sendable {
     case inferenceFailed(underlying: any Error)
     /// The operation was cancelled before it could complete.
     case cancelled
+    /// No registered provider claims to handle the requested model.
+    case noProviderForModel(AIModel)
+    /// No conversation with the given identifier exists in the store.
+    case conversationNotFound(String)
 }
 
 // MARK: - LocalizedError
@@ -82,6 +86,10 @@ extension AIError: LocalizedError {
             return "Inference failed: \(err.localizedDescription)"
         case .cancelled:
             return "The operation was cancelled."
+        case .noProviderForModel(let model):
+            return "No registered provider can handle model '\(model.identifier)'."
+        case .conversationNotFound(let id):
+            return "No conversation found with id '\(id)'."
         }
     }
 }

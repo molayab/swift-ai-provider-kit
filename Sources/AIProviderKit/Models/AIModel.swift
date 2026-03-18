@@ -5,7 +5,7 @@
 ///
 /// ```swift
 /// let request = AIRequestBuilder()
-///     .model(.claudeSonnet46)
+///     .model(ClaudeModel.sonnet46)
 ///     .build()
 /// ```
 public struct AIModel: Hashable, Sendable, Codable, ExpressibleByStringLiteral {

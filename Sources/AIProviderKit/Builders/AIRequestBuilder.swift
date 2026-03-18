@@ -5,7 +5,7 @@
 ///
 /// ```swift
 /// let request = try AIRequestBuilder()
-///     .model(.claudeSonnet46)
+///     .model(ClaudeModel.sonnet46)
 ///     .systemPrompt("You are a helpful assistant.")
 ///     .conversation {
 ///         Message.user(text: "What is 2 + 2?")
@@ -30,6 +30,16 @@ public final class AIRequestBuilder {
 
     @discardableResult public func model(_ model: AIModel) -> Self {
         self.model = model
+        return self
+    }
+
+    /// Sets the model using a typed ``ProviderModel`` enum case.
+    ///
+    /// ```swift
+    /// AIRequestBuilder().model(ClaudeModel.sonnet46)
+    /// ```
+    @discardableResult public func model<M: ProviderModel>(_ providerModel: M) -> Self {
+        self.model = providerModel.aiModel
         return self
     }
 
