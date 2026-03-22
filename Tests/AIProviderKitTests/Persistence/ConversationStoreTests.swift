@@ -35,12 +35,8 @@ struct ConversationStoreTests {
         // When
         let all = try await store.allConversations()
 
-        // Then
-        #expect(all.count == 3)
-        let ids = all.map(\.id)
-        #expect(ids.contains(first.id))
-        #expect(ids.contains(second.id))
-        #expect(ids.contains(third.id))
+        // Then — newest-first order: third created last, so it sorts first
+        #expect(all.map(\.id) == [third.id, second.id, first.id])
     }
 
     // MARK: - Save
