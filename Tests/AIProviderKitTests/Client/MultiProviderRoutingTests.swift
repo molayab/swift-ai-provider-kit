@@ -124,6 +124,6 @@ struct MultiProviderRoutingTests {
         let client = AIClient(providers: [alpha, BetaProvider()])
 
         // Then
-        #expect(client.provider.identifier == "alpha")
+        #expect(client.provider?.identifier == "alpha")
     }
 }

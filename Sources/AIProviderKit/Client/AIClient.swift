@@ -41,11 +41,14 @@ public actor AIClient {
     /// whose ``AIProvider/canHandle(model:)`` returns `true`.
     nonisolated public let providers: [any AIProvider]
 
-    /// The primary (first) registered provider.
+    /// The primary (first) registered provider, or `nil` if `providers` is empty.
     ///
-    /// Equivalent to `providers[0]`. Use this for single-provider setups or
-    /// when you need a concrete reference for casting.
-    nonisolated public var provider: any AIProvider { providers[0] }
+    /// Use this for single-provider setups or when you need a concrete reference
+    /// for casting. The single-provider ``init(provider:)`` always guarantees a
+    /// non-nil value; the multi-provider ``init(providers:)`` may receive an empty
+    /// array, in which case this returns `nil` and any request will throw
+    /// ``AIError/noProviderForModel(_:)`` at send time.
+    nonisolated public var provider: (any AIProvider)? { providers.first }
 
     public let toolRegistry: ToolRegistry
     public let skillRegistry: SkillRegistry

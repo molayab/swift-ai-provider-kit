@@ -77,7 +77,7 @@ actor OpenAIIntegrationSuite {
     }
 
     private func testModelDiscovery() async throws {
-        guard let discovery = client.provider as? any ModelDiscoveryProvider else {
+        guard let provider = client.provider, let discovery = provider as? any ModelDiscoveryProvider else {
             throw IntegrationError.capabilityUnavailable("ModelDiscovery")
         }
 
