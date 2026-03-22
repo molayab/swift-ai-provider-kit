@@ -20,12 +20,17 @@ public enum ContentBlock: Sendable, Equatable {
 
     // MARK: - Nested Types
 
+    /// Image data attached to a user message.
     public struct ImageContent: Sendable, Equatable {
+        /// The image source — either raw base-64 data or a remote URL.
         public enum Source: Sendable, Equatable {
+            /// Raw image bytes encoded as base-64, with the MIME type (e.g. `"image/png"`).
             case base64(mediaType: String, data: Data)
+            /// A publicly accessible image URL.
             case url(String)
         }
 
+        /// The image source.
         public let source: Source
 
         public init(source: Source) {
@@ -33,9 +38,13 @@ public enum ContentBlock: Sendable, Equatable {
         }
     }
 
+    /// A tool invocation requested by the model.
     public struct ToolUseContent: Sendable, Equatable {
+        /// The provider-assigned call identifier, echoed back in the corresponding ``ToolResultContent``.
         public let id: String
+        /// The name of the tool the model wants to call.
         public let name: String
+        /// The arguments the model supplied, matching the tool's ``Tool/inputSchema``.
         public let input: JSONValue
 
         public init(id: String, name: String, input: JSONValue) {
@@ -45,9 +54,13 @@ public enum ContentBlock: Sendable, Equatable {
         }
     }
 
+    /// The result of executing a tool, to be sent back to the model.
     public struct ToolResultContent: Sendable, Equatable {
+        /// The ``ToolUseContent/id`` from the tool-use block this result corresponds to.
         public let toolUseId: String
+        /// The tool output, typically one or more `.text` blocks.
         public let content: [ContentBlock]
+        /// `true` if the tool handler threw an error; the model may react accordingly.
         public let isError: Bool
 
         public init(toolUseId: String, content: [ContentBlock], isError: Bool = false) {

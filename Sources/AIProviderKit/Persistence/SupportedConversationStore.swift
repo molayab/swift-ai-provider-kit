@@ -9,8 +9,8 @@
 /// Additional backends (`.fileSystem`, `.database`) will be added in `AIProviderKitPersistenceFS`
 /// and `AIProviderKitPersistenceDB` respectively (milestones 0.4.1 and 0.4.2).
 public enum SupportedConversationStore: Sendable {
-    /// Zero-dependency in-memory store. Conversations survive the `AIClient` lifetime
-    /// but are discarded when the process exits.
+    /// Zero-dependency in-memory store. Conversations are kept for the lifetime of the
+    /// owning `AIClient` instance and are not written to disk.
     case ephemeralMemory
 
     // MARK: - Internal factory

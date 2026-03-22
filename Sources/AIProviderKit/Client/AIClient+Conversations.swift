@@ -83,8 +83,8 @@ extension AIClient {
     /// when the stream completes.
     ///
     /// This combines the streaming UX of ``stream(_:)`` with the automatic persistence
-    /// of ``send(conversation:message:tokenBudget:)``. The `.message` event at the end
-    /// of the stream carries the full assembled response and triggers the store write.
+    /// of ``send(conversation:message:systemPrompt:tokenBudget:)``. The `.message` event
+    /// at the end of the stream carries the full assembled response and triggers the store write.
     ///
     /// ```swift
     /// let events = try await client.stream(conversation: conv, message: "Hello")
