@@ -5,13 +5,16 @@ final class MockStreamableProvider: StreamableProvider, @unchecked Sendable {
     let identifier = "mock-stream"
     let capabilities: Set<AICapability> = [.text, .tools, .streaming, .systemPrompt]
 
+    var stubbedResponse: AIResponse = MockData.response
+    var stubbedSendError: AIError?
     var stubbedEvents: [AIStreamEvent] = []
     var stubbedError: (any Error)?
     var receivedRequests: [AIRequest] = []
 
     func send(_ request: AIRequest) async throws(AIError) -> AIResponse {
         receivedRequests.append(request)
-        return MockData.response
+        if let error = stubbedSendError { throw error }
+        return stubbedResponse
     }
 
     func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
