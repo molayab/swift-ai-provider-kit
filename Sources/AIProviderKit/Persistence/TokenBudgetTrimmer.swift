@@ -4,6 +4,7 @@
 /// The trimmer preferentially removes turns that carry a non-nil `tokenUsage`
 /// (oldest counted turn first). Turns without token usage are counted as zero
 /// and are only removed when no counted turn remains to satisfy the budget.
+/// The algorithm runs in O(n) time.
 enum TokenBudgetTrimmer {
 
     /// Returns a copy of `turns` trimmed so that the total token count ≤ `budget`.
@@ -16,21 +17,29 @@ enum TokenBudgetTrimmer {
     ///   - budget: Maximum number of tokens to allow.
     /// - Returns: A trimmed list, maintaining chronological order.
     static func trim(_ turns: [ConversationTurn], toBudget budget: Int) -> [ConversationTurn] {
-        var result = turns
-        while totalTokens(result) > budget, !result.isEmpty {
-            // Prefer removing the oldest turn that has a counted token cost.
-            // Fall back to the oldest uncounted turn only when all remaining
-            // turns have nil usage (budget still exceeded by uncounted turns).
-            if let idx = result.firstIndex(where: { $0.tokenUsage != nil }) {
-                result.remove(at: idx)
-            } else {
-                result.removeFirst()
+        // Compute the total token count once instead of recalculating each iteration.
+        var total = turns.compactMap(\.tokenUsage).reduce(0) { $0 + $1.totalTokens }
+        guard total > budget else { return turns }
+
+        var keep = Array(repeating: true, count: turns.count)
+
+        // Phase 1: single forward pass — remove oldest counted turns until budget is met.
+        for (idx, turn) in turns.enumerated() {
+            guard total > budget else { break }
+            if let usage = turn.tokenUsage {
+                total -= usage.totalTokens
+                keep[idx] = false
             }
         }
-        return result
-    }
 
-    private static func totalTokens(_ turns: [ConversationTurn]) -> Int {
-        turns.compactMap(\.tokenUsage).reduce(0) { $0 + $1.totalTokens }
+        // Phase 2: only reachable when budget < 0 (total reached 0 but still exceeds
+        // a negative budget). Remove remaining uncounted turns as a last resort.
+        if total > budget {
+            for (idx, turn) in turns.enumerated() where keep[idx] && turn.tokenUsage == nil {
+                keep[idx] = false
+            }
+        }
+
+        return zip(turns, keep).compactMap { $1 ? $0 : nil }
     }
 }
