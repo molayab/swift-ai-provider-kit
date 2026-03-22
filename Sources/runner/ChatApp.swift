@@ -175,8 +175,8 @@ struct ChatApp {
     /// Parses `--runs <n>` from the argument list, defaulting to 10.
     private static func parseRuns(from args: [String]) -> Int {
         guard let idx = args.firstIndex(of: "--runs"), args.indices.contains(idx + 1),
-              let count = Int(args[idx + 1]), count > 0 else { return 10 }
-        return count
+              let runCount = Int(args[idx + 1]), runCount > 0 else { return 10 }
+        return runCount
     }
 
     // MARK: - Help

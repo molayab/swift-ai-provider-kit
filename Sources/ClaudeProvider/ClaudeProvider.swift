@@ -186,7 +186,7 @@ public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
                 AIModelInfo(model: AIModel(object.id), displayName: object.displayName, createdAt: object.createdAt)
             }
             accumulated.append(contentsOf: models)
-            afterId = page.hasMore ? page.lastId : nil
+            if page.hasMore { afterId = page.lastId } else { afterId = nil }
         } while afterId != nil
 
         return accumulated
