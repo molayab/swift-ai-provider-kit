@@ -22,7 +22,4 @@ struct TitleGeneratorSkill: Skill {
         )
     }
 
-    func process(response: AIResponse) async throws -> SkillResult {
-        SkillResult(output: response.text, metadata: [:], usage: response.usage)
-    }
 }

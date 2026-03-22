@@ -39,6 +39,16 @@ struct ChatApp {
         }
     }
 
+    // MARK: - Helpers
+
+    /// Reads an environment variable and exits with an error message if it is absent or empty.
+    private static func requireEnv(_ key: String) -> String {
+        guard let value = ProcessInfo.processInfo.environment[key], !value.isEmpty else {
+            print("error: \(key) not set"); exit(1)
+        }
+        return value
+    }
+
     // MARK: - Chat
 
     private static func runChat(args: [String]) async {
@@ -48,18 +58,14 @@ struct ChatApp {
 
         switch provider {
         case "claude":
-            guard let key = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !key.isEmpty else {
-                print("error: ANTHROPIC_API_KEY not set"); exit(1)
-            }
+            let key = requireEnv("ANTHROPIC_API_KEY")
             let client = AIClient(
                 provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: key))
             )
             await ChatSession(client: client, providerName: "Claude", defaultModel: ClaudeModel.haiku45.aiModel).run()
 
         case "openai":
-            guard let key = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !key.isEmpty else {
-                print("error: OPENAI_API_KEY not set"); exit(1)
-            }
+            let key = requireEnv("OPENAI_API_KEY")
             let client = AIClient(
                 provider: OpenAIProvider(authorization: BearerAuthorization(apiKey: key))
             )
@@ -90,16 +96,10 @@ struct ChatApp {
 
         switch suite {
         case "claude":
-            guard let key = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !key.isEmpty else {
-                print("error: ANTHROPIC_API_KEY not set"); exit(1)
-            }
-            await ClaudeIntegrationSuite(apiKey: key).runAll()
+            await ClaudeIntegrationSuite(apiKey: requireEnv("ANTHROPIC_API_KEY")).runAll()
 
         case "openai":
-            guard let key = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !key.isEmpty else {
-                print("error: OPENAI_API_KEY not set"); exit(1)
-            }
-            await OpenAIIntegrationSuite(apiKey: key).runAll()
+            await OpenAIIntegrationSuite(apiKey: requireEnv("OPENAI_API_KEY")).runAll()
 
         case "apple-intelligence":
             guard AppleIntelligenceAvailability.isAvailable else {

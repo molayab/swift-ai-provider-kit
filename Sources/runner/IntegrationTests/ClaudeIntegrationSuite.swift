@@ -16,16 +16,13 @@ actor ClaudeIntegrationSuite {
     }
 
     func runAll() async {
-        print("═══════════════════════════════════════════")
-        print("  AIProviderKit — Integration Tests")
-        print("  Provider : Claude (Haiku)")
-        print("═══════════════════════════════════════════\n")
+        await runner.printHeader(provider: "Claude (Haiku)")
 
         await runner.run("Basic text completion") { try await self.testBasicCompletion() }
         await runner.run("Streaming") { try await self.testStreaming() }
         await runner.run("Automatic tool execution") { try await self.testToolExecution() }
-        await runner.run("Recipe rendering") { try await self.testRecipe() }
-        await runner.run("Skill execution") { try await self.testSkill() }
+        await runner.runRecipeTest(client: client, model: ClaudeModel.haiku45.aiModel)
+        await runner.runSkillTest(client: client, model: ClaudeModel.haiku45.aiModel)
 
         await runner.printSummary()
     }
@@ -80,39 +77,5 @@ actor ClaudeIntegrationSuite {
 
         guard response.stopReason == .endTurn else { throw IntegrationError.unexpectedStopReason(response.stopReason) }
         guard !response.text.isEmpty          else { throw IntegrationError.emptyResponse }
-    }
-
-    /// Renders a `Recipe` with placeholder values and verifies a response.
-    private func testRecipe() async throws {
-        let recipe = Recipe(
-            id: "translate",
-            name: "Translate",
-            description: "Translates a word or phrase to a target language.",
-            systemPrompt: "You are a concise translator. Reply with only the translation, no extra text.",
-            userPromptTemplate: "Translate '{{text}}' to {{language}}."
-        )
-
-        let response = try await client.send(
-            recipe: recipe,
-            values: ["text": "hello", "language": "Spanish"],
-            model: ClaudeModel.haiku45.aiModel
-        )
-
-        guard !response.text.isEmpty else { throw IntegrationError.emptyResponse }
-    }
-
-    /// Registers `SummarizerSkill`, executes it via `AIClient.execute`, and
-    /// verifies the processed output is non-empty.
-    private func testSkill() async throws {
-        let skill = SummarizerSkill()
-        await client.skillRegistry.register(skill)
-
-        let result = try await client.execute(
-            skillId: skill.identifier,
-            input: "The quick brown fox jumps over the lazy dog. This classic pangram uses every letter of the alphabet.",
-            model: ClaudeModel.haiku45.aiModel
-        )
-
-        guard !result.output.isEmpty else { throw IntegrationError.emptyResponse }
     }
 }
