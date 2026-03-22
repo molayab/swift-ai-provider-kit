@@ -65,13 +65,13 @@ struct AIClientTests {
         let request = try MockData.request()
 
         // WHEN / THEN
-        var caughtError: (any Error)?
-        do {
+        await #expect {
             for try await _ in await client.stream(request) {}
-        } catch {
-            caughtError = error
+        } throws: { error in
+            guard let aiError = error as? AIError,
+                  case .providerUnsupported(let capability) = aiError else { return false }
+            return capability == .streaming
         }
-        #expect(caughtError != nil)
     }
 
     // MARK: - Recipes

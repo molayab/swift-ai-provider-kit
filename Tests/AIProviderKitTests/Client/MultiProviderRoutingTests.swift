@@ -92,16 +92,14 @@ struct MultiProviderRoutingTests {
         let client = AIClient(provider: mock)
         let request = try MockData.request()
 
-        // When — MockAIProvider is not StreamableProvider, so expect the error
-        var didThrow = false
-        do {
+        // When — MockAIProvider is not StreamableProvider, expect providerUnsupported
+        await #expect {
             for try await _ in await client.stream(request) {}
-        } catch {
-            didThrow = true
+        } throws: { error in
+            guard let aiError = error as? AIError,
+                  case .providerUnsupported(let capability) = aiError else { return false }
+            return capability == .streaming
         }
-
-        // Then
-        #expect(didThrow)
     }
 
     @Test("providers property exposes all registered providers")

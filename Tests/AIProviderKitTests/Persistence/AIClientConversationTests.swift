@@ -280,8 +280,9 @@ struct AIClientConversationTests {
         await #expect {
             _ = try await client.stream(conversation: conv, message: "Hi")
         } throws: { error in
-            guard let aiError = error as? AIError, case .providerUnsupported = aiError else { return false }
-            return true
+            guard let aiError = error as? AIError,
+                  case .providerUnsupported(let capability) = aiError else { return false }
+            return capability == .streaming
         }
     }
 
