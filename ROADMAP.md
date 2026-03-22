@@ -66,19 +66,19 @@ Eliminates the duplicated `URLSessionHTTPClient` and `HTTPClient` copies that cu
 - [x] Update `Documentation/AddingAProvider.md` — reference the shared types instead of instructing authors to copy the networking layer
 - [x] Unit tests for `URLSessionHTTPClient` backed by `MockURLProtocol` (stream cancellation, SSE line parsing, error mapping)
 
-## 0.4.0 — Persistence: Core Protocol & In-Memory
+## 0.4.0 — Persistence: Core Protocol & In-Memory ✓
 
 Establishes the persistence contract and a zero-dependency default backend. See [`Documentation/Issues/persistence-layer.md`](Documentation/Issues/persistence-layer.md) for the full design.
 
-- [ ] `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
-- [ ] `SupportedConversationStore` enum — `.ephemeralMemory` / `.fileSystem` / `.database` cases
-- [ ] `Conversation` / `ConversationTurn` models — `Codable`, `Identifiable`, timestamped
-- [ ] `EphemeralMemoryConversationStore` — backing type for `.ephemeralMemory`, zero dependencies
-- [ ] `AIClient` init — `store: SupportedConversationStore = .ephemeralMemory` parameter
-- [ ] `AIClient` integration — `send(conversationId:message:model:)` overload that auto-loads and auto-saves turns
-- [ ] Conversation management API — list, load, delete, archive
-- [ ] Token-budget trimming strategy — prune oldest turns when context limit is approached
-- [ ] Unit tests — full coverage using `.ephemeralMemory`
+- [x] `ConversationStore` protocol — provider-agnostic async CRUD for conversations and turns
+- [x] `SupportedConversationStore` enum — `.ephemeralMemory` / `.fileSystem` / `.database` cases
+- [x] `Conversation` / `ConversationTurn` models — `Codable`, `Identifiable`, timestamped
+- [x] `EphemeralMemoryConversationStore` — backing type for `.ephemeralMemory`, zero dependencies
+- [x] `AIClient` init — `store: SupportedConversationStore = .ephemeralMemory` parameter
+- [x] `AIClient` integration — `send(conversationId:message:model:)` overload that auto-loads and auto-saves turns
+- [x] Conversation management API — list, load, delete, archive
+- [x] Token-budget trimming strategy — prune oldest turns when context limit is approached
+- [x] Unit tests — full coverage using `.ephemeralMemory`
 
 ## 0.4.1 — Persistence: File System Backend
 
