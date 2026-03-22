@@ -72,7 +72,6 @@ public actor AIClient {
         recipeRegistry: RecipeRegistry = RecipeRegistry(),
         logger: AILogger? = nil
     ) {
-        precondition(!providers.isEmpty, "AIClient requires at least one provider.")
         self.providers = providers
         self.store = store.makeStore()
         self.toolRegistry = toolRegistry

@@ -16,8 +16,8 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 
     // MARK: - Constants
 
-    private static let baseURL = OpenAIConstants.chatCompletionsURL
-    private static let modelsURL = OpenAIConstants.modelsURL
+    private static let baseURL: URL? = OpenAIConstants.chatCompletionsURL
+    private static let modelsURL: URL? = OpenAIConstants.modelsURL
 
     // MARK: - AIProvider
 
@@ -153,10 +153,13 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     /// // [AIModelInfo(model: AIModel("gpt-4o"), …), …]
     /// ```
     public func listModels() async throws(AIError) -> [AIModelInfo] {
+        guard let url = Self.modelsURL else {
+            throw AIError.requestBuildingFailed("Malformed Models URL constant")
+        }
         var headers = try await authorization.authorizationHeaders()
         headers["content-type"] = "application/json"
 
-        let httpRequest = HTTPRequest(method: "GET", url: Self.modelsURL, headers: headers, body: nil)
+        let httpRequest = HTTPRequest(method: "GET", url: url, headers: headers, body: nil)
 
         let httpResponse: HTTPResponse
         do {
@@ -187,6 +190,9 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     // MARK: - Private helpers
 
     private func buildHTTPRequest<Body: Encodable>(body: Body) async throws(AIError) -> HTTPRequest {
+        guard let url = Self.baseURL else {
+            throw AIError.requestBuildingFailed("Malformed Chat Completions URL constant")
+        }
         var headers = try await authorization.authorizationHeaders()
         headers["content-type"] = "application/json"
 
@@ -199,7 +205,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 
         return HTTPRequest(
             method: "POST",
-            url: Self.baseURL,
+            url: url,
             headers: headers,
             body: bodyData
         )
