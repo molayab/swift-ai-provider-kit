@@ -205,6 +205,119 @@ struct AIClientConversationTests {
         let updated = try #require(all.first { $0.id == conv.id })
         #expect(updated.isArchived)
     }
+
+    // MARK: - send(conversation:systemPrompt:)
+
+    @Test("send(conversation:systemPrompt:) forwards the system prompt in the request")
+    func sendConversation_forwardsSystemPrompt() async throws {
+        // Given
+        let provider = MockAIProvider()
+        let client = AIClient(provider: provider)
+        let conv = try await client.createConversation(model: "mock-model", title: "Sys")
+
+        // When
+        _ = try await client.send(conversation: conv, message: "Hi", systemPrompt: "Be concise.")
+
+        // Then
+        let sentRequest = try #require(provider.receivedRequests.last)
+        #expect(sentRequest.systemPrompt == "Be concise.")
+    }
+
+    // MARK: - stream(conversation:)
+
+    @Test("stream(conversation:) emits text deltas and persists both turns after .message")
+    func streamConversation_persistsTurns() async throws {
+        // Given
+        let provider = MockStreamableProvider()
+        provider.stubbedEvents = [
+            .textDelta("Hello "),
+            .textDelta("world"),
+            .message(MockData.response)
+        ]
+        let client = AIClient(provider: provider)
+        let conv = try await client.createConversation(model: "mock-model", title: "Stream")
+
+        // When — collect all events
+        let stream = try await client.stream(conversation: conv, message: "Hi")
+        var collected: [AIStreamEvent] = []
+        for try await event in stream {
+            collected.append(event)
+        }
+
+        // Then — all events passed through
+        #expect(collected.count == 3)
+
+        // Then — turns were persisted after the .message event
+        let stored = try #require(try await client.conversations().first { $0.id == conv.id })
+        #expect(stored.turns.count == 2)
+        #expect(stored.turns[0].message.role == .user)
+        #expect(stored.turns[0].message.text == "Hi")
+        #expect(stored.turns[1].message.role == .assistant)
+    }
+
+    @Test("stream(conversation:) throws conversationNotFound for an unknown conversation")
+    func streamConversation_throwsForUnknown() async throws {
+        // Given
+        let client = AIClient(provider: MockStreamableProvider())
+        let ghost = Conversation(title: "Ghost", model: "m")
+
+        // When / Then — the throw happens eagerly before the stream is returned
+        await #expect {
+            _ = try await client.stream(conversation: ghost, message: "Hi")
+        } throws: { error in
+            guard let aiError = error as? AIError, case .conversationNotFound = aiError else { return false }
+            return true
+        }
+    }
+
+    @Test("stream(conversation:) throws providerUnsupported when provider is not StreamableProvider")
+    func streamConversation_throwsWhenNotStreamable() async throws {
+        // Given — MockAIProvider does NOT conform to StreamableProvider
+        let client = AIClient(provider: MockAIProvider())
+        let conv = try await client.createConversation(model: "mock-model", title: "No stream")
+
+        // When / Then
+        await #expect {
+            _ = try await client.stream(conversation: conv, message: "Hi")
+        } throws: { error in
+            guard let aiError = error as? AIError, case .providerUnsupported = aiError else { return false }
+            return true
+        }
+    }
+
+    @Test("stream(conversation:tokenBudget:) trims oldest turns before building request")
+    func streamWithBudget_trimsTurns() async throws {
+        // Given
+        let provider = MockStreamableProvider()
+        provider.stubbedEvents = [.message(MockData.response)]
+        let client = AIClient(provider: provider)
+        let conv = try await client.createConversation(model: "mock-model", title: "Budget")
+
+        // When — budget of 0 removes all prior turns from the request
+        let stream = try await client.stream(conversation: conv, message: "Hi", tokenBudget: 0)
+        for try await _ in stream {}
+
+        // Then — request only contains the new user message
+        let sentRequest = try #require(provider.receivedRequests.last)
+        #expect(sentRequest.messages.count == 1)
+    }
+
+    @Test("stream(conversation:systemPrompt:) forwards the system prompt in the request")
+    func streamConversation_forwardsSystemPrompt() async throws {
+        // Given
+        let provider = MockStreamableProvider()
+        provider.stubbedEvents = [.message(MockData.response)]
+        let client = AIClient(provider: provider)
+        let conv = try await client.createConversation(model: "mock-model", title: "Sys")
+
+        // When
+        let stream = try await client.stream(conversation: conv, message: "Hi", systemPrompt: "Be brief.")
+        for try await _ in stream {}
+
+        // Then
+        let sentRequest = try #require(provider.receivedRequests.last)
+        #expect(sentRequest.systemPrompt == "Be brief.")
+    }
 }
 
 // MARK: - MockModel helper

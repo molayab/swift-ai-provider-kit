@@ -39,43 +39,16 @@ extension AIClient {
         systemPrompt: String? = nil,
         tokenBudget: Int? = nil
     ) async throws -> AIResponse {
-        // Always reload the latest state — safe to pass stale Conversation values
-        guard let current = try await store.conversation(byId: conversation.id) else {
-            throw AIError.conversationNotFound(conversation.id.uuidString)
-        }
-
-        // Trim history if a token budget is set
-        var turns = current.turns
-        if let budget = tokenBudget {
-            turns = TokenBudgetTrimmer.trim(turns, toBudget: budget)
-        }
-
-        // Build the message history from stored turns
-        var messages = turns.map(\.message)
-        let userMessage = Message.user(text: message)
-        messages.append(userMessage)
-
-        var builder = AIRequestBuilder()
-            .model(current.model)
-            .messages(messages)
-            .tools(await toolRegistry.allTools)
-        if let prompt = systemPrompt { builder = builder.systemPrompt(prompt) }
-        let request = try builder.build()
-
-        let response = try await send(request)
-
+        let ctx = try await prepareConversationRequest(
+            for: conversation,
+            message: message,
+            systemPrompt: systemPrompt,
+            tokenBudget: tokenBudget
+        )
+        let response = try await send(ctx.request)
         // Reload latest state before writing to avoid reentrancy data loss: another
         // concurrent send may have appended turns while we were suspended in send(request).
-        guard var latest = try await store.conversation(byId: conversation.id) else {
-            throw AIError.conversationNotFound(conversation.id.uuidString)
-        }
-        latest.turns.append(ConversationTurn(message: userMessage))
-        latest.turns.append(ConversationTurn(
-            message: Message(role: .assistant, content: response.content),
-            tokenUsage: response.usage
-        ))
-        try await store.save(latest)
-
+        try await persistTurns(conversationId: ctx.current.id, userMessage: ctx.userMessage, response: response)
         return response
     }
 
@@ -104,51 +77,34 @@ extension AIClient {
         tokenBudget: Int? = nil
     ) async throws -> AsyncThrowingStream<AIStreamEvent, any Error> {
         // All actor-isolated setup happens here before the stream is handed to the caller.
-        guard let current = try await store.conversation(byId: conversation.id) else {
-            throw AIError.conversationNotFound(conversation.id.uuidString)
-        }
-        var turns = current.turns
-        if let budget = tokenBudget {
-            turns = TokenBudgetTrimmer.trim(turns, toBudget: budget)
-        }
-        var messages = turns.map(\.message)
-        let userMessage = Message.user(text: message)
-        messages.append(userMessage)
-
-        let allTools = await toolRegistry.allTools
-        var builder = AIRequestBuilder()
-            .model(current.model)
-            .messages(messages)
-            .tools(allTools)
-        if let prompt = systemPrompt { builder = builder.systemPrompt(prompt) }
-        let request = try builder.build()
-
-        guard let streamable = (try resolveProvider(for: request.model)) as? any StreamableProvider else {
+        let ctx = try await prepareConversationRequest(
+            for: conversation,
+            message: message,
+            systemPrompt: systemPrompt,
+            tokenBudget: tokenBudget
+        )
+        guard let streamable = (try resolveProvider(for: ctx.request.model)) as? any StreamableProvider else {
             throw AIError.providerUnsupported(capability: .streaming)
         }
 
-        // Capture Sendable values for use inside the unstructured Task.
-        let capturedStore = store
-        let capturedUserMessage = userMessage
-        let capturedConversationId = current.id
+        let capturedConversationId = ctx.current.id
+        let capturedUserMessage = ctx.userMessage
 
         let (stream, continuation) = AsyncThrowingStream<AIStreamEvent, any Error>.makeStream()
         let task = Task {
             do {
-                for try await event in streamable.stream(request) {
+                for try await event in streamable.stream(ctx.request) {
                     continuation.yield(event)
                     // Persist both turns once the provider emits the final assembled response.
                     // Reload from the store immediately before saving to avoid reentrancy data
                     // loss: another concurrent send may have appended turns while we were
                     // suspended waiting for the stream to complete.
                     if case .message(let response) = event {
-                        guard var latest = try await capturedStore.conversation(byId: capturedConversationId) else { break }
-                        latest.turns.append(ConversationTurn(message: capturedUserMessage))
-                        latest.turns.append(ConversationTurn(
-                            message: Message(role: .assistant, content: response.content),
-                            tokenUsage: response.usage
-                        ))
-                        try await capturedStore.save(latest)
+                        try await self.persistTurns(
+                            conversationId: capturedConversationId,
+                            userMessage: capturedUserMessage,
+                            response: response
+                        )
                     }
                 }
                 continuation.finish()
@@ -178,5 +134,65 @@ extension AIClient {
     /// Archives a conversation.
     public func archive(conversation: Conversation) async throws {
         try await store.archive(conversation)
+    }
+}
+
+// MARK: - Private helpers
+
+private struct ConversationRequestContext {
+    let current: Conversation
+    let userMessage: Message
+    let request: AIRequest
+}
+
+extension AIClient {
+
+    /// Loads the latest conversation state, applies optional budget trimming, and builds
+    /// the `AIRequest` for a conversation turn. Used by both `send(conversation:)` and
+    /// `stream(conversation:)` to eliminate duplicated setup logic.
+    private func prepareConversationRequest(
+        for conversation: Conversation,
+        message: String,
+        systemPrompt: String?,
+        tokenBudget: Int?
+    ) async throws -> ConversationRequestContext {
+        guard let current = try await store.conversation(byId: conversation.id) else {
+            throw AIError.conversationNotFound(conversation.id.uuidString)
+        }
+        var turns = current.turns
+        if let budget = tokenBudget {
+            turns = TokenBudgetTrimmer.trim(turns, toBudget: budget)
+        }
+        var messages = turns.map(\.message)
+        let userMessage = Message.user(text: message)
+        messages.append(userMessage)
+
+        let allTools = await toolRegistry.allTools
+        var builder = AIRequestBuilder()
+            .model(current.model)
+            .messages(messages)
+            .tools(allTools)
+        if let prompt = systemPrompt { builder = builder.systemPrompt(prompt) }
+        let request = try builder.build()
+        return ConversationRequestContext(current: current, userMessage: userMessage, request: request)
+    }
+
+    /// Reloads the latest conversation state and appends the user and assistant turns,
+    /// then saves. Used by both `send(conversation:)` and `stream(conversation:)` after
+    /// the provider responds, guarding against reentrancy data loss.
+    private func persistTurns(
+        conversationId: UUID,
+        userMessage: Message,
+        response: AIResponse
+    ) async throws {
+        guard var latest = try await store.conversation(byId: conversationId) else {
+            throw AIError.conversationNotFound(conversationId.uuidString)
+        }
+        latest.turns.append(ConversationTurn(message: userMessage))
+        latest.turns.append(ConversationTurn(
+            message: Message(role: .assistant, content: response.content),
+            tokenUsage: response.usage
+        ))
+        try await store.save(latest)
     }
 }
