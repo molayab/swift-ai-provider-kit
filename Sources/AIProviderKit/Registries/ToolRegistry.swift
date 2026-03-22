@@ -7,6 +7,7 @@ public actor ToolRegistry {
 
     public init() {}
 
+    /// Registers a tool, keyed by ``Tool/name``. Replaces any existing tool with the same name.
     public func register(_ tool: Tool) {
         tools[tool.name] = tool
     }
@@ -18,10 +19,13 @@ public actor ToolRegistry {
         }
     }
 
+    /// Removes the tool with the given name. No-op if the name is not registered.
     public func unregister(named name: String) {
         tools.removeValue(forKey: name)
     }
 
+    /// Returns the tool registered under `name`.
+    /// - Throws: ``AIError/toolNotFound(_:)`` if no tool is registered with that name.
     public func tool(named name: String) throws(AIError) -> Tool {
         guard let tool = tools[name] else {
             throw AIError.toolNotFound(name)
@@ -29,11 +33,14 @@ public actor ToolRegistry {
         return tool
     }
 
+    /// All currently registered tools, in unspecified order.
     public var allTools: [Tool] {
         Array(tools.values)
     }
 
-    /// Executes the named tool with the given input.
+    /// Looks up and executes the named tool with the given input.
+    /// - Throws: ``AIError/toolNotFound(_:)`` if the name is not registered, or
+    ///   ``AIError/toolExecutionFailed(toolName:underlying:)`` if the handler throws.
     public func execute(toolName: String, input: JSONValue) async throws(AIError) -> JSONValue {
         let tool = try tool(named: toolName)
         do {

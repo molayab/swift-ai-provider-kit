@@ -26,7 +26,7 @@ struct AppleIntelligenceProviderTests {
         tools: [Tool] = []
     ) throws -> AIRequest {
         let builder = AIRequestBuilder()
-            .model(.appleIntelligenceDefault)
+            .model(AppleIntelligenceModel.default)
             .addMessage(.user(text: "Hello"))
         if let systemPrompt {
             builder.systemPrompt(systemPrompt)

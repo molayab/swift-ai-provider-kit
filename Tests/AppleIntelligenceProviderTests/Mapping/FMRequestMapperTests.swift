@@ -17,7 +17,7 @@ struct FMRequestMapperTests {
         // Given
         let request = AIRequest(
             messages: [.user(text: "Hello")],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         // When
@@ -34,7 +34,7 @@ struct FMRequestMapperTests {
         // Given
         let request = AIRequest(
             messages: [.assistant(text: "Hi there")],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         // When
@@ -54,7 +54,7 @@ struct FMRequestMapperTests {
                 .system("You are helpful"),
                 .user(text: "Hello"),
             ],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         // When
@@ -74,7 +74,7 @@ struct FMRequestMapperTests {
                 .assistant(text: "Second"),
                 .user(text: "Third"),
             ],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         // When
@@ -94,7 +94,7 @@ struct FMRequestMapperTests {
         // Given
         let request = AIRequest(
             messages: [.user(text: "Hi")],
-            model: .appleIntelligenceDefault,
+            model: AppleIntelligenceModel.default.aiModel,
             systemPrompt: "Be concise."
         )
 
@@ -120,7 +120,7 @@ struct FMRequestMapperTests {
         ) { _ async throws in .null }
         let request = AIRequest(
             messages: [.user(text: "Hi")],
-            model: .appleIntelligenceDefault,
+            model: AppleIntelligenceModel.default.aiModel,
             tools: [tool]
         )
 
@@ -146,7 +146,7 @@ struct FMRequestMapperTests {
         ) { _ async throws in .null }
         let request = AIRequest(
             messages: [.user(text: "Hi")],
-            model: .appleIntelligenceDefault,
+            model: AppleIntelligenceModel.default.aiModel,
             tools: [tool]
         )
 
@@ -165,7 +165,7 @@ struct FMRequestMapperTests {
         // Given
         let request = AIRequest(
             messages: [.user(text: "Hi")],
-            model: .appleIntelligenceDefault,
+            model: AppleIntelligenceModel.default.aiModel,
             tools: []
         )
 
@@ -183,7 +183,7 @@ struct FMRequestMapperTests {
         // Given
         let request = AIRequest(
             messages: [.user(text: "Hi")],
-            model: .appleIntelligenceDefault,
+            model: AppleIntelligenceModel.default.aiModel,
             temperature: 0.7
         )
 
@@ -205,7 +205,7 @@ struct FMRequestMapperTests {
         let message = Message(role: .user, content: [.text("Look at this"), imageBlock])
         let request = AIRequest(
             messages: [message],
-            model: .appleIntelligenceDefault
+            model: AppleIntelligenceModel.default.aiModel
         )
 
         // When

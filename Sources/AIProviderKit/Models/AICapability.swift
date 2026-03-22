@@ -58,8 +58,9 @@ public enum AICapability: String, Sendable, Hashable, CaseIterable {
     /// The provider supports server-sent event streaming via ``StreamableProvider``.
     ///
     /// When present, ``AIClient/stream(_:)`` returns a live ``AsyncThrowingStream``
-    /// of ``AIStreamEvent`` values. Providers that lack this capability will cause
-    /// ``AIClient/stream(_:)`` to throw ``AIError/providerUnsupported(capability:)``.
+    /// of ``AIStreamEvent`` values. Providers that lack this capability cause the
+    /// returned stream to immediately finish with
+    /// ``AIError/providerUnsupported(capability:)`` when iterated.
     case streaming
 
     /// The provider honours a top-level system prompt.

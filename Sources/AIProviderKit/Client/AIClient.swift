@@ -1,82 +1,156 @@
+import Foundation
+
 /// The primary entry point for all AI interactions.
 ///
-/// `AIClient` is an `actor` that coordinates a provider, authorization,
-/// registries, and automatic tool-execution loops.
+/// `AIClient` is an `actor` that holds a list of providers, routes requests to
+/// the correct backend by model, and manages conversation persistence.
 ///
+/// **Single provider (existing usage — unchanged):**
 /// ```swift
 /// let client = AIClient(
-///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "<ANTHROPIC_API_KEY>")),
+///     provider: ClaudeProvider(authorization: APIKeyAuthorization(apiKey: "…")),
 ///     logger: AILogger(subsystem: "com.myapp", category: "ai")
 /// )
 /// let response = try await client.send(
 ///     AIRequestBuilder()
-///         .model(.claudeSonnet46)
+///         .model(ClaudeModel.sonnet46)
 ///         .addMessage(.user(text: "Hello!"))
 ///         .build()
 /// )
 /// ```
+///
+/// **Multiple providers — model-based routing:**
+/// ```swift
+/// let client = AIClient(providers: [claude, openai])
+/// // Routed to ClaudeProvider because ClaudeModel.handles(_:) returns true
+/// let response = try await client.send(
+///     AIRequestBuilder().model(ClaudeModel.sonnet46).addMessage(…).build()
+/// )
+/// ```
+///
+/// **Per-conversation model:**
+/// ```swift
+/// let conv = try await client.createConversation(model: ClaudeModel.sonnet46, title: "Draft")
+/// let reply = try await client.send(conversation: conv, message: "Hello")
+/// ```
 public actor AIClient {
-    nonisolated public let provider: any AIProvider
-    private let logger: AILogger?
+
+    // MARK: - Public state
+
+    /// All registered providers. Requests are routed to the first provider
+    /// whose ``AIProvider/canHandle(model:)`` returns `true`.
+    nonisolated public let providers: [any AIProvider]
+
+    /// The primary (first) registered provider, or `nil` if `providers` is empty.
+    ///
+    /// Use this for single-provider setups or when you need a concrete reference
+    /// for casting. The single-provider ``init(provider:)`` always guarantees a
+    /// non-nil value; the multi-provider ``init(providers:)`` may receive an empty
+    /// array, in which case this returns `nil` and any request will throw
+    /// ``AIError/noProviderForModel(_:)`` at send time.
+    nonisolated public var provider: (any AIProvider)? { providers.first }
 
     public let toolRegistry: ToolRegistry
     public let skillRegistry: SkillRegistry
     public let recipeRegistry: RecipeRegistry
 
+    // MARK: - Private state
+
+    private let logger: AILogger?
+    let store: any ConversationStore
+
+    // MARK: - Init
+
+    /// Creates a client with multiple providers.
+    ///
+    /// - Parameters:
+    ///   - providers: Ordered list of providers. Routing picks the first that claims
+    ///     the requested model via ``AIProvider/canHandle(model:)``.
+    ///   - store: Persistence backend. Defaults to `.ephemeralMemory`.
     public init(
-        provider: any AIProvider,
+        providers: [any AIProvider],
+        store: SupportedConversationStore = .ephemeralMemory,
         toolRegistry: ToolRegistry = ToolRegistry(),
         skillRegistry: SkillRegistry = SkillRegistry(),
         recipeRegistry: RecipeRegistry = RecipeRegistry(),
         logger: AILogger? = nil
     ) {
-        self.provider = provider
+        self.providers = providers
+        self.store = store.makeStore()
         self.toolRegistry = toolRegistry
         self.skillRegistry = skillRegistry
         self.recipeRegistry = recipeRegistry
         self.logger = logger
     }
 
+    /// Convenience initialiser for single-provider setups.
+    public init(
+        provider: any AIProvider,
+        store: SupportedConversationStore = .ephemeralMemory,
+        toolRegistry: ToolRegistry = ToolRegistry(),
+        skillRegistry: SkillRegistry = SkillRegistry(),
+        recipeRegistry: RecipeRegistry = RecipeRegistry(),
+        logger: AILogger? = nil
+    ) {
+        self.init(
+            providers: [provider],
+            store: store,
+            toolRegistry: toolRegistry,
+            skillRegistry: skillRegistry,
+            recipeRegistry: recipeRegistry,
+            logger: logger
+        )
+    }
+
     // MARK: - Send
 
     /// Sends a request and returns the complete response.
     ///
-    /// If the model requests tool calls, they are executed automatically and
-    /// a follow-up request is sent until the model stops requesting tools.
+    /// Routes to the provider that claims the model via ``AIProvider/canHandle(model:)``.
+    /// If the model returns tool calls they are executed automatically until the model stops.
     public func send(_ request: AIRequest) async throws -> AIResponse {
+        let activeProvider = try resolveProvider(for: request.model)
         logger?.info(
-            "[\(provider.identifier)] Sending request model=\(request.model.identifier) messages=\(request.messages.count)"
+            "[\(activeProvider.identifier)] Sending request model=\(request.model.identifier) messages=\(request.messages.count)"
         )
 
-        var response = try await provider.send(request)
+        var response = try await activeProvider.send(request)
 
         while response.requiresToolExecution {
-            logger?.info("[\(provider.identifier)] Executing \(response.toolUses.count) tool(s)")
+            logger?.info("[\(activeProvider.identifier)] Executing \(response.toolUses.count) tool(s)")
             let toolResults = try await executeTools(response.toolUses, registry: toolRegistry)
             let followUp = appendingToolResults(toolResults, to: request, assistantResponse: response)
-            response = try await provider.send(followUp)
+            response = try await activeProvider.send(followUp)
         }
 
         let stopReason = response.stopReason.rawValue
         let tokens = response.usage.totalTokens
-        logger?.info("[\(provider.identifier)] Response received stopReason=\(stopReason) tokens=\(tokens)")
+        logger?.info("[\(activeProvider.identifier)] Response received stopReason=\(stopReason) tokens=\(tokens)")
         return response
     }
 
     // MARK: - Stream
 
-    /// Returns a live stream of events from the provider.
+    /// Returns a live stream of events from the provider that handles the request's model.
     ///
     /// - Note: Automatic tool execution is not performed during streaming.
-    ///   Collect the full `AIResponse` from the `.message` event and call
-    ///   `send(_:)` for tool-use turns.
     public func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error> {
-        guard let streamable = provider as? any StreamableProvider else {
-            return AsyncThrowingStream { continuation in
-                continuation.finish(throwing: AIError.providerUnsupported(capability: .streaming))
-            }
+        let provider: any AIProvider
+        do {
+            provider = try resolveProvider(for: request.model)
+        } catch {
+            // Propagate the real error (e.g. noProviderForModel) rather than swallowing it
+            // with try? and misreporting providerUnsupported(.streaming).
+            let (stream, continuation) = AsyncThrowingStream<AIStreamEvent, any Error>.makeStream()
+            continuation.finish(throwing: error)
+            return stream
         }
-        logger?.info("[\(provider.identifier)] Starting stream model=\(request.model.identifier)")
+        guard let streamable = provider as? any StreamableProvider else {
+            let (stream, continuation) = AsyncThrowingStream<AIStreamEvent, any Error>.makeStream()
+            continuation.finish(throwing: AIError.providerUnsupported(capability: .streaming))
+            return stream
+        }
+        logger?.info("[\(streamable.identifier)] Starting stream model=\(request.model.identifier)")
         return streamable.stream(request)
     }
 
@@ -129,6 +203,14 @@ public actor AIClient {
 
     // MARK: - Private helpers
 
+    /// Returns the first provider that claims the given model.
+    func resolveProvider(for model: AIModel) throws(AIError) -> any AIProvider {
+        guard let resolved = providers.first(where: { $0.canHandle(model: model) }) else {
+            throw AIError.noProviderForModel(model)
+        }
+        return resolved
+    }
+
     private func executeTools(
         _ uses: [ContentBlock.ToolUseContent],
         registry: ToolRegistry
@@ -145,7 +227,6 @@ public actor AIClient {
                         } catch is CancellationError {
                             throw AIError.cancelled
                         } catch {
-                            // Preserves the tool name for any unexpected non-AIError.
                             throw AIError.toolExecutionFailed(toolName: use.name, underlying: error)
                         }
                     }
@@ -155,11 +236,8 @@ public actor AIClient {
         } catch let error as AIError {
             throw error
         } catch is CancellationError {
-            // Parent task was cancelled while waiting for the group.
             throw AIError.cancelled
         } catch {
-            // Unreachable in practice; every task wraps errors as AIError above.
-            // Required only for the compiler's typed-throw conversion at this boundary.
             throw AIError.toolExecutionFailed(toolName: "unknown", underlying: error)
         }
     }

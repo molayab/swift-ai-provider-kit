@@ -277,4 +277,30 @@ struct AIErrorTests {
         #expect(desc?.contains("Inference failed") == true)
         #expect(desc?.contains("model unavailable") == true)
     }
+
+    @Test("noProviderForModel has a non-nil errorDescription containing the model id")
+    func noProviderForModel_hasDescription() {
+        // Given
+        let error = AIError.noProviderForModel(AIModel("unknown-model-x"))
+
+        // When
+        let desc = error.errorDescription
+
+        // Then
+        #expect(desc != nil)
+        #expect(desc?.contains("unknown-model-x") == true)
+    }
+
+    @Test("conversationNotFound has a non-nil errorDescription containing the id")
+    func conversationNotFound_hasDescription() {
+        // Given
+        let error = AIError.conversationNotFound("conv-abc-123")
+
+        // When
+        let desc = error.errorDescription
+
+        // Then
+        #expect(desc != nil)
+        #expect(desc?.contains("conv-abc-123") == true)
+    }
 }

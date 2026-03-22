@@ -75,13 +75,11 @@ struct ClaudeModelDiscoveryTests {
         do {
             _ = try await provider.listModels()
             Issue.record("Expected AIError.networkError to be thrown")
-        } catch let error as AIError {
+        } catch {
             guard case .networkError = error else {
                 Issue.record("Wrong AIError case thrown: \(error)")
                 return
             }
-        } catch {
-            Issue.record("Unexpected error type: \(error)")
         }
     }
 
@@ -96,13 +94,11 @@ struct ClaudeModelDiscoveryTests {
         do {
             _ = try await provider.listModels()
             Issue.record("Expected AIError.invalidResponse to be thrown")
-        } catch let error as AIError {
+        } catch {
             guard case .invalidResponse = error else {
                 Issue.record("Wrong AIError case thrown: \(error)")
                 return
             }
-        } catch {
-            Issue.record("Unexpected error type: \(error)")
         }
     }
 
@@ -120,13 +116,11 @@ struct ClaudeModelDiscoveryTests {
         do {
             _ = try await provider.listModels()
             Issue.record("Expected AIError.decodingFailed to be thrown")
-        } catch let error as AIError {
+        } catch {
             guard case .decodingFailed = error else {
                 Issue.record("Wrong AIError case thrown: \(error)")
                 return
             }
-        } catch {
-            Issue.record("Unexpected error type: \(error)")
         }
     }
 }

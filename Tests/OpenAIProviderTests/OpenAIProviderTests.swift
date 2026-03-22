@@ -20,7 +20,7 @@ struct OpenAIProviderTests {
 
     private func makeRequest() throws -> AIRequest {
         try AIRequestBuilder()
-            .model(.gpt4o)
+            .model(OpenAIModel.gpt4o)
             .addMessage(.user(text: "Hello"))
             .build()
     }
@@ -56,14 +56,14 @@ struct OpenAIProviderTests {
     @Test("AIModel constants have correct identifiers")
     func aiModelConstants_haveCorrectIdentifiers() {
         // Given / When / Then
-        #expect(AIModel.gpt41.identifier == "gpt-4.1")
-        #expect(AIModel.gpt41Mini.identifier == "gpt-4.1-mini")
-        #expect(AIModel.gpt41Nano.identifier == "gpt-4.1-nano")
-        #expect(AIModel.gpt4o.identifier == "gpt-4o")
-        #expect(AIModel.gpt4oMini.identifier == "gpt-4o-mini")
-        #expect(AIModel.o3.identifier == "o3")
-        #expect(AIModel.o3Mini.identifier == "o3-mini")
-        #expect(AIModel.o4Mini.identifier == "o4-mini")
+        #expect(OpenAIModel.gpt41.rawValue == "gpt-4.1")
+        #expect(OpenAIModel.gpt41Mini.rawValue == "gpt-4.1-mini")
+        #expect(OpenAIModel.gpt41Nano.rawValue == "gpt-4.1-nano")
+        #expect(OpenAIModel.gpt4o.rawValue == "gpt-4o")
+        #expect(OpenAIModel.gpt4oMini.rawValue == "gpt-4o-mini")
+        #expect(OpenAIModel.o3.rawValue == "o3")
+        #expect(OpenAIModel.o3Mini.rawValue == "o3-mini")
+        #expect(OpenAIModel.o4Mini.rawValue == "o4-mini")
     }
 
     // MARK: - send — Success
@@ -132,7 +132,7 @@ struct OpenAIProviderTests {
             )
         ) { _ async in .null }
         let request = try AIRequestBuilder()
-            .model(.gpt4o)
+            .model(OpenAIModel.gpt4o)
             .addMessage(.user(text: "Weather in Rome?"))
             .addTool(tool)
             .build()
@@ -159,7 +159,7 @@ struct OpenAIProviderTests {
         )
         let provider = makeProvider(httpClient: httpClient)
         let request = try AIRequestBuilder()
-            .model(.gpt4o)
+            .model(OpenAIModel.gpt4o)
             .systemPrompt("You are an expert.")
             .addMessage(.user(text: "Hello"))
             .build()

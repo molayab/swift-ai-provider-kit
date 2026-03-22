@@ -65,13 +65,13 @@ struct AIClientTests {
         let request = try MockData.request()
 
         // WHEN / THEN
-        var caughtError: (any Error)?
-        do {
+        await #expect {
             for try await _ in await client.stream(request) {}
-        } catch {
-            caughtError = error
+        } throws: { error in
+            guard let aiError = error as? AIError,
+                  case .providerUnsupported(let capability) = aiError else { return false }
+            return capability == .streaming
         }
-        #expect(caughtError != nil)
     }
 
     // MARK: - Recipes
@@ -190,7 +190,7 @@ struct AIClientTests {
         let client = AIClient(provider: provider)
 
         // When
-        let concrete = try client.provider.castAs(MockAIProvider.self)
+        let concrete = try #require(client.provider).castAs(MockAIProvider.self)
 
         // Then
         #expect(concrete === provider)
@@ -204,7 +204,7 @@ struct AIClientTests {
 
         // When / Then — SequentialMockProvider is a distinct concrete type in this target
         do {
-            _ = try client.provider.castAs(SequentialMockProvider.self)
+            _ = try #require(client.provider).castAs(SequentialMockProvider.self)
             Issue.record("Expected castAs to throw")
         } catch AIError.providerTypeMismatch(let expected, let actual) {
             #expect(expected == "SequentialMockProvider")

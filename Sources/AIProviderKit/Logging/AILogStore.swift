@@ -40,6 +40,7 @@ public final class AILogStore {
         }
     }
 
+    /// Removes all captured log entries.
     public func clear() {
         entries.removeAll()
     }

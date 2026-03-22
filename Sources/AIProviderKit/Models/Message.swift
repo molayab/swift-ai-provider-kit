@@ -1,5 +1,5 @@
 /// A single message in a conversation turn.
-public struct Message: Sendable, Equatable {
+public struct Message: Sendable, Equatable, Codable {
 
     public enum Role: String, Sendable, Equatable, Codable {
         case user
