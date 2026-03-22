@@ -245,6 +245,48 @@ let response = try await client.send(
 )
 ```
 
+### Persistent conversations
+
+`AIClient` ships with built-in conversation persistence. The default backend is in-memory; future milestones will add file-system and SwiftData backends.
+
+```swift
+// Create and persist a conversation
+let conv = try await client.createConversation(model: .claudeSonnet46, title: "My Chat")
+
+// Send messages — user and assistant turns are saved automatically
+let reply = try await client.send(conversation: conv, message: "Hello!")
+
+// Stream with auto-persistence (turns saved when stream completes)
+for try await event in try await client.stream(conversation: conv, message: "Tell me more") {
+    if case .textDelta(let text) = event { print(text, terminator: "") }
+}
+
+// Manage conversations
+let all = try await client.store.listConversations()
+try await client.delete(conversation: conv)
+```
+
+Pass a `tokenBudget` to automatically prune the oldest turns before sending:
+
+```swift
+let reply = try await client.send(
+    conversation: conv,
+    message: "Summarize so far",
+    tokenBudget: 8_000
+)
+```
+
+To use a specific store backend, pass it at init time:
+
+```swift
+let client = AIClient(
+    provider: ClaudeProvider(authorization: auth),
+    store: .ephemeralMemory   // default; .fileSystem and .database coming in 0.4.1 / 0.4.2
+)
+```
+
+---
+
 ### Logging
 
 ```swift
@@ -336,6 +378,8 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class d
 | `ToolGroup` | Namespace that vends one or more related `Tool`s for bulk registration. |
 | `Recipe` | Reusable `{{placeholder}}` prompt template. Decouples prompt engineering from code. |
 | `Skill` | Owns a set of `Tool`s and an optional `Recipe`. Teaches the model how to use those tools for a specific task and post-processes the response into `SkillResult`. |
+| `ConversationStore` | Protocol for async CRUD on conversations and turns. |
+| `SupportedConversationStore` | Enum selecting the active backend (`.ephemeralMemory`, `.fileSystem`, `.database`). |
 | `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
 
 ---
@@ -351,7 +395,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 | **0.3.0** | OpenAI provider + `ModelDiscoveryProvider` | ✅ Shipped |
 | **0.3.1** | Dynamic model discovery for `ClaudeProvider` | ✅ Shipped |
 | **0.3.2** | Shared HTTP networking layer (`AIProviderKitNetworking`) | ✅ Shipped |
-| **0.4.0** | Persistence — core protocol + in-memory backend | 🔜 Planned |
+| **0.4.0** | Persistence — core protocol + in-memory backend | ✅ Shipped |
 | **0.4.1** | Persistence — file system backend | 🔜 Planned |
 | **0.4.2** | Persistence — SwiftData backend | 🔜 Planned |
 | **0.5.0** | RAG — embedding protocol + in-memory vector store | 🔜 Planned |
