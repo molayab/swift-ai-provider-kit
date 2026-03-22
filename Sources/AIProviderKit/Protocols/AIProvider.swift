@@ -10,14 +10,31 @@ public protocol AIProvider: Sendable {
     /// The set of capabilities this provider supports.
     var capabilities: Set<AICapability> { get }
 
+    /// Returns `true` when this provider can handle the given model.
+    ///
+    /// `AIClient` calls this to route each request to the correct backend in a
+    /// multi-provider setup. The default implementation returns `true`, which is
+    /// appropriate when only one provider is registered. Override this in each
+    /// concrete provider to return `true` only for models the provider owns.
+    func canHandle(model: AIModel) -> Bool
+
     /// Sends a request and awaits a complete response.
     func send(_ request: AIRequest) async throws(AIError) -> AIResponse
+}
+
+public extension AIProvider {
+    func canHandle(model: AIModel) -> Bool { true }
 }
 
 /// Extends `AIProvider` with server-sent event streaming.
 ///
 /// Implement this alongside `AIProvider` when the backend supports streaming.
 public protocol StreamableProvider: AIProvider {
+    /// Returns a live stream of ``AIStreamEvent`` values for the given request.
+    ///
+    /// The stream must emit `.textDelta` chunks as they arrive, and close with a
+    /// final `.message` event carrying the complete ``AIResponse``. The caller is
+    /// responsible for cancelling the stream when it is no longer needed.
     func stream(_ request: AIRequest) -> AsyncThrowingStream<AIStreamEvent, any Error>
 }
 
@@ -44,6 +61,10 @@ public protocol ModelDiscoveryProvider: AIProvider {
 // MARK: - Default capability guard
 
 public extension AIProvider {
+    /// Throws if the provider does not declare support for the given capability.
+    ///
+    /// Use this as a precondition guard before calling capability-specific APIs.
+    /// - Throws: ``AIError/providerUnsupported(capability:)`` when the capability is absent.
     func assertSupports(_ capability: AICapability) throws(AIError) {
         guard capabilities.contains(capability) else {
             throw AIError.providerUnsupported(capability: capability)

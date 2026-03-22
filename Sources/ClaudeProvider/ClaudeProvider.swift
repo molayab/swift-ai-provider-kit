@@ -26,6 +26,8 @@ public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
     public let identifier = "claude"
     public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt, .modelDiscovery]
 
+    public func canHandle(model: AIModel) -> Bool { ClaudeModel.handles(model) }
+
     // MARK: - Dependencies
 
     private let authorization: any AuthorizationProvider
@@ -184,7 +186,7 @@ public final class ClaudeProvider: StreamableProvider, ModelDiscoveryProvider {
                 AIModelInfo(model: AIModel(object.id), displayName: object.displayName, createdAt: object.createdAt)
             }
             accumulated.append(contentsOf: models)
-            afterId = page.hasMore ? page.lastId : nil
+            if page.hasMore { afterId = page.lastId } else { afterId = nil }
         } while afterId != nil
 
         return accumulated
@@ -259,15 +261,4 @@ private extension ClaudeProvider {
             continuation.finish(throwing: error)
         }
     }
-}
-
-// MARK: - Model Constants
-
-public extension AIModel {
-    /// Claude Opus 4.6 — Anthropic's most intelligent model, built for complex tasks and agentic use.
-    static let claudeOpus46 = AIModel("claude-opus-4-6")
-    /// Claude Sonnet 4.6 — best balance of speed and intelligence with a 1M-token context window.
-    static let claudeSonnet46 = AIModel("claude-sonnet-4-6")
-    /// Claude Haiku 4.5 — fastest model with near-frontier intelligence and a 200k-token context window.
-    static let claudeHaiku45 = AIModel("claude-haiku-4-5-20251001")
 }

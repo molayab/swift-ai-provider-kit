@@ -7,27 +7,27 @@ struct OpenAIConstantsTests {
     // MARK: - Endpoint URLs
 
     @Test("chatCompletionsURL has correct string value")
-    func chatCompletionsURL_hasCorrectStringValue() {
+    func chatCompletionsURL_hasCorrectStringValue() throws {
         // Given
         let expectedURL = "https://api.openai.com/v1/chat/completions"
 
         // When
-        let url = OpenAIConstants.chatCompletionsURL.absoluteString
+        let url = try #require(OpenAIConstants.chatCompletionsURL)
 
         // Then
-        #expect(url == expectedURL)
+        #expect(url.absoluteString == expectedURL)
     }
 
     @Test("modelsURL has correct string value")
-    func modelsURL_hasCorrectStringValue() {
+    func modelsURL_hasCorrectStringValue() throws {
         // Given
         let expectedURL = "https://api.openai.com/v1/models"
 
         // When
-        let url = OpenAIConstants.modelsURL.absoluteString
+        let url = try #require(OpenAIConstants.modelsURL)
 
         // Then
-        #expect(url == expectedURL)
+        #expect(url.absoluteString == expectedURL)
     }
 
     // MARK: - Chat Model Prefixes

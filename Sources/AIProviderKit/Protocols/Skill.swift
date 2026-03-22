@@ -30,5 +30,14 @@ public protocol Skill: Sendable {
     var recipe: Recipe? { get }
 
     /// Post-processes the raw model response into a `SkillResult`.
+    ///
+    /// The default implementation passes `response.text` through unchanged with
+    /// empty metadata. Override this to apply custom extraction or transformation.
     func process(response: AIResponse) async throws -> SkillResult
+}
+
+public extension Skill {
+    func process(response: AIResponse) async throws -> SkillResult {
+        SkillResult(output: response.text, metadata: [:], usage: response.usage)
+    }
 }

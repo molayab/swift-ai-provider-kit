@@ -4,9 +4,9 @@ import Foundation
 
 /// Runs an interactive, multi-turn streaming chat session in the terminal.
 ///
-/// Conversation history is kept in memory for the lifetime of the session so
-/// each response has full context of prior turns. Special `/` commands let the
-/// user switch models, clear history, or invoke registered skills.
+/// Every conversation is persisted in the `AIClient`'s store so it can be
+/// listed, resumed, or archived at any time. Special `/` commands let the user
+/// manage conversations, switch models, or invoke registered skills.
 ///
 /// Example tools and skills are registered automatically:
 /// - `get_current_time` tool — the model calls this when asked about time/date.
@@ -15,25 +15,12 @@ actor ChatSession {
     private let client: AIClient
     private let providerName: String
     private var currentModel: AIModel
-    private var history: [Message] = []
+    private var conversation: Conversation?
 
     /// System prompt sent with every request.
-    /// Instructs the model to use tools autonomously rather than asking the user
-    /// for information a tool can retrieve. Kept short for Apple Intelligence's
-    /// 4 096-token context budget.
     private let systemPrompt = """
-        You are a capable assistant. Use tools autonomously — never ask for \
-        information a tool can retrieve. Chain tool calls; clarify only when ambiguous.
+        You are a capable assistant. Use tools autonomously. Chain tool calls; clarify only when ambiguous.
         """
-
-    /// Tools included in every request so the model can invoke them freely.
-    private let tools: [Tool] = {
-        var all: [Tool] = [CurrentTimeTool.currentTime]
-        #if os(macOS)
-        all += [ShellCommandTool.shellCommand, AppleScriptTool.runScript] + FileSystemTool.all + ClipboardTool.all
-        #endif
-        return all
-    }()
 
     init(client: AIClient, providerName: String, defaultModel: AIModel) {
         self.client = client
@@ -45,11 +32,11 @@ actor ChatSession {
 
     func run() async {
         await registerExamples()
+        await startNewConversation(title: sessionTitle())
         printWelcome()
 
         while true {
-            print("\nYou: ", terminator: "")
-            fflush(stdout)
+            printPrompt()
 
             guard let line = readLine(strippingNewline: true) else { break }
             let input = line.trimmingCharacters(in: .whitespaces)
@@ -71,6 +58,7 @@ actor ChatSession {
 
     private func registerExamples() async {
         await client.toolRegistry.register(CurrentTimeTool.currentTime)
+        await client.toolRegistry.registerAll(DebugTool.self)
         #if os(macOS)
         await client.toolRegistry.register(ShellCommandTool.shellCommand)
         await client.toolRegistry.register(AppleScriptTool.runScript)
@@ -86,32 +74,46 @@ actor ChatSession {
     /// Returns `true` when the session should exit.
     private func handleCommand(_ input: String) async -> Bool {
         let parts = input.split(separator: " ", maxSplits: 1).map(String.init)
-        switch parts[0].lowercased() {
-        case "/quit", "/exit":
-            return true
-        case "/clear":
-            history = []
-            print("Conversation cleared.")
+        guard parts[0].lowercased() != "/quit", parts[0].lowercased() != "/exit" else { return true }
+        await executeCommand(parts[0].lowercased(), parts: parts)
+        return false
+    }
+
+    private func executeCommand(_ command: String, parts: [String]) async {
+        let arg = parts.count > 1 ? parts[1] : ""
+        switch command {
+        case "/new", "/clear":
+            await startNewConversation(title: command == "/new" && !arg.isEmpty ? arg : sessionTitle())
+        case "/conversations":
+            await listConversations()
+        case "/resume":
+            await resumeConversation(indexArg: arg)
+        case "/archive":
+            await archiveCurrentConversation()
         case "/model":
-            if parts.count > 1 {
-                currentModel = AIModel(parts[1])
-                print("Model set to \(parts[1]).")
-            } else {
-                print("Current model: \(currentModel.identifier)")
-                print("Usage: /model <model-id>")
-            }
+            await handleModelCommand(arg: arg)
         case "/history":
             printHistory()
         case "/skill":
-            await handleSkill(parts.count > 1 ? parts[1] : "")
+            await handleSkill(arg)
         case "/benchmark":
-            await handleBenchmark(parts.count > 1 ? parts[1] : "")
+            await handleBenchmark(arg)
         case "/help":
             printHelp()
         default:
-            print("Unknown command '\(parts[0])'. Type /help for available commands.")
+            print("Unknown command '\(command)'. Type /help for available commands.")
         }
-        return false
+    }
+
+    private func handleModelCommand(arg: String) async {
+        if !arg.isEmpty {
+            currentModel = AIModel(arg)
+            print("Model set to \(arg). Starting new conversation…")
+            await startNewConversation(title: sessionTitle())
+        } else {
+            print("Current model: \(currentModel.identifier)")
+            print("Usage: /model <model-id>")
+        }
     }
 
     // MARK: - Skill command
@@ -123,14 +125,11 @@ actor ChatSession {
             print("Available skills: title-generator")
             return
         }
-        let skillId = parts[0]
-        let text    = parts[1]
-
         do {
-            let result = try await client.execute(skillId: skillId, input: text, model: currentModel)
-            print("\nSkill [\(skillId)]: \(result.output)")
+            let result = try await client.execute(skillId: parts[0], input: parts[1], model: currentModel)
+            print("\nSkill [\(parts[0])]: \(result.output)")
         } catch {
-            print("\nerror running skill '\(skillId)': \(error)")
+            print("\nerror running skill '\(parts[0])': \(error)")
         }
     }
 
@@ -145,84 +144,155 @@ actor ChatSession {
         await BenchmarkSuite(client: client, model: currentModel, providerName: providerName, runs: runs).run()
     }
 
-    // MARK: - Messaging
+}
 
-    private func sendMessage(_ text: String) async {
-        history.append(.user(text: text))
+// MARK: - Conversation management
 
-        // `dropCount` tracks how many messages to drop from the front of history
-        // when retrying after a context-length overflow. Each retry sheds the
-        // oldest exchange (one user + one assistant message) until the request fits
-        // or only the current turn remains (at which point we give up).
-        var dropCount = 0
-        while true {
-            let requestHistory = dropCount > 0 ? Array(history.dropFirst(dropCount)) : history
-
-            do {
-                let request = try AIRequestBuilder()
-                    .model(currentModel)
-                    .systemPrompt(systemPrompt)
-                    .messages(requestHistory)
-                    .tools(tools)
-                    .maxTokens(2_048)
-                    .build()
-
-                print("\n\(providerName): ", terminator: "")
-                fflush(stdout)
-
-                var fullText = ""
-                for try await event in await client.stream(request) {
-                    if case .textDelta(let delta) = event {
-                        print(delta, terminator: "")
-                        fflush(stdout)
-                        fullText += delta
-                    }
-                }
-                print()
-
-                history.append(.assistant(text: fullText))
-                return
-
-            } catch let aiError as AIError {
-                switch aiError {
-                case .contextLengthExceeded:
-                    let dropMore = dropCount + 2
-                    if dropMore < history.count {
-                        if dropCount == 0 {
-                            print("(context window full — trimming oldest history to fit…)")
-                        }
-                        dropCount = dropMore
-                        // Loop and retry with fewer messages.
-                    } else {
-                        print("\nerror: the content is too large to fit in this model's context window.")
-                        print("       Try /model claude-sonnet-4-6 for a much larger context, or read")
-                        print("       the file in chunks with the maxChars parameter.")
-                        history.removeLast()
-                        return
-                    }
-                default:
-                    print("\nerror: \(aiError)")
-                    history.removeLast()
-                    return
-                }
-            } catch {
-                print("\nerror: \(error)")
-                history.removeLast()
-                return
-            }
+extension ChatSession {
+    private func startNewConversation(title: String) async {
+        do {
+            conversation = try await client.createConversation(model: currentModel, title: title)
+            print("  conversation: \"\(title)\"")
+        } catch {
+            print("error: could not create conversation: \(error)")
         }
     }
 
-    // MARK: - Help
-
-    private func printHistory() {
-        if history.isEmpty {
-            print("No conversation history.")
-        } else {
-            for message in history {
-                print("\(message.role.rawValue.capitalized): \(message.text)")
+    private func listConversations() async {
+        do {
+            let all = try await client.conversations()
+            if all.isEmpty {
+                print("No saved conversations.")
+                return
             }
+            print("\nSaved conversations:")
+            for (i, conv) in all.enumerated() {
+                let active   = conv.id == conversation?.id ? "▶" : " "
+                let archived = conv.isArchived ? " [archived]" : ""
+                let turns    = conv.turns.count / 2
+                print("  \(active) \(i + 1).  \(conv.title)")
+                print("          model: \(conv.model.identifier)  turns: \(turns)\(archived)")
+            }
+        } catch {
+            print("error listing conversations: \(error)")
         }
+    }
+
+    private func resumeConversation(indexArg: String) async {
+        guard let index = Int(indexArg), index > 0 else {
+            print("Usage: /resume <n>  — use /conversations to see the list")
+            return
+        }
+        do {
+            let all = try await client.conversations()
+            guard all.indices.contains(index - 1) else {
+                print("No conversation at position \(index).")
+                return
+            }
+            let latest = all[index - 1]
+            conversation = latest
+            currentModel = latest.model
+            let turns = latest.turns.count / 2
+            let plural = turns == 1 ? "" : "s"
+            print("Resumed: \"\(latest.title)\" — \(turns) prior turn\(plural) · model: \(latest.model.identifier)")
+        } catch {
+            print("error: \(error)")
+        }
+    }
+
+    private func archiveCurrentConversation() async {
+        guard let conv = conversation else {
+            print("No active conversation.")
+            return
+        }
+        do {
+            try await client.archive(conversation: conv)
+            print("Archived: \"\(conv.title)\"")
+            await startNewConversation(title: sessionTitle())
+        } catch {
+            print("error: \(error)")
+        }
+    }
+}
+
+// MARK: - Messaging
+
+extension ChatSession {
+    private func sendMessage(_ text: String) async {
+        guard let conv = conversation else {
+            print("No active conversation. Type /new to start one.")
+            return
+        }
+
+        do {
+            let events = try await client.stream(conversation: conv, message: text, systemPrompt: systemPrompt)
+
+            print("\n\(providerName): ", terminator: "")
+            fflush(stdout)
+
+            for try await event in events {
+                if case .textDelta(let delta) = event {
+                    print(delta, terminator: "")
+                    fflush(stdout)
+                }
+            }
+            print()
+
+            // Refresh the local reference so the next send sees the persisted turns.
+            conversation = try await client.conversation(byId: conv.id) ?? conv
+
+        } catch let aiError as AIError {
+            switch aiError {
+            case .contextLengthExceeded:
+                print("\n(context window full — type /new for a fresh conversation, or /model <id> for a larger context)")
+            case .providerUnsupported(let cap) where cap == .streaming:
+                // Fall back to non-streaming send
+                await sendMessageNonStreaming(text)
+            default:
+                print("\nerror: \(aiError)")
+            }
+        } catch {
+            print("\nerror: \(error)")
+        }
+    }
+
+    /// Non-streaming fallback used when the active provider does not support SSE.
+    private func sendMessageNonStreaming(_ text: String) async {
+        guard let conv = conversation else { return }
+        do {
+            print("\n\(providerName): ", terminator: "")
+            fflush(stdout)
+            let response = try await client.send(conversation: conv, message: text, systemPrompt: systemPrompt)
+            print(response.text)
+            conversation = try await client.conversation(byId: conv.id) ?? conv
+        } catch {
+            print("\nerror: \(error)")
+        }
+    }
+}
+
+// MARK: - Display helpers
+
+extension ChatSession {
+    private func printHistory() {
+        guard let conv = conversation else {
+            print("No active conversation.")
+            return
+        }
+        if conv.turns.isEmpty {
+            print("No turns yet in \"\(conv.title)\".")
+            return
+        }
+        print("\nConversation: \"\(conv.title)\"")
+        for turn in conv.turns {
+            print("\(turn.message.role.rawValue.capitalized): \(turn.message.text)")
+        }
+    }
+
+    private func printPrompt() {
+        let title = conversation.map { " [\($0.title)]" } ?? ""
+        print("\nYou\(title): ", terminator: "")
+        fflush(stdout)
     }
 
     private func printWelcome() {
@@ -236,17 +306,23 @@ actor ChatSession {
         var help = """
 
         Commands:
+          /new [title]                 Start a new conversation (optional title)
+          /conversations               List all saved conversations
+          /resume <n>                  Resume conversation by number from /conversations
+          /archive                     Archive the current conversation and start fresh
+          /clear                       Start a new conversation (alias for /new)
+          /history                     Print the current conversation's turns
           /model                       Show current model
-          /model <id>                  Switch model (e.g. /model claude-opus-4-6)
+          /model <id>                  Switch model and start a new conversation
           /skill <skill-id> <text>     Run a skill on the given text
           /benchmark [--runs <n>]      Run latency/throughput benchmark (default: 10 runs)
-          /clear                       Clear conversation history
-          /history                     Print conversation history
           /help                        Show this help
           /quit, /exit                 Exit
 
         Built-in tools (registered automatically):
           get_current_time             Ask "what time is it?" to see it in action
+          echo                         Ask the model to echo a message (confirms tool calling works)
+          runtime_info                 Ask the model for runtime/environment details
         """
         #if os(macOS)
         help += "\n          run_shell_command            Ask the model to run any shell command"
@@ -260,5 +336,11 @@ actor ChatSession {
         help += "\n          shell-explainer              /skill shell-explainer <command or pipeline>"
         #endif
         print(help)
+    }
+
+    private func sessionTitle() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return "Session \(formatter.string(from: Date()))"
     }
 }

@@ -16,13 +16,15 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 
     // MARK: - Constants
 
-    private static let baseURL = OpenAIConstants.chatCompletionsURL
-    private static let modelsURL = OpenAIConstants.modelsURL
+    private static let baseURL: URL? = OpenAIConstants.chatCompletionsURL
+    private static let modelsURL: URL? = OpenAIConstants.modelsURL
 
     // MARK: - AIProvider
 
     public let identifier = "openai"
     public let capabilities: Set<AICapability> = [.text, .vision, .tools, .streaming, .systemPrompt, .modelDiscovery]
+
+    public func canHandle(model: AIModel) -> Bool { OpenAIModel.handles(model) }
 
     // MARK: - Dependencies
 
@@ -151,10 +153,13 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     /// // [AIModelInfo(model: AIModel("gpt-4o"), …), …]
     /// ```
     public func listModels() async throws(AIError) -> [AIModelInfo] {
+        guard let url = Self.modelsURL else {
+            throw AIError.requestBuildingFailed("Malformed Models URL constant")
+        }
         var headers = try await authorization.authorizationHeaders()
         headers["content-type"] = "application/json"
 
-        let httpRequest = HTTPRequest(method: "GET", url: Self.modelsURL, headers: headers, body: nil)
+        let httpRequest = HTTPRequest(method: "GET", url: url, headers: headers, body: nil)
 
         let httpResponse: HTTPResponse
         do {
@@ -185,6 +190,9 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
     // MARK: - Private helpers
 
     private func buildHTTPRequest<Body: Encodable>(body: Body) async throws(AIError) -> HTTPRequest {
+        guard let url = Self.baseURL else {
+            throw AIError.requestBuildingFailed("Malformed Chat Completions URL constant")
+        }
         var headers = try await authorization.authorizationHeaders()
         headers["content-type"] = "application/json"
 
@@ -197,7 +205,7 @@ public final class OpenAIProvider: StreamableProvider, ModelDiscoveryProvider {
 
         return HTTPRequest(
             method: "POST",
-            url: Self.baseURL,
+            url: url,
             headers: headers,
             body: bodyData
         )
@@ -260,25 +268,4 @@ private extension OpenAIProvider {
             continuation.finish(throwing: error)
         }
     }
-}
-
-// MARK: - Model Constants
-
-public extension AIModel {
-    /// GPT-4.1 — OpenAI's flagship instruction-following model with a 1M-token context window.
-    static let gpt41 = AIModel("gpt-4.1")
-    /// GPT-4.1 Mini — smaller, faster variant of GPT-4.1.
-    static let gpt41Mini = AIModel("gpt-4.1-mini")
-    /// GPT-4.1 Nano — fastest and most cost-efficient GPT-4.1 variant.
-    static let gpt41Nano = AIModel("gpt-4.1-nano")
-    /// GPT-4o — OpenAI's multimodal model (superseded by GPT-4.1).
-    static let gpt4o = AIModel("gpt-4o")
-    /// GPT-4o Mini — smaller, faster variant of GPT-4o.
-    static let gpt4oMini = AIModel("gpt-4o-mini")
-    /// o3 — OpenAI's advanced reasoning model.
-    static let o3 = AIModel("o3")
-    /// o3-mini — compact reasoning model.
-    static let o3Mini = AIModel("o3-mini")
-    /// o4-mini — fast, cost-efficient reasoning model optimised for coding and vision tasks.
-    static let o4Mini = AIModel("o4-mini")
 }

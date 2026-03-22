@@ -10,10 +10,10 @@ enum OpenAIConstants {
     // MARK: - Endpoints
 
     /// Base URL for the Chat Completions API.
-    static let chatCompletionsURL: URL = makeURL("https://api.openai.com/v1/chat/completions")
+    static let chatCompletionsURL: URL? = makeURL("https://api.openai.com/v1/chat/completions")
 
     /// Base URL for the Models listing API.
-    static let modelsURL: URL = makeURL("https://api.openai.com/v1/models")
+    static let modelsURL: URL? = makeURL("https://api.openai.com/v1/models")
 
     // MARK: - Chat model prefixes
 
@@ -47,17 +47,7 @@ enum OpenAIConstants {
 
     // MARK: - Private helpers
 
-    private static let logger = AILogger(subsystem: "AIProviderKit.OpenAIProvider", category: "constants")
-
-    /// Converts a known-good string literal into a `URL`.
-    ///
-    /// Logs a fault-level message via `AILogger` and raises a `preconditionFailure`
-    /// if the string is malformed — a programming error that must never reach production.
-    private static func makeURL(_ string: String) -> URL {
-        guard let url = URL(string: string) else {
-            logger.error("Malformed URL constant '\(string)'")
-            preconditionFailure("OpenAIConstants: malformed URL constant '\(string)'")
-        }
-        return url
+    private static func makeURL(_ string: String) -> URL? {
+        URL(string: string)
     }
 }
