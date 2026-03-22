@@ -3,8 +3,7 @@ import Foundation
 /// Provider-agnostic async CRUD interface for conversation persistence.
 ///
 /// `AIClient` owns a store selected at init time via ``SupportedConversationStore``.
-/// Callers interact with conversations through `AIClient`'s conversation API;
-/// direct store access is available for advanced use cases.
+/// Callers interact with conversations exclusively through `AIClient`'s conversation API.
 ///
 /// Conforming types must be `Sendable` since the store is accessed from
 /// `AIClient`'s actor context.
