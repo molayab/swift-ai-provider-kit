@@ -97,7 +97,8 @@ extension ContentBlock: Codable {
             ))
         default:
             throw DecodingError.dataCorruptedError(
-                forKey: .type, in: container,
+                forKey: .type,
+                in: container,
                 debugDescription: "Unknown ContentBlock type: \(type)"
             )
         }
@@ -138,7 +139,8 @@ extension ContentBlock.ImageContent: Codable {
             let b64String = try container.decode(String.self, forKey: .data)
             guard let data = Data(base64Encoded: b64String) else {
                 throw DecodingError.dataCorruptedError(
-                    forKey: .data, in: container,
+                    forKey: .data,
+                    in: container,
                     debugDescription: "Invalid base64 data"
                 )
             }
@@ -147,7 +149,8 @@ extension ContentBlock.ImageContent: Codable {
             self.init(source: .url(try container.decode(String.self, forKey: .url)))
         default:
             throw DecodingError.dataCorruptedError(
-                forKey: .type, in: container,
+                forKey: .type,
+                in: container,
                 debugDescription: "Unknown image source type: \(type)"
             )
         }

@@ -32,9 +32,9 @@ struct DefaultFMSessionFactory: FMSessionFactory {
 // MARK: - Live Session
 
 #if canImport(FoundationModels)
-@available(iOS 26.0, macOS 26.0, *)
 /// `@unchecked Sendable`: `LanguageModelSession` is thread-safe per the Apple framework
 /// contract but does not yet carry a `Sendable` annotation in the beta SDK.
+@available(iOS 26.0, macOS 26.0, *)
 final class LiveFMSession: FMSessionProtocol, @unchecked Sendable {
 
     private let session: LanguageModelSession

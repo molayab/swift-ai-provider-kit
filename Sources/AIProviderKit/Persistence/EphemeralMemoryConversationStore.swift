@@ -11,8 +11,7 @@ actor EphemeralMemoryConversationStore: ConversationStore {
 
     // MARK: - ConversationStore
 
-    @discardableResult
-    func createConversation(title: String, model: AIModel) async throws -> Conversation {
+    @discardableResult func createConversation(title: String, model: AIModel) async throws -> Conversation {
         let conversation = Conversation(title: title, model: model)
         store[conversation.id] = conversation
         return conversation

@@ -128,4 +128,3 @@ public final class AppleIntelligenceProvider: StreamableProvider {
         }
     }
 }
-

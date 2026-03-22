@@ -69,8 +69,86 @@ actor ChatSession {
         await client.skillRegistry.register(TitleGeneratorSkill())
     }
 
-    // MARK: - Conversation management
+    // MARK: - Commands
 
+    /// Returns `true` when the session should exit.
+    private func handleCommand(_ input: String) async -> Bool {
+        let parts = input.split(separator: " ", maxSplits: 1).map(String.init)
+        guard parts[0].lowercased() != "/quit", parts[0].lowercased() != "/exit" else { return true }
+        await executeCommand(parts[0].lowercased(), parts: parts)
+        return false
+    }
+
+    private func executeCommand(_ command: String, parts: [String]) async {
+        let arg = parts.count > 1 ? parts[1] : ""
+        switch command {
+        case "/new", "/clear":
+            await startNewConversation(title: command == "/new" && !arg.isEmpty ? arg : sessionTitle())
+        case "/conversations":
+            await listConversations()
+        case "/resume":
+            await resumeConversation(indexArg: arg)
+        case "/archive":
+            await archiveCurrentConversation()
+        case "/model":
+            await handleModelCommand(arg: arg)
+        case "/history":
+            printHistory()
+        case "/skill":
+            await handleSkill(arg)
+        case "/benchmark":
+            await handleBenchmark(arg)
+        case "/help":
+            printHelp()
+        default:
+            print("Unknown command '\(command)'. Type /help for available commands.")
+        }
+    }
+
+    private func handleModelCommand(arg: String) async {
+        if !arg.isEmpty {
+            currentModel = AIModel(arg)
+            print("Model set to \(arg). Starting new conversation…")
+            await startNewConversation(title: sessionTitle())
+        } else {
+            print("Current model: \(currentModel.identifier)")
+            print("Usage: /model <model-id>")
+        }
+    }
+
+    // MARK: - Skill command
+
+    private func handleSkill(_ args: String) async {
+        let parts = args.split(separator: " ", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else {
+            print("Usage: /skill <skill-id> <input text>")
+            print("Available skills: title-generator")
+            return
+        }
+        do {
+            let result = try await client.execute(skillId: parts[0], input: parts[1], model: currentModel)
+            print("\nSkill [\(parts[0])]: \(result.output)")
+        } catch {
+            print("\nerror running skill '\(parts[0])': \(error)")
+        }
+    }
+
+    // MARK: - Benchmark command
+
+    private func handleBenchmark(_ args: String) async {
+        let parts = args.split(separator: " ").map(String.init)
+        let runs = parts.firstIndex(of: "--runs")
+            .flatMap { parts.indices.contains($0 + 1) ? Int(parts[$0 + 1]) : nil }
+            .flatMap { $0 > 0 ? $0 : nil }
+            ?? 10
+        await BenchmarkSuite(client: client, model: currentModel, providerName: providerName, runs: runs).run()
+    }
+
+}
+
+// MARK: - Conversation management
+
+extension ChatSession {
     private func startNewConversation(title: String) async {
         do {
             conversation = try await client.createConversation(model: currentModel, title: title)
@@ -115,7 +193,8 @@ actor ChatSession {
             conversation = latest
             currentModel = latest.model
             let turns = latest.turns.count / 2
-            print("Resumed: \"\(latest.title)\" — \(turns) prior turn\(turns == 1 ? "" : "s") · model: \(latest.model.identifier)")
+            let plural = turns == 1 ? "" : "s"
+            print("Resumed: \"\(latest.title)\" — \(turns) prior turn\(plural) · model: \(latest.model.identifier)")
         } catch {
             print("error: \(error)")
         }
@@ -134,79 +213,11 @@ actor ChatSession {
             print("error: \(error)")
         }
     }
+}
 
-    // MARK: - Commands
+// MARK: - Messaging
 
-    /// Returns `true` when the session should exit.
-    private func handleCommand(_ input: String) async -> Bool {
-        let parts = input.split(separator: " ", maxSplits: 1).map(String.init)
-        switch parts[0].lowercased() {
-        case "/quit", "/exit":
-            return true
-        case "/new":
-            let title = parts.count > 1 ? parts[1] : sessionTitle()
-            await startNewConversation(title: title)
-        case "/clear":
-            await startNewConversation(title: sessionTitle())
-        case "/conversations":
-            await listConversations()
-        case "/resume":
-            await resumeConversation(indexArg: parts.count > 1 ? parts[1] : "")
-        case "/archive":
-            await archiveCurrentConversation()
-        case "/model":
-            if parts.count > 1 {
-                currentModel = AIModel(parts[1])
-                print("Model set to \(parts[1]). Starting new conversation…")
-                await startNewConversation(title: sessionTitle())
-            } else {
-                print("Current model: \(currentModel.identifier)")
-                print("Usage: /model <model-id>")
-            }
-        case "/history":
-            printHistory()
-        case "/skill":
-            await handleSkill(parts.count > 1 ? parts[1] : "")
-        case "/benchmark":
-            await handleBenchmark(parts.count > 1 ? parts[1] : "")
-        case "/help":
-            printHelp()
-        default:
-            print("Unknown command '\(parts[0])'. Type /help for available commands.")
-        }
-        return false
-    }
-
-    // MARK: - Skill command
-
-    private func handleSkill(_ args: String) async {
-        let parts = args.split(separator: " ", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else {
-            print("Usage: /skill <skill-id> <input text>")
-            print("Available skills: title-generator")
-            return
-        }
-        do {
-            let result = try await client.execute(skillId: parts[0], input: parts[1], model: currentModel)
-            print("\nSkill [\(parts[0])]: \(result.output)")
-        } catch {
-            print("\nerror running skill '\(parts[0])': \(error)")
-        }
-    }
-
-    // MARK: - Benchmark command
-
-    private func handleBenchmark(_ args: String) async {
-        let parts = args.split(separator: " ").map(String.init)
-        let runs = parts.firstIndex(of: "--runs")
-            .flatMap { parts.indices.contains($0 + 1) ? Int(parts[$0 + 1]) : nil }
-            .flatMap { $0 > 0 ? $0 : nil }
-            ?? 10
-        await BenchmarkSuite(client: client, model: currentModel, providerName: providerName, runs: runs).run()
-    }
-
-    // MARK: - Messaging
-
+extension ChatSession {
     private func sendMessage(_ text: String) async {
         guard let conv = conversation else {
             print("No active conversation. Type /new to start one.")
@@ -258,9 +269,11 @@ actor ChatSession {
             print("\nerror: \(error)")
         }
     }
+}
 
-    // MARK: - Display helpers
+// MARK: - Display helpers
 
+extension ChatSession {
     private func printHistory() {
         guard let conv = conversation else {
             print("No active conversation.")

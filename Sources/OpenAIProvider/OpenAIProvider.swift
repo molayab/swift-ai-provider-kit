@@ -263,4 +263,3 @@ private extension OpenAIProvider {
         }
     }
 }
-

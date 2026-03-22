@@ -28,9 +28,9 @@ struct ConversationStoreTests {
     func allConversations_returnsNewestFirst() async throws {
         // Given
         let store = EphemeralMemoryConversationStore()
-        let first  = try await store.createConversation(title: "First",  model: "m")
+        let first  = try await store.createConversation(title: "First", model: "m")
         let second = try await store.createConversation(title: "Second", model: "m")
-        let third  = try await store.createConversation(title: "Third",  model: "m")
+        let third  = try await store.createConversation(title: "Third", model: "m")
 
         // When
         let all = try await store.allConversations()

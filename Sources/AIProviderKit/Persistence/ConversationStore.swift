@@ -13,8 +13,7 @@ public protocol ConversationStore: Sendable {
     // MARK: - Conversation lifecycle
 
     /// Creates a new, empty conversation and persists it.
-    @discardableResult
-    func createConversation(title: String, model: AIModel) async throws -> Conversation
+    @discardableResult func createConversation(title: String, model: AIModel) async throws -> Conversation
 
     /// Returns the stored conversation with the given identifier, or `nil` if not found.
     ///

@@ -262,4 +262,3 @@ private extension ClaudeProvider {
         }
     }
 }
-
