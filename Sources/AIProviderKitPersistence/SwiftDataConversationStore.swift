@@ -9,6 +9,9 @@ import SwiftData
 /// safe concurrent access.
 ///
 /// ```swift
+/// import SwiftData
+/// import AIProviderKitPersistence
+///
 /// let container = try ModelContainer(
 ///     for: ConversationRecord.self, ConversationTurnRecord.self
 /// )
