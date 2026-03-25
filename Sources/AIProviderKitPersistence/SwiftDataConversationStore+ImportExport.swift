@@ -109,7 +109,7 @@ extension SwiftDataConversationStore {
         if let existing = try modelContext.fetch(descriptor).first {
             modelContext.delete(existing)
         }
-        let record = ConversationRecord.from(conversation)
+        let record = try ConversationRecord.from(conversation)
         modelContext.insert(record)
         try modelContext.save()
     }

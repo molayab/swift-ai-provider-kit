@@ -77,9 +77,13 @@ extension ConversationTurnRecord {
     static func from(
         _ turn: ConversationTurn,
         conversation: ConversationRecord? = nil
-    ) -> ConversationTurnRecord {
-        // swiftlint:disable:next force_try
-        let data = try! encoder.encode(turn.message)
+    ) throws -> ConversationTurnRecord {
+        let data: Data
+        do {
+            data = try encoder.encode(turn.message)
+        } catch {
+            throw AIError.encodingFailed(underlying: error)
+        }
         return ConversationTurnRecord(
             id: turn.id,
             messageData: data,

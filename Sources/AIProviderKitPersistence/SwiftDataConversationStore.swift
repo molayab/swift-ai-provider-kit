@@ -21,7 +21,7 @@ public actor SwiftDataConversationStore: ConversationStore {
 
     @discardableResult public func createConversation(title: String, model: AIModel) async throws -> Conversation {
         let conversation = Conversation(title: title, model: model)
-        let record = ConversationRecord.from(conversation)
+        let record = try ConversationRecord.from(conversation)
         modelContext.insert(record)
         try modelContext.save()
         return conversation
@@ -58,8 +58,8 @@ public actor SwiftDataConversationStore: ConversationStore {
         for turn in record.turns {
             modelContext.delete(turn)
         }
-        record.turns = conversation.turns.map {
-            ConversationTurnRecord.from($0, conversation: record)
+        record.turns = try conversation.turns.map {
+            try ConversationTurnRecord.from($0, conversation: record)
         }
 
         try modelContext.save()

@@ -58,7 +58,7 @@ extension ConversationRecord {
     }
 
     /// Creates a new record from a ``Conversation`` value type.
-    static func from(_ conversation: Conversation) -> ConversationRecord {
+    static func from(_ conversation: Conversation) throws -> ConversationRecord {
         let record = ConversationRecord(
             id: conversation.id,
             title: conversation.title,
@@ -66,8 +66,8 @@ extension ConversationRecord {
             createdAt: conversation.createdAt,
             archivedAt: conversation.archivedAt
         )
-        record.turns = conversation.turns.map {
-            ConversationTurnRecord.from($0, conversation: record)
+        record.turns = try conversation.turns.map {
+            try ConversationTurnRecord.from($0, conversation: record)
         }
         return record
     }
