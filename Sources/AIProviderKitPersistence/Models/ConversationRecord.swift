@@ -42,10 +42,12 @@ public final class ConversationRecord {
 extension ConversationRecord {
 
     /// Converts this record into a ``Conversation`` value type.
-    func toConversation() -> Conversation {
-        let mappedTurns = turns
+    ///
+    /// - Throws: ``AIError/decodingFailed(underlying:)`` if any turn's message payload cannot be decoded.
+    func toConversation() throws -> Conversation {
+        let mappedTurns = try turns
             .sorted { $0.createdAt < $1.createdAt }
-            .compactMap { $0.toConversationTurn() }
+            .map { try $0.toConversationTurn() }
 
         return Conversation(
             id: id,

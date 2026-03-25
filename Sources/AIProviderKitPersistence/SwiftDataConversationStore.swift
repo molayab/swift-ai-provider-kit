@@ -38,7 +38,7 @@ public actor SwiftDataConversationStore: ConversationStore {
         let descriptor = FetchDescriptor<ConversationRecord>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor).map { $0.toConversation() }
+        return try modelContext.fetch(descriptor).map { try $0.toConversation() }
     }
 
     public func save(_ conversation: Conversation) async throws {

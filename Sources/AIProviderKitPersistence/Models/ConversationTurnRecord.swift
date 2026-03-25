@@ -55,10 +55,13 @@ extension ConversationTurnRecord {
 
     /// Converts this record into a ``ConversationTurn`` value type.
     ///
-    /// Returns `nil` if the stored ``messageData`` cannot be decoded.
-    func toConversationTurn() -> ConversationTurn? {
-        guard let message = try? Self.decoder.decode(Message.self, from: messageData) else {
-            return nil
+    /// - Throws: ``AIError/decodingFailed(underlying:)`` if the stored ``messageData`` cannot be decoded.
+    func toConversationTurn() throws -> ConversationTurn {
+        let message: Message
+        do {
+            message = try Self.decoder.decode(Message.self, from: messageData)
+        } catch {
+            throw AIError.decodingFailed(underlying: error)
         }
         let usage: TokenUsage? = if let input = inputTokens, let output = outputTokens {
             TokenUsage(inputTokens: input, outputTokens: output)
