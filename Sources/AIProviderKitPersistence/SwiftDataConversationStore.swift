@@ -12,7 +12,7 @@ import SwiftData
 /// let container = try ModelContainer(
 ///     for: ConversationRecord.self, ConversationTurnRecord.self
 /// )
-/// let store = SwiftDataConversationStore(container: container)
+/// let store = SwiftDataConversationStore(modelContainer: container)
 /// ```
 @ModelActor
 public actor SwiftDataConversationStore: ConversationStore {
