@@ -7,6 +7,7 @@ extension SupportedConversationStore {
     /// ``ModelContainer`` and survive across app launches.
     ///
     /// ```swift
+    /// import SwiftData
     /// import AIProviderKitPersistence
     ///
     /// let container = try ModelContainer(

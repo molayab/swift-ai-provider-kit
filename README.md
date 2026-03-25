@@ -283,7 +283,8 @@ To use a specific store backend, pass it at init time:
 // Default: in-memory (conversations lost on dealloc)
 let client = AIClient(provider: ClaudeProvider(authorization: auth), store: .ephemeralMemory)
 
-// SwiftData: persistent across app launches (import AIProviderKitPersistence)
+// SwiftData: persistent across app launches
+import SwiftData
 import AIProviderKitPersistence
 
 let container = try ModelContainer(for: ConversationRecord.self, ConversationTurnRecord.self)

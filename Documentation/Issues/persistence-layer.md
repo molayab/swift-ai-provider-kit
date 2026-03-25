@@ -19,7 +19,10 @@ The persistence layer is **fully modular and swappable**. A single `SupportedCon
 // Ephemeral in-memory (default, zero dependencies)
 let client = AIClient(provider: claude, store: .ephemeralMemory)
 
-// SwiftData (querying, indexing, multi-process — import AIProviderKitPersistence)
+// SwiftData (querying, indexing, multi-process)
+import SwiftData
+import AIProviderKitPersistence
+
 let container = try ModelContainer(for: ConversationRecord.self, ConversationTurnRecord.self)
 let client = AIClient(provider: claude, store: .swiftData(container: container))
 
