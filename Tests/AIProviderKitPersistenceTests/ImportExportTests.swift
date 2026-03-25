@@ -70,7 +70,7 @@ struct ImportExportTests {
         try await store.exportConversation(conv.id, to: url)
 
         // Then
-        #expect(FileManager.default.fileExists(atPath: url.path()))
+        #expect(FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
     }
 
     // MARK: - Import
