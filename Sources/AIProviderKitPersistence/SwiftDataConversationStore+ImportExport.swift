@@ -27,7 +27,8 @@ extension SwiftDataConversationStore {
     /// - Parameters:
     ///   - id: The conversation identifier.
     ///   - url: The file URL to write to. Should use the `.chat` extension.
-    public func exportConversation(_ id: UUID, to url: URL) async throws {
+    @concurrent
+    nonisolated public func exportConversation(_ id: UUID, to url: URL) async throws {
         let data = try await exportConversation(id)
         try data.write(to: url, options: .atomic)
     }
@@ -61,7 +62,8 @@ extension SwiftDataConversationStore {
     ///
     /// - Parameter url: The file URL to read from.
     /// - Returns: The imported conversation.
-    @discardableResult public func importConversation(from url: URL) async throws -> Conversation {
+    @concurrent
+    @discardableResult nonisolated public func importConversation(from url: URL) async throws -> Conversation {
         let data = try Data(contentsOf: url)
         return try await importConversation(from: data)
     }
