@@ -76,6 +76,7 @@ Add the products you need:
 .product(name: "AppleIntelligenceProvider", package: "AIProviderKit"), // On-device Apple Intelligence
 .product(name: "AIProviderTools", package: "AIProviderKit"),           // Ready-to-use tools (optional)
 .product(name: "AIProviderKitNetworking", package: "AIProviderKit"),   // Shared HTTP + SSE client (for custom providers)
+.product(name: "AIProviderKitPersistence", package: "AIProviderKit"),  // SwiftData-backed conversation persistence
 ```
 
 ---
@@ -279,10 +280,27 @@ let reply = try await client.send(
 To use a specific store backend, pass it at init time:
 
 ```swift
+// Default: in-memory (conversations lost on dealloc)
+let client = AIClient(provider: ClaudeProvider(authorization: auth), store: .ephemeralMemory)
+
+// SwiftData: persistent across app launches (import AIProviderKitPersistence)
+import AIProviderKitPersistence
+
+let container = try ModelContainer(for: ConversationRecord.self, ConversationTurnRecord.self)
 let client = AIClient(
     provider: ClaudeProvider(authorization: auth),
-    store: .ephemeralMemory   // default; .fileSystem and .database coming in 0.4.1 / 0.4.2
+    store: .swiftData(container: container)
 )
+```
+
+Export and import conversations as portable `.chat` files:
+
+```swift
+// Export
+try await store.exportConversation(conv.id, to: exportURL)
+
+// Import
+let imported = try await store.importConversation(from: chatFileURL)
 ```
 
 ---
@@ -379,7 +397,7 @@ See [`Documentation/Architecture.md`](Documentation/Architecture.md) for class d
 | `Recipe` | Reusable `{{placeholder}}` prompt template. Decouples prompt engineering from code. |
 | `Skill` | Owns a set of `Tool`s and an optional `Recipe`. Teaches the model how to use those tools for a specific task and post-processes the response into `SkillResult`. |
 | `ConversationStore` | Protocol for async CRUD on conversations and turns. |
-| `SupportedConversationStore` | Enum selecting the active backend (`.ephemeralMemory`, `.fileSystem`, `.database`). |
+| `SupportedConversationStore` | Enum selecting the active backend (`.ephemeralMemory`, `.swiftData(container:)`, `.custom`). |
 | `AILogger` | Wraps `os.Logger`; optionally forwards entries to `AILogStore`. |
 
 ---
@@ -396,8 +414,7 @@ See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan.
 | **0.3.1** | Dynamic model discovery for `ClaudeProvider` | ✅ Shipped |
 | **0.3.2** | Shared HTTP networking layer (`AIProviderKitNetworking`) | ✅ Shipped |
 | **0.4.0** | Persistence — core protocol + in-memory backend | ✅ Shipped |
-| **0.4.1** | Persistence — file system backend | 🔜 Planned |
-| **0.4.2** | Persistence — SwiftData backend | 🔜 Planned |
+| **0.4.1** | Persistence — SwiftData backend + `.chat` export/import | ✅ Shipped |
 | **0.5.0** | RAG — embedding protocol + in-memory vector store | 🔜 Planned |
 | **1.0.0** | Stable API, DocC, example app | 🔜 Planned |
 

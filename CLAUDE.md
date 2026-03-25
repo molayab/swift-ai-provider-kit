@@ -22,10 +22,11 @@ ANTHROPIC_API_KEY=<YOUR_ANTHROPIC_API_KEY> swift package integration-tests
 
 ## Architecture
 
-This is a Swift Package with three library products:
+This is a Swift Package with the following library products:
 
 - **`AIProviderKit`** — Core protocols, models, builders, registries, and the `AIClient` actor. Has no external dependencies.
 - **`ClaudeProvider`** — Anthropic Messages API implementation. Depends on `AIProviderKit`.
+- **`AIProviderKitPersistence`** — SwiftData-backed conversation persistence with `.chat` export/import. Depends on `AIProviderKit`.
 - **`AIProviderKitUI`** — Optional SwiftUI `AILogView` for in-app log viewing. Depends on `AIProviderKit`.
 
 ### Key design patterns

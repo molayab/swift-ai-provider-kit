@@ -80,28 +80,17 @@ Establishes the persistence contract and a zero-dependency default backend. See 
 - [x] Token-budget trimming strategy — prune oldest turns when context limit is approached
 - [x] Unit tests — full coverage using `.ephemeralMemory`
 
-## 0.4.1 — Persistence: File System Backend
+## 0.4.1 — Persistence: SwiftData Backend ✓
 
-Ships as `AIProviderKitPersistenceFS`; works on every Apple platform and Linux without additional frameworks.
+Ships as `AIProviderKitPersistence`; SwiftData-backed with injectable `ModelContainer` for querying, indexing, and multi-process access. Includes `.chat` file export/import for portability.
 
-- [ ] `FileSystemConversationStore` — backing type for `.fileSystem(directory:)` case
-- [ ] Atomic writes — write to temp file, rename on success, no partial-write corruption
-- [ ] Async I/O — file operations offloaded off the calling actor, never blocking
-- [ ] Conversation index file — fast list / search without loading all turn payloads
-- [ ] Import / export — portable conversation JSON bundles
-- [ ] Unit tests — `tmp`-directory fixtures, cross-platform
-- [ ] Integration tests — round-trip verify against real Claude responses
-
-## 0.4.2 — Persistence: Database Backend
-
-Ships as `AIProviderKitPersistenceDB`; SwiftData-backed for querying, indexing, and multi-process access.
-
-- [ ] `SwiftDataConversationStore` — backing type for `.database(configuration:)` case (iOS 17+ / macOS 14+)
-- [ ] Schema migrations — versioned `ModelContainer` configuration
-- [ ] Predicate-based search — query conversations by date, provider, model, or metadata
-- [ ] `AIProviderKitUI` — conversation history list view backed by `@Query`
-- [ ] Unit tests — in-memory `ModelContainer` for test isolation
-- [ ] Migration utilities — import `FileSystemConversationStore` data into SwiftData
+- [x] `SwiftDataConversationStore` — `@ModelActor`-based store conforming to `ConversationStore`
+- [x] Injectable `ModelContainer` — callers provide their own container at init time
+- [x] `ConversationRecord` / `ConversationTurnRecord` — SwiftData `@Model` classes with `Codable` message blobs
+- [x] `.custom(any ConversationStore)` case on `SupportedConversationStore` — enables backend module injection without circular dependencies
+- [x] `.swiftData(container:)` convenience factory — one-line store selection via `SupportedConversationStore` extension
+- [x] `.chat` export / import — portable JSON files with `.chat` extension; single and bulk operations
+- [x] Unit tests — 22 tests using in-memory `ModelContainer` for test isolation
 
 ## 0.5.0 — Context: Core Protocols & Types
 
@@ -153,7 +142,7 @@ Foundation for `AIProviderKitContext` — the optional context retrieval library
 
 ## 1.0.0 — MVP
 
-All of 0.2–0.5.7, plus:
+All of 0.2–0.4.1 and 0.5.x, plus:
 
 - [ ] Stable public API guarantee (SemVer from this point forward)
 - [ ] Comprehensive DocC documentation for all public symbols
