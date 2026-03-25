@@ -31,6 +31,9 @@ let package = Package(
         // Ready-to-use Tool implementations anyone can drop into an AIClient.
         .library(name: "AIProviderTools", targets: ["AIProviderTools"]),
 
+        // SwiftData-backed conversation persistence (Apple platforms only).
+        .library(name: "AIProviderKitPersistence", targets: ["AIProviderKitPersistence"]),
+
         // Optional CLI tool — chat with any provider or run live integration tests.
         // swift run Runner chat claude | swift run Runner test all
         .executable(name: "Runner", targets: ["Runner"]),
@@ -108,6 +111,19 @@ let package = Package(
             name: "AIProviderTools",
             dependencies: ["AIProviderKit"],
             path: "Sources/AIProviderTools",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
+        ),
+
+        // MARK: - Persistence (SwiftData)
+
+        .target(
+            name: "AIProviderKitPersistence",
+            dependencies: ["AIProviderKit"],
+            path: "Sources/AIProviderKitPersistence",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
@@ -194,6 +210,16 @@ let package = Package(
             name: "AIProviderToolsTests",
             dependencies: ["AIProviderTools", "AIProviderKit"],
             path: "Tests/AIProviderToolsTests",
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableUpcomingFeature("StrictConcurrency")
+            ],
+            plugins: [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")]
+        ),
+        .testTarget(
+            name: "AIProviderKitPersistenceTests",
+            dependencies: ["AIProviderKitPersistence", "AIProviderKit"],
+            path: "Tests/AIProviderKitPersistenceTests",
             swiftSettings: [
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
