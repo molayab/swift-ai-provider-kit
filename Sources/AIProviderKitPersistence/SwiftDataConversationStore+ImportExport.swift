@@ -46,8 +46,7 @@ extension SwiftDataConversationStore {
     ///
     /// - Parameter data: JSON-encoded ``Conversation``.
     /// - Returns: The imported conversation.
-    @discardableResult
-    public func importConversation(from data: Data) async throws -> Conversation {
+    @discardableResult public func importConversation(from data: Data) async throws -> Conversation {
         let conversation: Conversation
         do {
             conversation = try Self.decoder.decode(Conversation.self, from: data)
@@ -62,8 +61,7 @@ extension SwiftDataConversationStore {
     ///
     /// - Parameter url: The file URL to read from.
     /// - Returns: The imported conversation.
-    @discardableResult
-    public func importConversation(from url: URL) async throws -> Conversation {
+    @discardableResult public func importConversation(from url: URL) async throws -> Conversation {
         let data = try Data(contentsOf: url)
         return try await importConversation(from: data)
     }
@@ -72,8 +70,7 @@ extension SwiftDataConversationStore {
     ///
     /// - Parameter data: JSON-encoded `[Conversation]`.
     /// - Returns: All imported conversations.
-    @discardableResult
-    public func importConversations(from data: Data) async throws -> [Conversation] {
+    @discardableResult public func importConversations(from data: Data) async throws -> [Conversation] {
         let conversations: [Conversation]
         do {
             conversations = try Self.decoder.decode([Conversation].self, from: data)

@@ -11,7 +11,8 @@ struct SupportedConversationStoreSwiftDataTests {
         // Given
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
-            for: ConversationRecord.self, ConversationTurnRecord.self,
+            for: ConversationRecord.self,
+            ConversationTurnRecord.self,
             configurations: config
         )
         let storeEnum = SupportedConversationStore.swiftData(container: container)
@@ -31,7 +32,8 @@ struct SupportedConversationStoreSwiftDataTests {
         // Given
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
-            for: ConversationRecord.self, ConversationTurnRecord.self,
+            for: ConversationRecord.self,
+            ConversationTurnRecord.self,
             configurations: config
         )
         let inner = SwiftDataConversationStore(modelContainer: container)

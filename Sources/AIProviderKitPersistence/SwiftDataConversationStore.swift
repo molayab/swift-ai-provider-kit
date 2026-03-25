@@ -19,8 +19,7 @@ public actor SwiftDataConversationStore: ConversationStore {
 
     // MARK: - ConversationStore
 
-    @discardableResult
-    public func createConversation(title: String, model: AIModel) async throws -> Conversation {
+    @discardableResult public func createConversation(title: String, model: AIModel) async throws -> Conversation {
         let conversation = Conversation(title: title, model: model)
         let record = ConversationRecord.from(conversation)
         modelContext.insert(record)

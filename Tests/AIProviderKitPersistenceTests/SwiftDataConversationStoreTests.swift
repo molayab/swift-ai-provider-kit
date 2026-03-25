@@ -12,7 +12,8 @@ struct SwiftDataConversationStoreTests {
     private func makeStore() throws -> SwiftDataConversationStore {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
-            for: ConversationRecord.self, ConversationTurnRecord.self,
+            for: ConversationRecord.self,
+            ConversationTurnRecord.self,
             configurations: config
         )
         return SwiftDataConversationStore(modelContainer: container)
